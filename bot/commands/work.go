@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -24,7 +25,42 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 	//menuComponent := []discordgo.MessageComponent{}
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("You performed some manual labour and earned some money.\nYou earned %d coins.\nYou will be able to work again <t:%d:R>", 0, untilYouCanWorkAgain))
+	moneyEarned, currentStreak := 0, 0
+
+	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+		Content: fmt.Sprintf("You performed some manual labour and earned some money.\nYou earned **%d** money.\nYou will be able to work again <t:%d:R>\nCurrent streak **%d**\n\nBuying additional tools will allow you to earn more money", moneyEarned, untilYouCanWorkAgain, currentStreak),
+		Components: []discordgo.MessageComponent{
+			&discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+
+					&discordgo.Button{
+						Label:    "Buy Axe",
+						Disabled: false,
+						CustomID: "buyAxe",
+					},
+					&discordgo.Button{
+						Label:    "Buy Pickaxe",
+						Disabled: false,
+						CustomID: "buyPickaxe",
+					},
+					&discordgo.Button{
+						Label:    "Buy Shovel",
+						Disabled: false,
+						CustomID: "buyShovel",
+					},
+					&discordgo.Button{
+						Label:    "Buy Hammer",
+						Disabled: false,
+						CustomID: "buyHammer",
+					},
+				},
+			},
+		},
+	})
+
+	if err != nil {
+		malm.Error("Could not send message! %s", err)
+	}
 
 }
 

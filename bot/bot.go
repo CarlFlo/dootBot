@@ -28,6 +28,7 @@ func StartBot() *discordgo.Session {
 	session.AddHandler(messageHandler)
 	session.AddHandler(readyHandler)
 	session.AddHandler(messageUpdateHandler)
+	session.AddHandler(interactionHandler)
 
 	// Attempts to open connection
 	err = session.Open()
