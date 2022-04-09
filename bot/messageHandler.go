@@ -3,8 +3,8 @@ package bot
 import (
 	"strings"
 
-	"github.com/CarlFlo/discordBotTemplate/bot/structs"
-	"github.com/CarlFlo/discordBotTemplate/config"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"

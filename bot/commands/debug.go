@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/CarlFlo/discordBotTemplate/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 
 	"github.com/bwmarrin/discordgo"
 )

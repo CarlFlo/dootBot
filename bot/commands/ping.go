@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CarlFlo/discordBotTemplate/bot/commands/cmdutils"
-	"github.com/CarlFlo/discordBotTemplate/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/cmdutils"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -49,7 +49,8 @@ func Pong(s *discordgo.Session, mu *discordgo.MessageUpdate) {
 		delete(cache, mu.ID)
 
 		// Parses the time and ignores the error
-		newTime, _ := mu.EditedTimestamp.Parse()
+		//newTime, _ := mu.EditedTimestamp.Parse()
+		newTime := mu.EditedTimestamp
 		diff := newTime.Sub(cachedTime)
 
 		s.ChannelMessageEdit(mu.ChannelID, mu.ID, fmt.Sprintf("The ping is %v", diff))

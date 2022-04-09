@@ -3,8 +3,8 @@ package bot
 import (
 	"unicode"
 
-	"github.com/CarlFlo/discordBotTemplate/bot/commands"
-	"github.com/CarlFlo/discordBotTemplate/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -61,6 +61,11 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	validCommands["work"] = command{
+		function:           commands.Work,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	// Perm User - Misc commands
 	validCommands["ping"] = command{
 		function:           commands.Ping,
@@ -70,12 +75,6 @@ func mapValidCommands() {
 	validCommands["botinvite"] = command{
 		function:           commands.BotInvite,
 		requiredPermission: enumUser,
-		commandType:        typeMisc}
-
-	validCommands["echo"] = command{
-		function:           commands.Echo,
-		requiredPermission: enumUser,
-		helpSyntax:         "<text>",
 		commandType:        typeMisc}
 
 	// Validates the keys so no-one is uppercase

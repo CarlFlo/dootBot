@@ -3,9 +3,9 @@ package commands
 import (
 	"fmt"
 
-	"github.com/CarlFlo/discordBotTemplate/bot/commands/cmdutils"
-	"github.com/CarlFlo/discordBotTemplate/bot/structs"
-	"github.com/CarlFlo/discordBotTemplate/config"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/cmdutils"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"

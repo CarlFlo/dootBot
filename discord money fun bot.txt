@@ -1,0 +1,40 @@
+# Commands
+work: get some money, extra reward for streaks (each 5 intervals) (6h cooldown) 
+daily: Get some money, extra reward for streaks (each 10 intervals) (24h cooldown)
+farm: See the overview of the farm
+water: Water the crops (2h cooldown)
+harvest: Harvest all crops that can be harvested
+plant:
+
+# Active money making
+-work (Manual labour)
+Can give you money every 6 hours. Buy expensive tools (that stack) to increase how much money you get.
+Axe, Pickaxe, Shovel, Garden Hoe (Interactive message to buy tools when executing the work command)
+
+# Passive money making
+- Farms
+Plant crops that needs to be watered every 24 hours. 
+Each watering decreses the growth time by 30 minutes (2h cooldown)
+Buy additional farming plots
+
+- Ore mining
+Mine Coal, Iron, Copper, Silver, Gold
+Each their needs an upgrade
+Mined ore get stored in storage, which can be upgraded. No storage = no more ore
+Buy mines, equipment and fuel(?)
+Refine the ore for greater profit.
+
+- Oil drilling
+
+- Rent property
+
+- Factory
+Produce goods
+
+# Investing
+- Crypto
+- Stocks
+
+# Send money between people
+
+# Banking

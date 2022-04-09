@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CarlFlo/discordBotTemplate/bot"
-	"github.com/CarlFlo/discordBotTemplate/config"
-	"github.com/CarlFlo/discordBotTemplate/utils"
+	"github.com/CarlFlo/DiscordMoneyBot/bot"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 )
 

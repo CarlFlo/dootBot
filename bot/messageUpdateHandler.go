@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"github.com/CarlFlo/discordBotTemplate/bot/commands"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
 	"github.com/bwmarrin/discordgo"
 )
 

@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"github.com/CarlFlo/discordBotTemplate/config"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"

@@ -1,8 +1,6 @@
 package cmdutils
 
 import (
-	"log"
-
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,5 +11,5 @@ func SendDirectMessage(s *discordgo.Session, m *discordgo.MessageCreate, content
 		return nil, err
 	}
 
-	return s.ChannelMessageSend(ch.ID, content), nil
+	return s.ChannelMessageSend(ch.ID, content)
 }
