@@ -45,6 +45,7 @@ type work struct {
 	WorkCooldown time.Duration `json:"workCooldown"`
 	MinMoney     int           `json:"minMoney"`
 	MaxMoney     int           `json:"maxMoney"`
+	ToolBonus    int           `json:"toolBonus"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -97,6 +98,7 @@ func createConfig() error {
 			WorkCooldown: 6,
 			MinMoney:     100,
 			MaxMoney:     250,
+			ToolBonus:    100,
 		},
 	}
 
