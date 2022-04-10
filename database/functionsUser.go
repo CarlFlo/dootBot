@@ -5,6 +5,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
+	"gorm.io/gorm"
 )
 
 func InitializeNewUser(userID string) {
@@ -20,7 +21,7 @@ func InitializeNewUser(userID string) {
 	}
 
 	work := Work{
-		UserID:      user.ID,
+		Model:       gorm.Model{ID: user.ID},
 		LastUpdated: time.Now().Add(time.Hour * -config.CONFIG.Work.WorkCooldown),
 		Streak:      0,
 		Tools:       0}
