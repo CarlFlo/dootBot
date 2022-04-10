@@ -15,18 +15,13 @@ type User struct {
 
 type Work struct {
 	gorm.Model
-	LastUpdated time.Time
-	Streak      uint16
-	Tools       uint8
+	LastWorkedAt time.Time
+	Streak       uint16
+	Tools        uint8
 }
 
-/*
-type Work struct {
+type Daily struct {
 	gorm.Model
-	UserID      uint
-	LastUpdated time.Time
+	LastDailyAt time.Time
 	Streak      uint16
-	Tools       uint8
 }
-
-*/

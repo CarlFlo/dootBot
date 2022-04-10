@@ -21,10 +21,10 @@ func InitializeNewUser(userID string) {
 	}
 
 	work := Work{
-		Model:       gorm.Model{ID: user.ID},
-		LastUpdated: time.Now().Add(time.Hour * -config.CONFIG.Work.WorkCooldown),
-		Streak:      0,
-		Tools:       0}
+		Model:        gorm.Model{ID: user.ID},
+		LastWorkedAt: time.Now().Add(time.Hour * -config.CONFIG.Work.WorkCooldown),
+		Streak:       0,
+		Tools:        0}
 
 	result = DB.Create(&work)
 	if result.Error != nil {
