@@ -5,6 +5,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -16,6 +17,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.Bot {
 		return
 	}
+
+	databaseActions(m)
 
 	// Check for prefix
 	if strings.HasPrefix(m.Message.Content, config.CONFIG.BotPrefix) {
@@ -99,4 +102,16 @@ func validateMessageOrigin(guildID, channelID string) bool {
 	}
 
 	return true
+}
+
+func databaseActions(m *discordgo.MessageCreate) {
+
+	// Checks if the user is in the database
+	var user database.User
+
+	if err := database.DB.Where("User_ID = ?", m.Author.ID).First(&user).Error; err != nil {
+		malm.Debug("User %s (%s) not found in database. Creating new entry for user", m.Author.Username, m.Author.ID)
+		database.InitializeNewUser(m.Author.ID)
+	}
+
 }

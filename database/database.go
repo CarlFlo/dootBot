@@ -10,12 +10,13 @@ var DB *gorm.DB
 
 func connectToDB() error {
 
-	DB, err := gorm.Open(sqlite.Open(config.CONFIG.Database.FileName), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(sqlite.Open(config.CONFIG.Database.FileName), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 
-	DB.AutoMigrate(&User{})
+	DB.AutoMigrate(&User{}, &Work{})
 
 	return nil
 }

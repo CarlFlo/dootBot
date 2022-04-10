@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+	"time"
 
 	"github.com/CarlFlo/malm"
 )
@@ -23,6 +24,7 @@ type configStruct struct {
 	BotInfo             botInfo           `json:"botInfo"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
+	Work                work              `json:"work"`
 }
 
 type botInfo struct {
@@ -37,6 +39,12 @@ type messageProcessing struct {
 
 type database struct {
 	FileName string `json:"fileName"`
+}
+
+type work struct {
+	WorkCooldown time.Duration `json:"workCooldown"`
+	MinMoney     int           `json:"minMoney"`
+	MaxMoney     int           `json:"maxMoney"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -85,6 +93,10 @@ func createConfig() error {
 			MaxIncommingMsgLength: 0,    // Set to 0 for ignore
 		}, Database: database{
 			FileName: "database.db",
+		}, Work: work{
+			WorkCooldown: 6,
+			MinMoney:     100,
+			MaxMoney:     250,
 		},
 	}
 
