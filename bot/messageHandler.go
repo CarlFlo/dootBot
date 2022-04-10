@@ -109,7 +109,7 @@ func databaseActions(m *discordgo.MessageCreate) {
 	// Checks if the user is in the database
 	var user database.User
 
-	if err := database.DB.Where("User_ID = ?", m.Author.ID).First(&user).Error; err != nil {
+	if err := database.DB.Where("discord_ID = ?", m.Author.ID).First(&user).Error; err != nil {
 		malm.Debug("User %s (%s) not found in database. Creating new entry for user", m.Author.Username, m.Author.ID)
 		database.InitializeNewUser(m.Author.ID)
 	}
