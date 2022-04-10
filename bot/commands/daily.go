@@ -41,14 +41,21 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdIn
 	// Adds the cooldown hours
 	currentTime = currentTime.Add(time.Hour * config.CONFIG.Daily.Cooldown)
 
-	moneyEarned := rand.Intn(config.CONFIG.Daily.MaxMoney-config.CONFIG.Daily.MinMoney) + config.CONFIG.Daily.MinMoney
-
 	// Updates the variables
 	daily.Streak += 1
 	daily.LastDailyAt = time.Now()
+
+	streakBonus := 1
+	if daily.Streak%7 == 0 {
+		streakBonus = 2
+	}
+
+	moneyEarned := (rand.Intn(config.CONFIG.Daily.MaxMoney-config.CONFIG.Daily.MinMoney) + config.CONFIG.Daily.MinMoney) * streakBonus
 	user.Money += uint64(moneyEarned)
 
 	// TODO: Add ability to buy tools
+
+	// Special message if user has a streak
 
 	// Sends the message
 	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{

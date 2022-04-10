@@ -43,14 +43,20 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	// Adds the cooldown hours
 	currentTime = currentTime.Add(time.Hour * config.CONFIG.Work.Cooldown)
 
-	moneyEarned := generateWorkIncome(&work)
-
 	// Updates the variables
 	work.Streak += 1
 	work.LastWorkedAt = time.Now()
+
+	streakBonus := 1
+	if work.Streak%6 == 0 {
+		streakBonus = 2
+	}
+	moneyEarned := generateWorkIncome(&work, streakBonus)
 	user.Money += uint64(moneyEarned)
 
 	// TODO: Add ability to buy tools
+
+	// Special message if user has a streak
 
 	// Sends the message
 	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
@@ -93,9 +99,11 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	database.DB.Save(&work)
 }
 
-func generateWorkIncome(work *database.Work) int {
+func generateWorkIncome(work *database.Work, streakBonus int) int {
 	// Generate a random int between config.CONFIG.Work.MinMoney and config.CONFIG.Work.MaxMoney
 	moneyEarned := rand.Intn(config.CONFIG.Work.MaxMoney-config.CONFIG.Work.MinMoney) + config.CONFIG.Work.MinMoney
+
+	moneyEarned *= streakBonus
 
 	// Factor in the numBoughtTools
 	// Count the numbers of bits set in the variable work.Tools
