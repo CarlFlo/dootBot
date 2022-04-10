@@ -20,9 +20,13 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	var work database.Work
 
 	//database.DB.Table("Works").Where("user_id = ?", m.Author.ID).First(&work)
+	// https://gorm.io/docs/query.html#Joins
+	if err := database.DB.Joins("JOIN Works ON Works.user_ID = Users.ID").
+		Where("Users.discord_ID = ?", m.Author.ID).
+		First(&work); err != nil {
 
-	//database.DB.Joins("JOIN Users ON Works.user_id = Users.id").Where("Users.discord_id = ?", m.Author.ID).First(&work)
-	database.DB.Joins("JOIN Works ON Works.user_id = Users.id").Where("Users.discord_id = ?", m.Author.ID).First(&work)
+		malm.Error("DB error: %s", err)
+	}
 
 	/* This code above does not work. Broken join */
 
