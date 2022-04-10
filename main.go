@@ -10,6 +10,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 )
@@ -25,6 +26,10 @@ func init() {
 
 	if err := config.LoadConfiguration(); err != nil {
 		malm.Fatal("Error loading configuration: %v", err)
+	}
+
+	if err := database.SetupDatabase(); err != nil {
+		malm.Fatal("Database initialization error: %s", err)
 	}
 
 	malm.Debug("Version %s", config.CONFIG.Version)

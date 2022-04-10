@@ -16,18 +16,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "You clicked a button!",
-			Components: []discordgo.MessageComponent{
-				&discordgo.ActionsRow{
-					Components: []discordgo.MessageComponent{
-						&discordgo.Button{
-							Label:    "X",
-							Disabled: true,
-							CustomID: component.CustomID,
-						},
-					},
-				},
-			},
+			Content:    "You clicked a button!",
+			Components: []discordgo.MessageComponent{},
 		},
 	})
 
