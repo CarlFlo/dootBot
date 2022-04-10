@@ -22,6 +22,7 @@ type configStruct struct {
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
+	Database            database          `json:"database"`
 }
 
 type botInfo struct {
@@ -32,6 +33,10 @@ type botInfo struct {
 type messageProcessing struct {
 	MessageLengthLimit    int `json:"messageLengthLimit"`
 	MaxIncommingMsgLength int `json:"maxIncommingMsgLength"`
+}
+
+type database struct {
+	FileName string `json:"fileName"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -66,7 +71,7 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2021-04-13",
+		Version:             "2022-04-10",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
@@ -78,6 +83,8 @@ func createConfig() error {
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.
 			MaxIncommingMsgLength: 0,    // Set to 0 for ignore
+		}, Database: database{
+			FileName: "database.db",
 		},
 	}
 
