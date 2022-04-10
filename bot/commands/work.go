@@ -20,16 +20,16 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
 
-	// if there has been 6 hours since last time the user worked
-	if time.Since(work.LastWorkedAt).Hours() < 6 {
+	// if there has been n hours since last time the user worked
+	if time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
 
-		message := fmt.Sprintf("You can only work once every %d hours.\nYou can work again <t:%d:R>", config.CONFIG.Work.WorkCooldown, work.LastWorkedAt.Add(time.Hour*6).Unix())
+		message := fmt.Sprintf("You can only work once every %d hours.\nYou can work again <t:%d:R>", config.CONFIG.Work.Cooldown, work.LastWorkedAt.Add(time.Hour*6).Unix())
 		s.ChannelMessageSend(m.ChannelID, message)
 		// TODO: Make complex with componentes to user can buy tools
 		return
 	}
 
-	// Reset streak if user hasnt worked in 24 hours
+	// Reset streak if user hasn't worked in 24 hours
 	if time.Since(work.LastWorkedAt).Hours() > 24 {
 		work.Streak = 0
 	}
@@ -39,10 +39,9 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	var user database.User
 	database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
 
-	// Get the current time
 	currentTime := time.Now()
-	// Add six hours
-	currentTime = currentTime.Add(time.Hour * 6)
+	// Adds the cooldown hours
+	currentTime = currentTime.Add(time.Hour * config.CONFIG.Work.Cooldown)
 
 	moneyEarned := generateWorkIncome(&work)
 

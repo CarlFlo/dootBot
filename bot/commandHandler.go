@@ -66,6 +66,11 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	validCommands["daily"] = command{
+		function:           commands.Daily,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	// Perm User - Misc commands
 	validCommands["ping"] = command{
 		function:           commands.Ping,

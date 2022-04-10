@@ -19,7 +19,7 @@ func connectToDB() error {
 		return err
 	}
 
-	DB.AutoMigrate(&User{}, &Work{})
+	DB.AutoMigrate(&User{}, &Work{}, &Daily{})
 
 	return nil
 }

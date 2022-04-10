@@ -25,6 +25,7 @@ type configStruct struct {
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
 	Work                work              `json:"work"`
+	Daily               daily             `json:"daily"`
 }
 
 type botInfo struct {
@@ -42,10 +43,16 @@ type database struct {
 }
 
 type work struct {
-	WorkCooldown time.Duration `json:"workCooldown"`
-	MinMoney     int           `json:"minMoney"`
-	MaxMoney     int           `json:"maxMoney"`
-	ToolBonus    int           `json:"toolBonus"`
+	Cooldown  time.Duration `json:"workCooldown"`
+	MinMoney  int           `json:"minMoney"`
+	MaxMoney  int           `json:"maxMoney"`
+	ToolBonus int           `json:"toolBonus"`
+}
+
+type daily struct {
+	Cooldown time.Duration `json:"dailyCooldown"`
+	MinMoney int           `json:"minMoney"`
+	MaxMoney int           `json:"maxMoney"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -95,10 +102,15 @@ func createConfig() error {
 		}, Database: database{
 			FileName: "database.db",
 		}, Work: work{
-			WorkCooldown: 6,
-			MinMoney:     100,
-			MaxMoney:     250,
-			ToolBonus:    100,
+			Cooldown:  6,
+			MinMoney:  100,
+			MaxMoney:  250,
+			ToolBonus: 100,
+		},
+		Daily: daily{
+			Cooldown: 24,
+			MinMoney: 1000,
+			MaxMoney: 2500,
 		},
 	}
 
