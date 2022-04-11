@@ -43,16 +43,24 @@ type database struct {
 }
 
 type work struct {
-	Cooldown  time.Duration `json:"workCooldown"`
-	MinMoney  int           `json:"minMoney"`
-	MaxMoney  int           `json:"maxMoney"`
-	ToolBonus int           `json:"toolBonus"`
+	// Cooldown in hours
+	Cooldown         time.Duration `json:"cooldown"`
+	MinMoney         int           `json:"minMoney"`
+	MaxMoney         int           `json:"maxMoney"`
+	ToolBonus        int           `json:"toolBonus"`
+	StreakLength     uint16        `json:"streakLength"`
+	StreakBonus      int           `json:"streakBonus"`
+	StreakResetHours int           `json:"streakResetHours"`
 }
 
 type daily struct {
-	Cooldown time.Duration `json:"dailyCooldown"`
-	MinMoney int           `json:"minMoney"`
-	MaxMoney int           `json:"maxMoney"`
+	// Cooldown in hours
+	Cooldown         time.Duration `json:"cooldown"`
+	MinMoney         int           `json:"minMoney"`
+	MaxMoney         int           `json:"maxMoney"`
+	StreakLength     uint16        `json:"streakLength"`
+	StreakBonus      int           `json:"streakBonus"`
+	StreakResetHours int           `json:"streakResetHours"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -102,15 +110,21 @@ func createConfig() error {
 		}, Database: database{
 			FileName: "database.db",
 		}, Work: work{
-			Cooldown:  6,
-			MinMoney:  100,
-			MaxMoney:  250,
-			ToolBonus: 100,
+			Cooldown:         6,
+			MinMoney:         100,
+			MaxMoney:         250,
+			ToolBonus:        100,
+			StreakLength:     5,
+			StreakBonus:      1000,
+			StreakResetHours: 24,
 		},
 		Daily: daily{
-			Cooldown: 24,
-			MinMoney: 1000,
-			MaxMoney: 2500,
+			Cooldown:         24,
+			MinMoney:         1000,
+			MaxMoney:         2500,
+			StreakLength:     7,
+			StreakBonus:      10000,
+			StreakResetHours: 48,
 		},
 	}
 

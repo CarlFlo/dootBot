@@ -20,8 +20,8 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
 
-	// if there has been n hours since last time the user worked
-	if time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
+	// Has there has been enough time since the last time the user worked?
+	if false && time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
 
 		message := fmt.Sprintf("You can only work once every %d hours.\nYou can work again <t:%d:R>", config.CONFIG.Work.Cooldown, work.LastWorkedAt.Add(time.Hour*6).Unix())
 		s.ChannelMessageSend(m.ChannelID, message)
@@ -29,81 +29,104 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 		return
 	}
 
-	// Reset streak if user hasn't worked in 24 hours
-	if time.Since(work.LastWorkedAt).Hours() > 24 {
+	// Reset streak if user hasn't worked in the default 24 hours
+	if time.Since(work.LastWorkedAt).Hours() > float64(config.CONFIG.Work.StreakResetHours) {
+		work.ConsecutiveStreaks = 0
 		work.Streak = 0
 	}
-
-	// TODO: Handle extra rewards for long streaks
 
 	var user database.User
 	database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
 
-	currentTime := time.Now()
-	// Adds the cooldown hours
-	currentTime = currentTime.Add(time.Hour * config.CONFIG.Work.Cooldown)
+	// Adds the cooldown
+	currentTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)
 
 	// Updates the variables
+	work.ConsecutiveStreaks += 1
 	work.Streak += 1
 	work.LastWorkedAt = time.Now()
 
-	streakBonus := 1
-	if work.Streak%6 == 0 {
-		streakBonus = 2
+	// The StreakLength changed, so we need to update the streak for the player to avoid a crash
+	if work.Streak > config.CONFIG.Work.StreakLength {
+		work.Streak = config.CONFIG.Work.StreakLength
 	}
-	moneyEarned := generateWorkIncome(&work, streakBonus)
+
+	moneyEarned := generateWorkIncome(&work)
 	user.Money += uint64(moneyEarned)
 
 	// TODO: Add ability to buy tools
 
-	// Special message if user has a streak
-
 	// Sends the message
 	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-		Content: fmt.Sprintf("You performed some manual labour and earned some credits.\nYou earned **%d** credits.\nYou will be able to work again <t:%d:R>\nCurrent streak **%d**\n\nBuying additional tools will allow you to earn more money\n Each tool adds an extra income of %d credits", moneyEarned, currentTime.Unix(), work.Streak, config.CONFIG.Work.ToolBonus),
-		Components: []discordgo.MessageComponent{
-			&discordgo.ActionsRow{
-				Components: []discordgo.MessageComponent{
-
-					&discordgo.Button{
-						Label:    "Buy Axe (500)",
-						Disabled: false,
-						CustomID: "buyAxe",
+		Embeds: []*discordgo.MessageEmbed{
+			&discordgo.MessageEmbed{
+				Type:        discordgo.EmbedTypeRich,
+				Title:       "Pay Check",
+				Description: fmt.Sprintf("You performed some manual labour and earned **%d** credits!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d** (%d)\n\nBuying additional tools will add an extra income of **%d** credits", moneyEarned, currentTime.Unix(), work.ConsecutiveStreaks, work.Streak, config.CONFIG.Work.ToolBonus),
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:  "Extra Reward",
+						Value: generateStreakMessage(work.Streak),
 					},
-					&discordgo.Button{
-						Label:    "Buy Pickaxe (750)",
-						Disabled: false,
-						CustomID: "buyPickaxe",
-					},
-					&discordgo.Button{
-						Label:    "Buy Shovel (850)",
-						Disabled: false,
-						CustomID: "buyShovel",
-					},
-					&discordgo.Button{
-						Label:    "Buy Hammer (1000)",
-						Disabled: false,
-						CustomID: "buyHammer",
-					},
+				},
+				Footer: &discordgo.MessageEmbedFooter{
+					Text: fmt.Sprintf("Completing your streak will earn you an extra **%d'* credits!\nThe streak resets after **%d** hours of inactivity", config.CONFIG.Work.StreakBonus, config.CONFIG.Work.StreakResetHours),
+				},
+				Thumbnail: &discordgo.MessageEmbedThumbnail{
+					URL: m.Author.AvatarURL("256"),
 				},
 			},
 		},
+		Components: createButtonComponent(&work),
 	})
 
 	if err != nil {
-		malm.Error("Could not send message! %s", err)
+		malm.Error("Could not send message! (Data not saved) %s", err)
 		return
 	}
+
+	// Wrap around the streak
+	work.Streak %= config.CONFIG.Work.StreakLength
+
 	// Save the new streak, time and money to the user
 	database.DB.Save(&user)
 	database.DB.Save(&work)
 }
 
-func generateWorkIncome(work *database.Work, streakBonus int) int {
+func generateStreakMessage(streak uint16) string {
+
+	// Array of strings
+	streakMessages := []string{
+		":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"}
+
+	percentage := float64(streak) / float64(config.CONFIG.Work.StreakLength)
+	upTo := int(float64(len(streakMessages)) * percentage)
+
+	// Append to a string values in streakMessages upto the index of upTo
+	var message string
+
+	for i := 0; i < upTo; i++ {
+		message += fmt.Sprintf("%s ", streakMessages[i])
+	}
+	for i := upTo; i < len(streakMessages); i++ {
+		message += "- "
+	}
+	var streakMessage string
+	if streak == config.CONFIG.Work.StreakLength {
+		streakMessage = fmt.Sprintf("You earned an additional **%d** credits!", config.CONFIG.Work.StreakBonus)
+	}
+	return fmt.Sprintf("%s(%d%%) %s", message, int(percentage*100), streakMessage)
+}
+
+func generateWorkIncome(work *database.Work) int {
+
 	// Generate a random int between config.CONFIG.Work.MinMoney and config.CONFIG.Work.MaxMoney
 	moneyEarned := rand.Intn(config.CONFIG.Work.MaxMoney-config.CONFIG.Work.MinMoney) + config.CONFIG.Work.MinMoney
 
-	moneyEarned *= streakBonus
+	// Adds the streak bonus to the amount
+	if work.Streak == config.CONFIG.Work.StreakLength {
+		moneyEarned += config.CONFIG.Work.StreakBonus
+	}
 
 	// Factor in the numBoughtTools
 	// Count the numbers of bits set in the variable work.Tools
@@ -117,4 +140,35 @@ func generateWorkIncome(work *database.Work, streakBonus int) int {
 	moneyEarned += numBoughtTools * config.CONFIG.Work.ToolBonus
 
 	return moneyEarned
+}
+
+func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
+
+	components := []discordgo.MessageComponent{}
+
+	components = append(components, &discordgo.Button{
+		Label:    "Buy Axe (500)",
+		Disabled: false,
+		CustomID: "buyAxe",
+	})
+
+	components = append(components, &discordgo.Button{
+		Label:    "Buy Pickaxe (750)",
+		Disabled: false,
+		CustomID: "buyPickaxe",
+	})
+
+	components = append(components, &discordgo.Button{
+		Label:    "Buy Shovel (850)",
+		Disabled: false,
+		CustomID: "buyShovel",
+	})
+
+	components = append(components, &discordgo.Button{
+		Label:    "Buy Hammer (1000)",
+		Disabled: false,
+		CustomID: "buyHammer",
+	})
+
+	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }

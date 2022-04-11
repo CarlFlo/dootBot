@@ -16,9 +16,10 @@ type User struct {
 
 type Work struct {
 	gorm.Model
-	LastWorkedAt time.Time
-	Streak       uint16
-	Tools        uint8
+	LastWorkedAt       time.Time
+	ConsecutiveStreaks uint16
+	Streak             uint16
+	Tools              uint8
 }
 
 type Daily struct {
