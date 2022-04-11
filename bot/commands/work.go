@@ -198,7 +198,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 			components = append(components, &discordgo.Button{
 				Label:    fmt.Sprintf("Buy %s (%d)", v.Name, v.Price),
 				Disabled: false,
-				CustomID: fmt.Sprintf("BWT-%s-%d", v.Name, v.Price), // 'BWT' is code for 'Buy Work Tool'
+				CustomID: fmt.Sprintf("BWT-%s", v.Name), // 'BWT' is code for 'Buy Work Tool'
 			})
 		}
 	}
