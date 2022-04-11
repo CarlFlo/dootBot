@@ -24,6 +24,7 @@ type configStruct struct {
 	BotInfo             botInfo           `json:"botInfo"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
+	Debug               debug             `json:"debug"`
 	Economy             economy           `json:"economy"`
 	Work                work              `json:"work"`
 	Daily               daily             `json:"daily"`
@@ -41,6 +42,11 @@ type messageProcessing struct {
 
 type database struct {
 	FileName string `json:"fileName"`
+}
+
+type debug struct {
+	IgnoreWorkCooldown  bool `json:"ignoreWorkCooldown"`
+	IgnoreDailyCooldown bool `json:"ignoreDailyCooldown"`
 }
 
 type economy struct {
