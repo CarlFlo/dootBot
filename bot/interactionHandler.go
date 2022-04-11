@@ -21,15 +21,17 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	if i.User != nil && i.User.ID != commandIssuerID || i.Member != nil && i.Member.User.ID != commandIssuerID {
 
-		var youID string
+		/*
+			var youID string
 
-		if i.User != nil {
-			youID = i.User.ID
-		} else if i.Member != nil {
-			youID = i.Member.User.ID
-		}
+			if i.User != nil {
+				youID = i.User.ID
+			} else if i.Member != nil {
+				youID = i.Member.User.ID
+			}
+		*/
 
-		response = fmt.Sprintf("You cannot interact with this message! Author id: '%s' Your id: '%s'", commandIssuerID, youID)
+		response = "You cannot interact with this message!"
 		goto sendInteraction
 	}
 
