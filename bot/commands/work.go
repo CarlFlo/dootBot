@@ -53,7 +53,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 	// TODO: Add ability to buy tools
 
-	description := fmt.Sprintf("%s**%d** %s were deposited into your account!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d**\n\nBuying additional tools will add an extra income of **%d** %s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	description := fmt.Sprintf("%sYou earned **%d** %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d**\n\nBuying additional tools will add an extra income of **%d** %s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
 
 	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
 
@@ -107,7 +107,7 @@ func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work 
 		Embeds: []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
-				Title:       "Slow down!",
+				Title:       ":x: Slow down!",
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
 					&discordgo.MessageEmbedField{
