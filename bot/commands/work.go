@@ -51,9 +51,16 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	moneyEarned := generateWorkIncome(&work)
 	user.Money += uint64(moneyEarned)
 
-	// TODO: Add ability to buy tools
+	// Tools tooltip
+	numOfBoughtTools := numberOfBoughtTools(&work)
+	var toolsTooltip string
+	if numOfBoughtTools > 0 {
+		toolsTooltip = fmt.Sprintf(":tools: You have %d tool(s), giving you an additional %d %s", numOfBoughtTools, numOfBoughtTools*config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	} else {
+		toolsTooltip = fmt.Sprintf("Buying additional tools will add an extra income of **%d** %s", config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	}
 
-	description := fmt.Sprintf("%sYou earned **%d** %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d**\n\nBuying additional tools will add an extra income of **%d** %s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	description := fmt.Sprintf("%sYou earned **%d** %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d**\n\n%s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
 
 	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
 
@@ -174,18 +181,22 @@ func generateWorkIncome(work *database.Work) int {
 		moneyEarned += config.CONFIG.Work.StreakBonus
 	}
 
+	moneyEarned += numberOfBoughtTools(work) * config.CONFIG.Work.ToolBonus
+
+	return moneyEarned
+}
+
+func numberOfBoughtTools(work *database.Work) int {
 	// Factor in the number of bought tools
 	// Count the numbers of bits set in the variable work.Tools
+
 	numBoughtTools := 0
 	for i := 0; i < 8; i++ {
 		if work.Tools&(1<<uint8(i)) != 0 {
 			numBoughtTools++
 		}
 	}
-
-	moneyEarned += numBoughtTools * config.CONFIG.Work.ToolBonus
-
-	return moneyEarned
+	return numBoughtTools
 }
 
 func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
