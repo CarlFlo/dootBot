@@ -16,12 +16,14 @@ import (
 // Debug - prints some debug information
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
+	noWaitCooldown := true
+
 	var work database.Work
 
 	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
 
 	// Has there has been enough time since the last time the user worked?
-	if false && time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
+	if !noWaitCooldown && time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
 
 		message := fmt.Sprintf("You can only work once every %d hours.\nYou can work again <t:%d:R>", config.CONFIG.Work.Cooldown, work.LastWorkedAt.Add(time.Hour*6).Unix())
 		s.ChannelMessageSend(m.ChannelID, message)
@@ -56,8 +58,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 	// TODO: Add ability to buy tools
 
-	// Sends the message
-	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
@@ -77,8 +78,15 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 				},
 			},
 		},
-		Components: createButtonComponent(&work),
-	})
+	}
+
+	if components := createButtonComponent(&work); components != nil {
+		malm.Info("Add components to message")
+		complexMessage.Components = components
+	}
+
+	// Sends the message
+	_, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage)
 
 	if err != nil {
 		malm.Error("Could not send message! (Data not saved) %s", err)
@@ -146,29 +154,38 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
 
-	components = append(components, &discordgo.Button{
-		Label:    "Buy Axe (500)",
-		Disabled: false,
-		CustomID: "buyAxe",
-	})
+	if work.Tools&1 == 0 {
+		components = append(components, &discordgo.Button{
+			Label:    "Buy Axe (500)",
+			Disabled: false,
+			CustomID: "buyAxe",
+		})
+	}
+	if work.Tools&2 == 0 {
+		components = append(components, &discordgo.Button{
+			Label:    "Buy Pickaxe (750)",
+			Disabled: false,
+			CustomID: "buyPickaxe",
+		})
+	}
+	if work.Tools&4 == 0 {
+		components = append(components, &discordgo.Button{
+			Label:    "Buy Shovel (850)",
+			Disabled: false,
+			CustomID: "buyShovel",
+		})
+	}
+	if work.Tools&8 == 0 {
+		components = append(components, &discordgo.Button{
+			Label:    "Buy Hammer (1000)",
+			Disabled: false,
+			CustomID: "buyHammer",
+		})
+	}
 
-	components = append(components, &discordgo.Button{
-		Label:    "Buy Pickaxe (750)",
-		Disabled: false,
-		CustomID: "buyPickaxe",
-	})
-
-	components = append(components, &discordgo.Button{
-		Label:    "Buy Shovel (850)",
-		Disabled: false,
-		CustomID: "buyShovel",
-	})
-
-	components = append(components, &discordgo.Button{
-		Label:    "Buy Hammer (1000)",
-		Disabled: false,
-		CustomID: "buyHammer",
-	})
+	if len(components) == 0 {
+		return nil
+	}
 
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
