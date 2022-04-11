@@ -44,8 +44,8 @@ type database struct {
 }
 
 type economy struct {
-	Icon string `json:"icon"`
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Emoji string `json:"emoji"`
 }
 
 type work struct {
@@ -122,8 +122,8 @@ func createConfig() error {
 		}, Database: database{
 			FileName: "database.db",
 		}, Economy: economy{
-			Icon: ":moneybag:",
-			Name: "credits",
+			Name:  "credits",
+			Emoji: ":moneybag:",
 		},
 		Work: work{
 			Cooldown:  6,

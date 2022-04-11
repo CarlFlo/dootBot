@@ -63,7 +63,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
 				Title:       "Pay Check",
-				Description: fmt.Sprintf(":coin:**%d** credits were deposited into your account!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d** (%d)\n\nBuying additional tools will add an extra income of **%d** credits", moneyEarned, currentTime.Unix(), work.ConsecutiveStreaks, work.Streak, config.CONFIG.Work.ToolBonus),
+				Description: fmt.Sprintf("%s**%d** %s were deposited into your account!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d** (%d)\n\nBuying additional tools will add an extra income of **%d** %s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, currentTime.Unix(), work.ConsecutiveStreaks, work.Streak, config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name),
 				Fields: []*discordgo.MessageEmbedField{
 					&discordgo.MessageEmbedField{
 						Name:  "Extra Reward",
@@ -71,7 +71,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra %d credits!\nThe streak resets after %d hours of inactivity", config.CONFIG.Work.StreakBonus, config.CONFIG.Work.StreakResetHours),
+					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Work.StreakResetHours),
 				},
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
 					URL: m.Author.AvatarURL("256"),
@@ -120,7 +120,7 @@ func generateStreakMessage(streak uint16) string {
 	}
 	var streakMessage string
 	if streak == config.CONFIG.Work.StreakLength {
-		streakMessage = fmt.Sprintf("You earned an additional **%d** credits!", config.CONFIG.Work.StreakBonus)
+		streakMessage = fmt.Sprintf("You earned an additional **%d** %s!", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name)
 	}
 	return fmt.Sprintf("%s(%d%%) %s", message, int(percentage*100), streakMessage)
 }
