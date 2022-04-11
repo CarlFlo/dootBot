@@ -48,7 +48,7 @@ sendInteraction:
 }
 
 func buyWorkTool(cData []string, response *string, authorID string) {
-	malm.Info("Interaction: '%s' item: '%s'", cData[0], cData[1])
+	//malm.Info("Interaction: '%s' item: '%s'", cData[0], cData[1])
 
 	// Find the item in config.CONFIG.Work.Tools
 	index := -1
