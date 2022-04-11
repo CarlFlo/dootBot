@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/CarlFlo/malm"
@@ -13,15 +14,19 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	cData := strings.Split(i.MessageComponentData().CustomID, "-")
 
+	var response string
+
 	switch cData[0] {
 	case "BWT": // BWT: Buy Work Tool
-		buyWorkTool(cData)
+		buyWorkTool(cData, &response)
+	default:
+		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 	}
 
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content:    "You clicked a button!",
+			Content:    response,
 			Components: []discordgo.MessageComponent{},
 		},
 	}); err != nil {
@@ -30,7 +35,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 }
 
-func buyWorkTool(cData []string) {
-	malm.Info("Interaction: %s", cData[0])
+func buyWorkTool(cData []string, response *string) {
+	malm.Info("Interaction: '%s' value '%s'", cData[0], cData[1])
 
+	*response = fmt.Sprintf("You tried to buy '%s'", cData[1])
 }
