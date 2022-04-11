@@ -16,6 +16,7 @@ import (
 
 // https://developers.coinbase.com/api/v2#get-buy-price
 
+// Crypto-Buy - Buy crypto using in-game currency.
 func Crypto(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 }

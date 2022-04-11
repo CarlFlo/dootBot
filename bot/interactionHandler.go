@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -16,6 +17,22 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	var response string
 
+	commandIssuerID := strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
+
+	if i.User != nil && i.User.ID != commandIssuerID || i.Member != nil && i.Member.User.ID != commandIssuerID {
+
+		var youID string
+
+		if i.User != nil {
+			youID = i.User.ID
+		} else if i.Member != nil {
+			youID = i.Member.User.ID
+		}
+
+		response = fmt.Sprintf("You cannot interact with this message! Author id: '%s' Your id: '%s'", commandIssuerID, youID)
+		goto sendInteraction
+	}
+
 	switch cData[0] {
 	case "BWT": // BWT: Buy Work Tool
 		buyWorkTool(cData, &response)
@@ -23,10 +40,13 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 	}
 
+sendInteraction:
+
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content:    response,
+			Flags:      1 << 6, // Makes it so only the clicker can see the message
 			Components: []discordgo.MessageComponent{},
 		},
 	}); err != nil {
@@ -36,7 +56,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 }
 
 func buyWorkTool(cData []string, response *string) {
-	malm.Info("Interaction: '%s' value '%s'", cData[0], cData[1])
+	malm.Info("Interaction: '%s' item: '%s' cost: '%s'", cData[0], cData[1], cData[2])
 
-	*response = fmt.Sprintf("You tried to buy '%s'", cData[1])
+	*response = fmt.Sprintf("You tried to buy '%s' for %s %s", cData[1], cData[2], config.CONFIG.Economy.Name)
 }

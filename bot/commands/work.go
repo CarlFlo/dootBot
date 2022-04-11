@@ -119,7 +119,7 @@ func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work 
 					Text: fmt.Sprintf("You can only work once every %d hours!", int(config.CONFIG.Work.Cooldown)),
 				},
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: m.Author.AvatarURL("256"),
+					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
 				},
 			},
 		},
@@ -198,7 +198,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 			components = append(components, &discordgo.Button{
 				Label:    fmt.Sprintf("Buy %s (%d)", v.Name, v.Price),
 				Disabled: false,
-				CustomID: fmt.Sprintf("BWT-%s", v.Name), // 'BWT' is code for 'Buy Work Tool'
+				CustomID: fmt.Sprintf("BWT-%s-%d", v.Name, v.Price), // 'BWT' is code for 'Buy Work Tool'
 			})
 		}
 	}

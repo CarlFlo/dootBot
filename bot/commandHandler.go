@@ -55,6 +55,12 @@ func mapValidCommands() {
 		helpSyntax:         "[v verbose, d dump]",
 		commandType:        typeGeneral}
 
+	validCommands["gleave"] = command{
+		function:           commands.LeaveServer,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[server/guild ID]",
+		commandType:        typeGeneral}
+
 	// Perm User - General commands
 	validCommands["help"] = command{
 		function:           help,

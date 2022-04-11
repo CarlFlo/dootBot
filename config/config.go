@@ -31,7 +31,7 @@ type configStruct struct {
 }
 
 type botInfo struct {
-	ClientID   string `json:"clientID"`
+	AppID      string `json:"appID"`
 	Permission uint64 `json:"permission"`
 }
 
@@ -119,8 +119,8 @@ func createConfig() error {
 		BoundChannels:       []string{},
 		AllowDirectMessages: true,
 		BotInfo: botInfo{
-			ClientID:   "",
-			Permission: 2184694848,
+			AppID:      "",
+			Permission: 139690691648,
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.
