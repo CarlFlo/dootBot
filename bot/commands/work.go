@@ -63,7 +63,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
 				Title:       "Pay Check",
-				Description: fmt.Sprintf("You performed some manual labour and earned **%d** credits!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d** (%d)\n\nBuying additional tools will add an extra income of **%d** credits", moneyEarned, currentTime.Unix(), work.ConsecutiveStreaks, work.Streak, config.CONFIG.Work.ToolBonus),
+				Description: fmt.Sprintf(":coin:**%d** credits were deposited into your account!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d** (%d)\n\nBuying additional tools will add an extra income of **%d** credits", moneyEarned, currentTime.Unix(), work.ConsecutiveStreaks, work.Streak, config.CONFIG.Work.ToolBonus),
 				Fields: []*discordgo.MessageEmbedField{
 					&discordgo.MessageEmbedField{
 						Name:  "Extra Reward",
@@ -71,7 +71,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra **%d'* credits!\nThe streak resets after **%d** hours of inactivity", config.CONFIG.Work.StreakBonus, config.CONFIG.Work.StreakResetHours),
+					Text: fmt.Sprintf("Completing your streak will earn you an extra %d credits!\nThe streak resets after %d hours of inactivity", config.CONFIG.Work.StreakBonus, config.CONFIG.Work.StreakResetHours),
 				},
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
 					URL: m.Author.AvatarURL("256"),
@@ -81,7 +81,6 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	}
 
 	if components := createButtonComponent(&work); components != nil {
-		malm.Info("Add components to message")
 		complexMessage.Components = components
 	}
 
@@ -154,33 +153,15 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
 
-	if work.Tools&1 == 0 {
-		components = append(components, &discordgo.Button{
-			Label:    "Buy Axe (500)",
-			Disabled: false,
-			CustomID: "buyAxe",
-		})
-	}
-	if work.Tools&2 == 0 {
-		components = append(components, &discordgo.Button{
-			Label:    "Buy Pickaxe (750)",
-			Disabled: false,
-			CustomID: "buyPickaxe",
-		})
-	}
-	if work.Tools&4 == 0 {
-		components = append(components, &discordgo.Button{
-			Label:    "Buy Shovel (850)",
-			Disabled: false,
-			CustomID: "buyShovel",
-		})
-	}
-	if work.Tools&8 == 0 {
-		components = append(components, &discordgo.Button{
-			Label:    "Buy Hammer (1000)",
-			Disabled: false,
-			CustomID: "buyHammer",
-		})
+	// Adds each tool present in the config file
+	for i, v := range config.CONFIG.Work.Tools {
+		if work.Tools&(1<<i) == 0 {
+			components = append(components, &discordgo.Button{
+				Label:    fmt.Sprintf("Buy %s (%d)", v.Name, v.Price),
+				Disabled: false,
+				CustomID: fmt.Sprintf("buy%s", v.Name),
+			})
+		}
 	}
 
 	if len(components) == 0 {

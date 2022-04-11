@@ -20,6 +20,7 @@ import (
 func init() {
 
 	utils.Clear()
+
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	malm.Debug("Running on %s", runtime.GOOS)

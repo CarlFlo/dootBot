@@ -24,6 +24,7 @@ type configStruct struct {
 	BotInfo             botInfo           `json:"botInfo"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
+	Economy             economy           `json:"economy"`
 	Work                work              `json:"work"`
 	Daily               daily             `json:"daily"`
 }
@@ -42,15 +43,26 @@ type database struct {
 	FileName string `json:"fileName"`
 }
 
+type economy struct {
+	Icon string `json:"icon"`
+	Name string `json:"name"`
+}
+
 type work struct {
 	// Cooldown in hours
 	Cooldown         time.Duration `json:"cooldown"`
 	MinMoney         int           `json:"minMoney"`
 	MaxMoney         int           `json:"maxMoney"`
 	ToolBonus        int           `json:"toolBonus"`
+	Tools            []workTool    `json:"tools"`
 	StreakLength     uint16        `json:"streakLength"`
 	StreakBonus      int           `json:"streakBonus"`
 	StreakResetHours int           `json:"streakResetHours"`
+}
+
+type workTool struct {
+	Name  string `json:"name"`
+	Price int    `json:"price"`
 }
 
 type daily struct {
@@ -109,11 +121,21 @@ func createConfig() error {
 			MaxIncommingMsgLength: 0,    // Set to 0 for ignore
 		}, Database: database{
 			FileName: "database.db",
-		}, Work: work{
-			Cooldown:         6,
-			MinMoney:         100,
-			MaxMoney:         250,
-			ToolBonus:        100,
+		}, Economy: economy{
+			Icon: ":moneybag:",
+			Name: "credits",
+		},
+		Work: work{
+			Cooldown:  6,
+			MinMoney:  100,
+			MaxMoney:  250,
+			ToolBonus: 100,
+			Tools: []workTool{
+				{Name: "Axe", Price: 500},
+				{Name: "Pickaxe", Price: 750},
+				{Name: "Shovel", Price: 850},
+				{Name: "Hammer", Price: 1000},
+			},
 			StreakLength:     5,
 			StreakBonus:      1000,
 			StreakResetHours: 24,
