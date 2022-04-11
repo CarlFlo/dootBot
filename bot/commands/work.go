@@ -73,7 +73,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Work.StreakResetHours),
 				},
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: m.Author.AvatarURL("256"),
+					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
 				},
 			},
 		},
