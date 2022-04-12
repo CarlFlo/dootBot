@@ -33,9 +33,18 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	// Delete the button
+	// Delete/disable the button
 
 sendInteraction:
+
+	/*
+		if _, err := s.InteractionResponseEdit(config.CONFIG.BotInfo.AppID, i.Interaction, &discordgo.WebhookEdit{
+			Content:    "Empty",
+			Components: nil,
+		}); err != nil {
+			malm.Error("Could not edit the interaction! %s", err)
+		}
+	*/
 
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -82,6 +91,13 @@ func buyWorkTool(cData []string, response *string, authorID string) {
 
 	var work database.Work
 	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", authorID).First(&work)
+
+	// Check if the user already bought this item
+	if work.Tools&(1<<index) != 0 {
+		*response = fmt.Sprintf("You cannot buy the same tool (%s) again", cData[1])
+		return
+	}
+
 	work.Tools |= 1 << index
 
 	database.DB.Save(&user)
