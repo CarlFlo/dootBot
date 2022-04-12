@@ -15,7 +15,7 @@ type User struct {
 }
 
 // Returns true if a user with that discord ID exists in the database
-func (u *User) UserExists(discordID string) bool {
+func (u *User) DoesUserExists(discordID string) bool {
 	// Works... but rewrite this function later
 	if err := DB.Where("discord_ID = ?", discordID).First(&u).Error; err != nil {
 		return false

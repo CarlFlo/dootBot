@@ -109,7 +109,7 @@ func createUserIfNoitExists(m *discordgo.MessageCreate) {
 
 	// Checks if the user is in the database
 	var user database.User
-	if exists := user.UserExists(m.Author.ID); !exists {
+	if exists := user.DoesUserExists(m.Author.ID); !exists {
 		// User does not exist, add them
 		//malm.Debug("User %s (%s) not found in database. Creating new entry for user", m.Author.Username, m.Author.ID)
 		database.InitializeNewUser(m.Author.ID)
