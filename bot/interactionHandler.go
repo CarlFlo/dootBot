@@ -32,10 +32,6 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return
 	}
-	if true {
-		df := i.MessageComponentData()
-		malm.Debug("%v", df)
-	}
 
 	// Delete the button
 
