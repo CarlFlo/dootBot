@@ -44,6 +44,7 @@ sendInteraction:
 		}
 	}
 
+	// Delete this after some seconds?
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
