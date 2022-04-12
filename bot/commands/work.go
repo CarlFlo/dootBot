@@ -52,15 +52,9 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	user.Money += uint64(moneyEarned)
 
 	// Tools tooltip
-	numOfBoughtTools := numberOfBoughtTools(&work)
-	var toolsTooltip string
-	if numOfBoughtTools > 0 {
-		toolsTooltip = fmt.Sprintf(":tools: You have %d tool(s), giving you an additional %d %s", numOfBoughtTools, numOfBoughtTools*config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
-	} else {
-		toolsTooltip = fmt.Sprintf("Buying additional tools will add an extra income of **%d** %s", config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
-	}
+	toolsTooltip := generateToolTooltip(&work)
 
-	description := fmt.Sprintf("%sYou earned **%d** %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: **%d**\n\n%s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
+	description := fmt.Sprintf("%sYou earned ``%d`` %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: ``%d``\n\n%s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
 
 	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
 
@@ -106,7 +100,9 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 
 func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work *database.Work) {
 
-	description := fmt.Sprintf("You can work again <t:%d:R>", work.LastWorkedAt.Add(time.Hour*6).Unix())
+	toolsTooltip := generateToolTooltip(work)
+
+	description := fmt.Sprintf("You can work again <t:%d:R>\n\n%s", work.LastWorkedAt.Add(time.Hour*6).Unix(), toolsTooltip)
 
 	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
 
@@ -140,6 +136,20 @@ func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work 
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
 		malm.Error("Could not send message! %s", err)
 	}
+}
+
+func generateToolTooltip(work *database.Work) string {
+	numOfBoughtTools := numberOfBoughtTools(work)
+	if numOfBoughtTools > 0 {
+		wordFormat := "tool"
+		if numOfBoughtTools > 1 {
+			wordFormat = "tools"
+		}
+
+		return fmt.Sprintf(":tools: You have %d %s, giving you an additional %d %s", numOfBoughtTools, wordFormat, numOfBoughtTools*config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	}
+
+	return fmt.Sprintf("Buying additional tools will add an extra income of **%d** %s", config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
 }
 
 func generateStreakMessage(streak uint16, addStreakMessage bool) (string, string) {

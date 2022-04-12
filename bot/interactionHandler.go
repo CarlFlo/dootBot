@@ -16,6 +16,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	cData := strings.Split(i.MessageComponentData().CustomID, "-")
 
+	interactionSuccess := false
+
 	var response string
 
 	commandIssuerID := strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
@@ -27,30 +29,26 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch cData[0] {
 	case "BWT": // BWT: Buy Work Tool
-		buyWorkTool(cData, &response, commandIssuerID)
+		interactionSuccess = buyWorkTool(cData, &response, commandIssuerID)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return
 	}
 
-	// Delete/disable the button
-
 sendInteraction:
 
-	/*
-		if _, err := s.InteractionResponseEdit(config.CONFIG.BotInfo.AppID, i.Interaction, &discordgo.WebhookEdit{
-			Content:    "Empty",
-			Components: nil,
-		}); err != nil {
-			malm.Error("Could not edit the interaction! %s", err)
+	// Delete/disable the button
+	if interactionSuccess {
+		if err := disableBoughtComponent(s, i.Interaction, i.MessageComponentData().CustomID); err != nil {
+			malm.Error("editMsgComponentsRemoved, error: %w", err)
 		}
-	*/
+	}
 
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content:    response,
-			Flags:      1 << 6, // Makes it so only the clicker can see the message
+			Flags:      1 << 6, // Makes it so only the 'clicker' can see the message
 			Components: []discordgo.MessageComponent{},
 		},
 	}); err != nil {
@@ -59,7 +57,7 @@ sendInteraction:
 
 }
 
-func buyWorkTool(cData []string, response *string, authorID string) {
+func buyWorkTool(cData []string, response *string, authorID string) bool {
 	//malm.Info("Interaction: '%s' item: '%s'", cData[0], cData[1])
 
 	// Find the item in config.CONFIG.Work.Tools
@@ -74,7 +72,7 @@ func buyWorkTool(cData []string, response *string, authorID string) {
 	// We got nothing
 	if index == -1 {
 		malm.Error("Could not find the item '%s' '%s'", cData[0], cData[1])
-		return
+		return false
 	}
 
 	// Check if the user has enough money
@@ -83,8 +81,11 @@ func buyWorkTool(cData []string, response *string, authorID string) {
 	database.DB.Table("Users").Where("discord_id = ?", authorID).First(&user)
 
 	if config.CONFIG.Work.Tools[index].Price > int(user.Money) {
-		*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
-		return
+		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
+
+		difference := uint64(config.CONFIG.Work.Tools[index].Price) - user.Money
+		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction. Your balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
+		return false
 	}
 
 	user.Money -= uint64(config.CONFIG.Work.Tools[index].Price)
@@ -95,7 +96,7 @@ func buyWorkTool(cData []string, response *string, authorID string) {
 	// Check if the user already bought this item
 	if work.Tools&(1<<index) != 0 {
 		*response = fmt.Sprintf("You cannot buy the same tool (%s) again", cData[1])
-		return
+		return false
 	}
 
 	work.Tools |= 1 << index
@@ -104,4 +105,34 @@ func buyWorkTool(cData []string, response *string, authorID string) {
 	database.DB.Save(&work)
 
 	*response = fmt.Sprintf("You succesfully bought the %s for %d %s", cData[1], config.CONFIG.Work.Tools[index].Price, config.CONFIG.Economy.Name)
+	return true
+}
+
+func disableBoughtComponent(s *discordgo.Session, i *discordgo.Interaction, customID string) error {
+
+	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
+		if v.(*discordgo.Button).CustomID == customID {
+			v.(*discordgo.Button).Disabled = true
+			break
+		}
+	}
+
+	// Edits the message to disable the pressed button
+	msgEdit := &discordgo.MessageEdit{
+		Content: &i.Message.Content,
+		Embed:   i.Message.Embeds[0],
+		ID:      i.Message.ID,
+		Channel: i.ChannelID,
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: i.Message.Components[0].(*discordgo.ActionsRow).Components,
+			},
+		},
+	}
+
+	_, err := s.ChannelMessageEditComplex(msgEdit)
+	if err != nil {
+		return fmt.Errorf("cannot create message edit, error: %w", err)
+	}
+	return nil
 }
