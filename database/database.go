@@ -2,12 +2,15 @@ package database
 
 import (
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/malm"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
+
+const resetDatabaseOnStart = true
 
 func connectToDB() error {
 
@@ -17,6 +20,13 @@ func connectToDB() error {
 	})
 	if err != nil {
 		return err
+	}
+
+	if resetDatabaseOnStart {
+		malm.Info("Resetting database...")
+		DB.Exec("DROP TABLE users")
+		DB.Exec("DROP TABLE works")
+		DB.Exec("DROP TABLE dailies")
 	}
 
 	DB.AutoMigrate(&User{}, &Work{}, &Daily{})
