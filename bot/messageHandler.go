@@ -18,7 +18,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	databaseActions(m)
+	createUserIfNoitExists(m)
 
 	// Check for prefix
 	if strings.HasPrefix(m.Message.Content, config.CONFIG.BotPrefix) {
@@ -104,13 +104,14 @@ func validateMessageOrigin(guildID, channelID string) bool {
 	return true
 }
 
-func databaseActions(m *discordgo.MessageCreate) {
+// createUserIfNoitExists - will create a database entry for the user if it does not exist
+func createUserIfNoitExists(m *discordgo.MessageCreate) {
 
 	// Checks if the user is in the database
 	var user database.User
-
-	if err := database.DB.Where("discord_ID = ?", m.Author.ID).First(&user).Error; err != nil {
-		malm.Debug("User %s (%s) not found in database. Creating new entry for user", m.Author.Username, m.Author.ID)
+	if exists := user.UserExists(m.Author.ID); !exists {
+		// User does not exist, add them
+		//malm.Debug("User %s (%s) not found in database. Creating new entry for user", m.Author.Username, m.Author.ID)
 		database.InitializeNewUser(m.Author.ID)
 	}
 

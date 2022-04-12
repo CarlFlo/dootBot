@@ -37,9 +37,9 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 sendInteraction:
 
-	// Delete/disable the button
+	// Disables the button
 	if interactionSuccess {
-		if err := disableBoughtComponent(s, i.Interaction, i.MessageComponentData().CustomID); err != nil {
+		if err := disableButtonComponent(s, i.Interaction, i.MessageComponentData().CustomID); err != nil {
 			malm.Error("editMsgComponentsRemoved, error: %w", err)
 		}
 	}
@@ -78,7 +78,8 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 	// Check if the user has enough money
 
 	var user database.User
-	database.DB.Table("Users").Where("discord_id = ?", authorID).First(&user)
+	user.GetUserByDiscordID(authorID)
+	//database.DB.Table("Users").Where("discord_id = ?", authorID).First(&user)
 
 	if config.CONFIG.Work.Tools[index].Price > int(user.Money) {
 		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
@@ -91,7 +92,8 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 	user.Money -= uint64(config.CONFIG.Work.Tools[index].Price)
 
 	var work database.Work
-	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", authorID).First(&work)
+	work.GetWorkByDiscordID(authorID)
+	//database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", authorID).First(&work)
 
 	// Check if the user already bought this item
 	if work.Tools&(1<<index) != 0 {
@@ -108,7 +110,7 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 	return true
 }
 
-func disableBoughtComponent(s *discordgo.Session, i *discordgo.Interaction, customID string) error {
+func disableButtonComponent(s *discordgo.Session, i *discordgo.Interaction, customID string) error {
 
 	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
 		if v.(*discordgo.Button).CustomID == customID {

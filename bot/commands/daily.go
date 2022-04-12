@@ -16,7 +16,8 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdIn
 
 	var daily database.Daily
 
-	database.DB.Raw("select * from dalies JOIN Users ON dalies.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&daily)
+	daily.GetDailyByDiscordID(m.Author.ID)
+	//database.DB.Raw("select * from dalies JOIN Users ON dalies.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&daily)
 
 	// if there has been n hours since last time the user worked
 	if time.Since(daily.LastDailyAt).Hours() < float64(config.CONFIG.Daily.Cooldown) {
@@ -35,7 +36,8 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdIn
 	// TODO: Handle extra rewards for long streaks
 
 	var user database.User
-	database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
+	user.GetUserByDiscordID(m.Author.ID)
+	//database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
 
 	currentTime := time.Now()
 	// Adds the cooldown hours

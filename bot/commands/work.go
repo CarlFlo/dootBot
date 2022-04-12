@@ -17,8 +17,8 @@ import (
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var work database.Work
-
-	database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
+	work.GetWorkByDiscordID(m.Author.ID)
+	//database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
 
 	// Has there has been enough time since the last time the user worked?
 	if !config.CONFIG.Debug.IgnoreWorkCooldown && time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
@@ -33,7 +33,8 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	}
 
 	var user database.User
-	database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
+	user.GetUserByDiscordID(m.Author.ID)
+	//database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
 
 	// Adds the cooldown
 	nextWorkTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)
