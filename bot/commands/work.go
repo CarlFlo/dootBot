@@ -17,70 +17,16 @@ import (
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var work database.Work
-	work.GetWorkByDiscordID(m.Author.ID)
-	//database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
+	var user database.User
 
-	// Has there has been enough time since the last time the user worked?
-	if !work.CanWork() {
-		triedToWorkTooEarly(s, m, &work)
-		return
-	}
+	work.GetWorkByDiscordID(m.Author.ID)
+	user.GetUserByDiscordID(m.Author.ID)
 
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
 	work.CheckStreak()
 
-	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
-	//database.DB.Table("Users").Where("discord_id = ?", m.Author.ID).First(&user)
-
-	// Adds the cooldown
-	nextWorkTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)
-
-	// Updates the variables
-	work.ConsecutiveStreaks += 1
-	work.Streak += 1
-	work.LastWorkedAt = time.Now()
-
-	// The StreakLength changed, so we need to update the streak for the player to avoid a crash
-	if work.Streak > config.CONFIG.Work.StreakLength {
-		work.Streak = config.CONFIG.Work.StreakLength
-	}
-
-	moneyEarned := generateWorkIncome(&work)
-	user.Money += uint64(moneyEarned)
-
-	// Tools tooltip
-	toolsTooltip := generateToolTooltip(&work)
-
-	description := fmt.Sprintf("%sYou earned ``%d`` %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: ``%d``\n\n%s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
-
-	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
-
-	complexMessage := &discordgo.MessageSend{
-		Embeds: []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
-				Type:        discordgo.EmbedTypeRich,
-				Title:       "Pay Check",
-				Description: description,
-				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
-						Value: extraRewardValue,
-					},
-				},
-				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Work.StreakResetHours),
-				},
-				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
-				},
-			},
-		},
-	}
-
-	if components := createButtonComponent(&work); components != nil {
-		complexMessage.Components = components
-	}
+	complexMessage := &discordgo.MessageSend{}
+	workMessageBuilder(complexMessage, m, &user, &work)
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
@@ -96,16 +42,47 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	database.DB.Save(&work)
 }
 
-func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work *database.Work) {
+func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, user *database.User, work *database.Work) {
 
 	toolsTooltip := generateToolTooltip(work)
 
-	description := fmt.Sprintf("You can work again <t:%d:R>\n\n%s", work.LastWorkedAt.Add(time.Hour*6).Unix(), toolsTooltip)
+	if work.CanWork() {
 
-	extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
+		// Calculates the cooldown
+		nextWorkTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)
 
-	complexMessage := &discordgo.MessageSend{
-		Embeds: []*discordgo.MessageEmbed{
+		// Calculates the income
+		moneyEarned := generateWorkIncome(work)
+		user.Money += uint64(moneyEarned)
+
+		work.UpdateStreakAndTime()
+
+		extraRewardValue, percentage := generateStreakMessage(work.Streak, true)
+
+		description := fmt.Sprintf("%sYou earned ``%d`` %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: ``%d``\n\n%s", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
+
+		msg.Embeds = []*discordgo.MessageEmbed{
+			&discordgo.MessageEmbed{
+				Type:        discordgo.EmbedTypeRich,
+				Title:       "Pay Check",
+				Description: description,
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
+						Value: extraRewardValue,
+					},
+				},
+				Footer: &discordgo.MessageEmbedFooter{
+					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Work.StreakResetHours),
+				},
+			},
+		}
+	} else {
+
+		description := fmt.Sprintf("You can work again <t:%d:R>\n\n%s", work.LastWorkedAt.Add(time.Hour*6).Unix(), toolsTooltip)
+		extraRewardValue, percentage := generateStreakMessage(work.Streak, false)
+
+		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
 				Title:       ":x: Slow down!",
@@ -119,21 +96,19 @@ func triedToWorkTooEarly(s *discordgo.Session, m *discordgo.MessageCreate, work 
 				Footer: &discordgo.MessageEmbedFooter{
 					Text: fmt.Sprintf("You can only work once every %d hours!", int(config.CONFIG.Work.Cooldown)),
 				},
-				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
-				},
 			},
-		},
+		}
 	}
 
+	msg.Embeds[0].Thumbnail = &discordgo.MessageEmbedThumbnail{
+		URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
+	}
+
+	// Adds the button
 	if components := createButtonComponent(work); components != nil {
-		complexMessage.Components = components
+		msg.Components = components
 	}
 
-	// Sends the message
-	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
-		malm.Error("Could not send message! %s", err)
-	}
 }
 
 func generateToolTooltip(work *database.Work) string {
@@ -173,7 +148,7 @@ func generateStreakMessage(streak uint16, addStreakMessage bool) (string, string
 
 	var streakMessage string
 	if addStreakMessage && streak == config.CONFIG.Work.StreakLength {
-		streakMessage = fmt.Sprintf("You earned an additional **%d** %s!", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name)
+		streakMessage = fmt.Sprintf("You earned an additional ``%d`` %s!", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name)
 	}
 
 	return fmt.Sprintf("%s %s", visualStreakProgress, streakMessage), percentageText
