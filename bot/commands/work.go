@@ -13,7 +13,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Debug - prints some debug information
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var work database.Work
