@@ -46,7 +46,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 	toolsTooltip := generateToolTooltip(work)
 
-	if work.CanWork() {
+	if work.CanDoWork() {
 
 		// Calculates the cooldown
 		nextWorkTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)

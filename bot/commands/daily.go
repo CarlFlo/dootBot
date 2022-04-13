@@ -24,7 +24,6 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdIn
 
 		message := fmt.Sprintf("You can only receive your daily once every %d hours.\nYou can receive it again <t:%d:R>", config.CONFIG.Work.Cooldown, daily.LastDailyAt.Add(time.Hour*6).Unix())
 		s.ChannelMessageSend(m.ChannelID, message)
-		// TODO: Make complex with componentes to user can buy tools
 		return
 	}
 
