@@ -21,16 +21,13 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInp
 	//database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", m.Author.ID).First(&work)
 
 	// Has there has been enough time since the last time the user worked?
-	if !config.CONFIG.Debug.IgnoreWorkCooldown && time.Since(work.LastWorkedAt).Hours() < float64(config.CONFIG.Work.Cooldown) {
+	if !work.CanWork() {
 		triedToWorkTooEarly(s, m, &work)
 		return
 	}
 
-	// Reset streak if user hasn't worked in the default 24 hours
-	if time.Since(work.LastWorkedAt).Hours() > float64(config.CONFIG.Work.StreakResetHours) {
-		work.ConsecutiveStreaks = 0
-		work.Streak = 0
-	}
+	// Reset streak if user hasn't worked in a specified amount of time (set in config)
+	work.CheckStreak()
 
 	var user database.User
 	user.GetUserByDiscordID(m.Author.ID)

@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"gorm.io/gorm"
 )
 
@@ -41,6 +42,22 @@ type Work struct {
 // The object which calls the method will be updated with the user's work data
 func (w *Work) GetWorkByDiscordID(discordID string) {
 	DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", discordID).First(&w)
+}
+
+// Checks if the user can work again
+// Returns true if the user can work and false if they cant
+func (w *Work) CanWork() bool {
+
+	return config.CONFIG.Debug.IgnoreWorkCooldown || time.Since(w.LastWorkedAt).Hours() > float64(config.CONFIG.Work.Cooldown)
+}
+
+// Checks the streak for the work object
+// Resets it down to 0 if the user failed their streak. i.e. Waited too long since the last work
+func (w *Work) CheckStreak() {
+	if time.Since(w.LastWorkedAt).Hours() > float64(config.CONFIG.Work.StreakResetHours) {
+		w.ConsecutiveStreaks = 0
+		w.Streak = 0
+	}
 }
 
 type Daily struct {
