@@ -25,11 +25,12 @@ func connectToDB() error {
 	if resetDatabaseOnStart {
 		malm.Info("Resetting database...")
 		DB.Exec("DROP TABLE users")
-		DB.Exec("DROP TABLE works")
-		DB.Exec("DROP TABLE dailies")
+		DB.Exec("DROP TABLE userWorkData")
+		DB.Exec("DROP TABLE userDailyData")
+		DB.Exec("DROP TABLE debug")
 	}
 
-	DB.AutoMigrate(&User{}, &Work{}, &Daily{})
+	DB.AutoMigrate(&User{}, &Work{}, &Daily{}, &Debug{})
 
 	return nil
 }
