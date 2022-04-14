@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,33 +16,39 @@ import (
 func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var user database.User
-	var bank database.Bank
+
 	user.GetUserByDiscordID(m.Author.ID)
 
-	//timestamp := fmt.Sprintf("Timestamp: <t:%d:R>", time.Now().Unix())
+	var bank database.Bank
+	bank.GetBankInfo(&user)
+
+	description := fmt.Sprintf("As of <t:%d:R>", time.Now().Unix())
+
+	netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
-			Type:  discordgo.EmbedTypeRich,
-			Title: "Here is your financial information",
+			Type:        discordgo.EmbedTypeRich,
+			Title:       "Here is your financial information",
+			Description: description,
 			Author: &discordgo.MessageEmbedAuthor{
 				Name:    fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator),
 				IconURL: m.Author.AvatarURL(""),
 			},
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
-					Name:   "Wallet",
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Economy.Emoji, user.PrettyPrintMoney()),
+					Name:   fmt.Sprintf("Wallet %s", config.CONFIG.Emojis.Wallet),
+					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintMoney()),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
-					Name:   "Bank",
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Economy.Emoji, bank.PrettyPrintMoney()),
+					Name:   fmt.Sprintf("Bank %s", config.CONFIG.Emojis.Bank),
+					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, bank.PrettyPrintMoney()),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
-					Name:   "Net Worth",
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Economy.Emoji, user.PrettyPrintMoney()),
+					Name:   fmt.Sprintf("Net Worth %s", config.CONFIG.Emojis.NetWorth),
+					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, netWorth),
 					Inline: true,
 				},
 			},

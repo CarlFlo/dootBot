@@ -15,10 +15,10 @@ import (
 
 func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
-	var daily database.Daily
 	var user database.User
-
 	user.GetUserByDiscordID(m.Author.ID)
+
+	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
 	// Reset streak if user hasn't done their daily in a specified amount of time (set in config)
@@ -37,8 +37,8 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdIn
 	daily.Streak %= uint16(len(config.CONFIG.Daily.StreakOutput))
 
 	// Save the new streak, time and money to the user
-	database.DB.Save(&user)
-	database.DB.Save(&daily)
+	user.Save()
+	daily.Save()
 }
 
 func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, user *database.User, daily *database.Daily) {
@@ -58,11 +58,12 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again <t:%d:R>\nCurrent streak: ``%d``", config.CONFIG.Economy.Emoji, moneyEarnedString, config.CONFIG.Economy.Name, user.PrettyPrintMoney(), config.CONFIG.Economy.Name, nextDailyTime.Unix(), daily.ConsecutiveStreaks)
+		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again <t:%d:R>\nCurrent streak: ``%d``", config.CONFIG.Emojis.Economy, moneyEarnedString, config.CONFIG.Economy.Name, user.PrettyPrintMoney(), config.CONFIG.Economy.Name, nextDailyTime.Unix(), daily.ConsecutiveStreaks)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
+				Color:       config.CONFIG.Colors.Success,
 				Title:       "Daily Bonus",
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
@@ -84,6 +85,7 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
+				Color:       config.CONFIG.Colors.Failure,
 				Title:       ":x: Slow down!",
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{

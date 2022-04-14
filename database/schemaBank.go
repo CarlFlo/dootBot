@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"gorm.io/gorm"
 )
@@ -14,14 +16,56 @@ func (Bank) TableName() string {
 	return "userBankData"
 }
 
-func (b *Bank) PrettyPrintMoney() string {
+// Saves the data to the database
+func (b *Bank) Save() {
+	DB.Save(&b)
+}
 
+func (b *Bank) PrettyPrintMoney() string {
 	return utils.HumanReadableNumber(b.Money)
 }
 
 // Queries the database for the bank data with the given user object.
-func (b *Bank) GetBankInfo(user *User) {
-	DB.Raw("SELECT * FROM userBankData WHERE userBankData.ID = ?", user.ID).First(&b)
+func (b *Bank) GetBankInfo(u *User) {
+	DB.Raw("SELECT * FROM userBankData WHERE userBankData.ID = ?", u.ID).First(&b)
+	if b.ID == 0 {
+		b.ID = u.ID
+	}
+}
+
+// Deposit - Deposits the given amount to the user's bank
+// and updates the database with the new values
+func (b *Bank) Deposit(u *User, depositAmount uint64) error {
+	// Does the user have enought money?
+	if depositAmount > u.Money {
+		return fmt.Errorf("insufficient wallet funds")
+	}
+
+	u.Money -= depositAmount
+	b.Money += depositAmount
+
+	u.Save()
+	b.Save()
+
+	return nil
+}
+
+// Withdraw - Withdraws the given amount from the user's bank
+// and updates the database with the new values
+func (b *Bank) Withdraw(u *User, withdrawAmount uint64) error {
+	// Does the bank account have enough money?
+
+	if withdrawAmount > b.Money {
+		return fmt.Errorf("insufficient bank funds")
+	}
+
+	u.Money += withdrawAmount
+	b.Money -= withdrawAmount
+
+	u.Save()
+	b.Save()
+
+	return nil
 }
 
 // Users can deposit money into their bank account and gain interest over time. Every 24 hours.

@@ -25,9 +25,17 @@ func (d *Daily) AfterCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// Saves the data to the database
+func (d *Daily) Save() {
+	DB.Save(&d)
+}
+
 // Queries the database for the daily data with the given user object.
-func (d *Daily) GetDailyInfo(user *User) {
-	DB.Raw("SELECT * FROM userDailyData WHERE userDailyData.ID = ?", user.ID).First(&d)
+func (d *Daily) GetDailyInfo(u *User) {
+	DB.Raw("SELECT * FROM userDailyData WHERE userDailyData.ID = ?", u.ID).First(&d)
+	if d.ID == 0 {
+		d.ID = u.ID
+	}
 }
 
 // CanDoDaily - Checks if the user can do their daily again

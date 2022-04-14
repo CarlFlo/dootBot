@@ -26,8 +26,11 @@ type configStruct struct {
 	Database            database          `json:"database"`
 	Debug               debug             `json:"debug"`
 	Economy             economy           `json:"economy"`
+	Bank                bank              `json:"bank"`
 	Work                work              `json:"work"`
 	Daily               daily             `json:"daily"`
+	Colors              colors            `json:"colors"`
+	Emojis              emojis            `json:"emojis"`
 }
 
 type botInfo struct {
@@ -50,8 +53,12 @@ type debug struct {
 }
 
 type economy struct {
-	Name  string `json:"name"`
-	Emoji string `json:"emoji"`
+	Name string `json:"name"`
+}
+
+type bank struct {
+	Name         string  `json:"name"`
+	InterestRate float32 `json:"interestRate"`
 }
 
 type work struct {
@@ -79,6 +86,18 @@ type daily struct {
 	StreakOutput     []string      `json:"streakOutput"`
 	StreakBonus      int           `json:"streakBonus"`
 	StreakResetHours int           `json:"streakResetHours"`
+}
+
+type colors struct {
+	Success int `json:"success"`
+	Failure int `json:"failure"`
+}
+
+type emojis struct {
+	Bank     string `json:"bank"`
+	Wallet   string `json:"wallet"`
+	Economy  string `json:"economy"`
+	NetWorth string `json:"netWorth"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -113,7 +132,7 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2022-04-10",
+		Version:             "2022-04-14",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
@@ -128,8 +147,11 @@ func createConfig() error {
 		}, Database: database{
 			FileName: "database.db",
 		}, Economy: economy{
-			Name:  "credits",
-			Emoji: ":moneybag:",
+			Name: "credits",
+		},
+		Bank: bank{
+			Name:         "Banana Republic Bank",
+			InterestRate: 0.005,
 		},
 		Work: work{
 			Cooldown:  6,
@@ -153,6 +175,15 @@ func createConfig() error {
 			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
 			StreakBonus:      10000,
 			StreakResetHours: 24,
+		}, Colors: colors{
+			Success: 0x198754,
+			Failure: 0xcc0000,
+		},
+		Emojis: emojis{
+			Bank:     ":bank:",
+			Wallet:   ":dollar:",
+			Economy:  ":moneybag:",
+			NetWorth: ":bar_chart:",
 		},
 	}
 

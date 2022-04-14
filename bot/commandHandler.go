@@ -77,6 +77,23 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	validCommands["bank"] = command{
+		function:           commands.Bank,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["deposit"] = command{
+		function:           commands.BankDeposit,
+		requiredPermission: enumUser,
+		helpSyntax:         "[amount]",
+		commandType:        typeGeneral}
+
+	validCommands["withdraw"] = command{
+		function:           commands.BankWithdraw,
+		requiredPermission: enumUser,
+		helpSyntax:         "[amount]",
+		commandType:        typeGeneral}
+
 	validCommands["work"] = command{
 		function:           commands.Work,
 		requiredPermission: enumUser,

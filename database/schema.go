@@ -17,6 +17,11 @@ func (User) TableName() string {
 	return "users"
 }
 
+// Saves the data to the database
+func (u *User) Save() {
+	DB.Save(&u)
+}
+
 // Returns true if a user with that discord ID exists in the database
 func (u *User) DoesUserExists(discordID string) bool {
 	// Works... but rewrite this function later

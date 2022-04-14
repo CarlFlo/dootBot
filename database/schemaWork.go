@@ -26,9 +26,17 @@ func (w *Work) AfterCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// Saves the data to the database
+func (w *Work) Save() {
+	DB.Save(&w)
+}
+
 // Queries the database for the work data with the given user object.
-func (w *Work) GetWorkInfo(user *User) {
-	DB.Raw("SELECT * FROM userWorkData WHERE userWorkData.ID = ?", user.ID).First(&w)
+func (w *Work) GetWorkInfo(u *User) {
+	DB.Raw("SELECT * FROM userWorkData WHERE userWorkData.ID = ?", u.ID).First(&w)
+	if w.ID == 0 {
+		w.ID = u.ID
+	}
 }
 
 // CanDoWork - Checks if the user can work again

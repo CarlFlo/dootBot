@@ -32,6 +32,7 @@ func connectToDB() error {
 			(&User{}).TableName(),
 			(&Work{}).TableName(),
 			(&Daily{}).TableName(),
+			(&Bank{}).TableName(),
 			(&Debug{}).TableName()}
 
 		for _, name := range tableList {
@@ -40,7 +41,7 @@ func connectToDB() error {
 	}
 
 	// Remeber to add new tables to the tableList and not just here!
-	DB.AutoMigrate(&User{}, &Work{}, &Daily{}, &Debug{})
+	DB.AutoMigrate(&User{}, &Work{}, &Daily{}, &Bank{}, &Debug{})
 
 	return nil
 }
