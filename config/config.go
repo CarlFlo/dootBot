@@ -61,7 +61,7 @@ type work struct {
 	MaxMoney         int           `json:"maxMoney"`
 	ToolBonus        int           `json:"toolBonus"`
 	Tools            []workTool    `json:"tools"`
-	StreakLength     uint16        `json:"streakLength"`
+	StreakOutput     []string      `json:"streakOutput"`
 	StreakBonus      int           `json:"streakBonus"`
 	StreakResetHours int           `json:"streakResetHours"`
 }
@@ -76,7 +76,7 @@ type daily struct {
 	Cooldown         time.Duration `json:"cooldown"`
 	MinMoney         int           `json:"minMoney"`
 	MaxMoney         int           `json:"maxMoney"`
-	StreakLength     uint16        `json:"streakLength"`
+	StreakOutput     []string      `json:"streakOutput"`
 	StreakBonus      int           `json:"streakBonus"`
 	StreakResetHours int           `json:"streakResetHours"`
 }
@@ -142,7 +142,7 @@ func createConfig() error {
 				{Name: "Shovel", Price: 850},
 				{Name: "Hammer", Price: 1000},
 			},
-			StreakLength:     5,
+			StreakOutput:     []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
 			StreakBonus:      1000,
 			StreakResetHours: 24,
 		},
@@ -150,9 +150,9 @@ func createConfig() error {
 			Cooldown:         24,
 			MinMoney:         1000,
 			MaxMoney:         2500,
-			StreakLength:     7,
+			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
 			StreakBonus:      10000,
-			StreakResetHours: 48,
+			StreakResetHours: 24,
 		},
 	}
 

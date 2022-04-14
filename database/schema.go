@@ -79,8 +79,8 @@ func (w *Work) UpdateStreakAndTime() {
 	w.Streak += 1
 
 	// The StreakLength changed, so we need to update the streak for the player to avoid a crash
-	if w.Streak > config.CONFIG.Work.StreakLength {
-		w.Streak = config.CONFIG.Work.StreakLength
+	if w.Streak > uint16(len(config.CONFIG.Work.StreakOutput)) {
+		w.Streak = uint16(len(config.CONFIG.Work.StreakOutput))
 	}
 }
 
@@ -101,7 +101,7 @@ func (d *Daily) AfterCreate(tx *gorm.DB) error {
 // Queries the database for the daily data with the given discord ID.
 // The object which calls the method will be updated with the user's daily data
 func (d *Daily) GetDailyByDiscordID(discordID string) {
-	DB.Raw("select * from dalies JOIN Users ON dalies.ID = Users.ID WHERE Users.discord_id = ?", discordID).First(&d)
+	DB.Raw("select * from dailies JOIN Users ON dailies.ID = Users.ID WHERE Users.discord_id = ?", discordID).First(&d)
 }
 
 // CanDoDaily - Checks if the user can do their daily again
@@ -132,7 +132,7 @@ func (d *Daily) UpdateStreakAndTime() {
 	d.Streak += 1
 
 	// The StreakLength changed, so we need to update the streak for the player to avoid a crash
-	if d.Streak > config.CONFIG.Daily.StreakLength {
-		d.Streak = config.CONFIG.Daily.StreakLength
+	if d.Streak > uint16(len(config.CONFIG.Daily.StreakOutput)) {
+		d.Streak = uint16(len(config.CONFIG.Daily.StreakOutput))
 	}
 }

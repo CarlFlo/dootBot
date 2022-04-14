@@ -86,7 +86,7 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
 
 		difference := uint64(config.CONFIG.Work.Tools[index].Price) - user.Money
-		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction. Your balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
+		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction.\nYour balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
 		return false
 	}
 
