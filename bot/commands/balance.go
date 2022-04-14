@@ -53,7 +53,7 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.Cmd
 				},
 			},
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Depositing money in the bank will earn you interest.",
+				Text: fmt.Sprintf("Depositing money at the bank gives you %.2f%% interest if the balance exceedes %d %s.", config.CONFIG.Bank.InterestRate*100, config.CONFIG.Bank.MinAmountForInterest, config.CONFIG.Economy.Name),
 			},
 		},
 	}}
