@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/CarlFlo/malm v1.0.0
 	github.com/bwmarrin/discordgo v0.24.0
+	golang.org/x/text v0.3.3
 	gorm.io/driver/sqlite v1.3.1
 	gorm.io/gorm v1.23.4
 )

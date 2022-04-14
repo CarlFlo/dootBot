@@ -26,10 +26,9 @@ func (w *Work) AfterCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// Queries the database for the work data with the given discord ID.
-// The object which calls the method will be updated with the user's work data
-func (w *Work) GetWorkByDiscordID(discordID string) {
-	DB.Raw("SELECT * FROM userWorkData JOIN users ON userWorkData.ID = users.ID WHERE users.discord_id = ?", discordID).First(&w)
+// Queries the database for the work data with the given user object.
+func (w *Work) GetWorkInfo(user *User) {
+	DB.Raw("SELECT * FROM userWorkData WHERE userWorkData.ID = ?", user.ID).First(&w)
 }
 
 // CanDoWork - Checks if the user can work again

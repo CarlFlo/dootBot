@@ -59,7 +59,6 @@ sendInteraction:
 }
 
 func buyWorkTool(cData []string, response *string, authorID string) bool {
-	//malm.Info("Interaction: '%s' item: '%s'", cData[0], cData[1])
 
 	// Find the item in config.CONFIG.Work.Tools
 	index := -1
@@ -80,7 +79,6 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 
 	var user database.User
 	user.GetUserByDiscordID(authorID)
-	//database.DB.Table("Users").Where("discord_id = ?", authorID).First(&user)
 
 	if config.CONFIG.Work.Tools[index].Price > int(user.Money) {
 		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
@@ -93,8 +91,7 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 	user.Money -= uint64(config.CONFIG.Work.Tools[index].Price)
 
 	var work database.Work
-	work.GetWorkByDiscordID(authorID)
-	//database.DB.Raw("select * from Works JOIN Users ON Works.ID = Users.ID WHERE Users.discord_id = ?", authorID).First(&work)
+	work.GetWorkInfo(&user)
 
 	// Check if the user already bought this item
 	if work.Tools&(1<<index) != 0 {

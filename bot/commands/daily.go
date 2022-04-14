@@ -8,21 +8,18 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
-
-/*
-	Fix: streak bonus not paying out
-*/
 
 func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var daily database.Daily
 	var user database.User
 
-	daily.GetDailyByDiscordID(m.Author.ID)
 	user.GetUserByDiscordID(m.Author.ID)
+	daily.GetDailyInfo(&user)
 
 	// Reset streak if user hasn't done their daily in a specified amount of time (set in config)
 	daily.CheckStreak()
@@ -57,9 +54,11 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 		moneyEarned := generateDailyIncome(daily)
 		user.Money += uint64(moneyEarned)
 
+		moneyEarnedString := utils.HumanReadableNumber(moneyEarned)
+
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%d`` %s and your new balance is ``%d`` !\nYou will be able to get your daily again <t:%d:R>\nCurrent streak: ``%d``", config.CONFIG.Economy.Emoji, moneyEarned, config.CONFIG.Economy.Name, user.Money, nextDailyTime.Unix(), daily.ConsecutiveStreaks)
+		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again <t:%d:R>\nCurrent streak: ``%d``", config.CONFIG.Economy.Emoji, moneyEarnedString, config.CONFIG.Economy.Name, user.PrettyPrintMoney(), config.CONFIG.Economy.Name, nextDailyTime.Unix(), daily.ConsecutiveStreaks)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
@@ -124,7 +123,7 @@ func generateDailyStreakMessage(streak uint16, addStreakMessage bool) (string, s
 
 	var streakMessage string
 	if addStreakMessage && streak == uint16(len(config.CONFIG.Daily.StreakOutput)) {
-		streakMessage = fmt.Sprintf("An additional ``%d`` %s were added to your daily earnings!", config.CONFIG.Daily.StreakBonus, config.CONFIG.Economy.Name)
+		streakMessage = fmt.Sprintf("An additional ``%s`` %s were added to your daily earnings!", utils.HumanReadableNumber(config.CONFIG.Daily.StreakBonus), config.CONFIG.Economy.Name)
 	}
 
 	return fmt.Sprintf("%s %s", visualStreakProgress, streakMessage), percentageText

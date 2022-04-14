@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"gorm.io/gorm"
 )
 
@@ -29,4 +30,9 @@ func (u *User) DoesUserExists(discordID string) bool {
 // The object which calls the method will be updated with the user's data
 func (u *User) GetUserByDiscordID(discordID string) {
 	DB.Table("users").Where("discord_id = ?", discordID).First(&u)
+}
+
+func (u *User) PrettyPrintMoney() string {
+
+	return utils.HumanReadableNumber(u.Money)
 }

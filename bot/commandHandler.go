@@ -67,6 +67,16 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	validCommands["hub"] = command{
+		function:           commands.Hub,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["balance"] = command{
+		function:           commands.Balance,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	validCommands["work"] = command{
 		function:           commands.Work,
 		requiredPermission: enumUser,
