@@ -29,6 +29,7 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.Cmd
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type:        discordgo.EmbedTypeRich,
+			Color:       config.CONFIG.Colors.Neutral,
 			Title:       "Here is your financial information",
 			Description: description,
 			Author: &discordgo.MessageEmbedAuthor{

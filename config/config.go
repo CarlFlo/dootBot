@@ -94,6 +94,7 @@ type daily struct {
 type colors struct {
 	Success int `json:"success"`
 	Failure int `json:"failure"`
+	Neutral int `json:"neutral"`
 }
 
 type emojis struct {
@@ -185,6 +186,7 @@ func createConfig() error {
 		}, Colors: colors{
 			Success: 0x198754,
 			Failure: 0xcc0000,
+			Neutral: 0x006ED0,
 		},
 		Emojis: emojis{
 			Bank:     ":bank:",
