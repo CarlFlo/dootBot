@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 	"gorm.io/driver/sqlite"
@@ -23,13 +25,21 @@ func connectToDB() error {
 	}
 
 	if resetDatabaseOnStart {
+
 		malm.Info("Resetting database...")
-		DB.Exec("DROP TABLE users")
-		DB.Exec("DROP TABLE userWorkData")
-		DB.Exec("DROP TABLE userDailyData")
-		DB.Exec("DROP TABLE debug")
+
+		tableList := []string{
+			(&User{}).TableName(),
+			(&Work{}).TableName(),
+			(&Daily{}).TableName(),
+			(&Debug{}).TableName()}
+
+		for _, name := range tableList {
+			DB.Exec(fmt.Sprintf("DROP TABLE %s", name))
+		}
 	}
 
+	// Remeber to add new tables to the tableList and not just here!
 	DB.AutoMigrate(&User{}, &Work{}, &Daily{}, &Debug{})
 
 	return nil

@@ -12,6 +12,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+/*
+	Fix: streak bonus not paying out
+*/
+
 func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	var daily database.Daily
@@ -47,11 +51,11 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 		// Calculates the cooldown
 		nextDailyTime := time.Now().Add(time.Hour * config.CONFIG.Daily.Cooldown)
 
+		daily.UpdateStreakAndTime()
+
 		// Calculates the income
 		moneyEarned := generateDailyIncome(daily)
 		user.Money += uint64(moneyEarned)
-
-		daily.UpdateStreakAndTime()
 
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, true)
 
@@ -120,7 +124,7 @@ func generateDailyStreakMessage(streak uint16, addStreakMessage bool) (string, s
 
 	var streakMessage string
 	if addStreakMessage && streak == uint16(len(config.CONFIG.Daily.StreakOutput)) {
-		streakMessage = fmt.Sprintf("You earned an additional ``%d`` %s!", config.CONFIG.Daily.StreakBonus, config.CONFIG.Economy.Name)
+		streakMessage = fmt.Sprintf("An additional ``%d`` %s were added to your daily earnings!", config.CONFIG.Daily.StreakBonus, config.CONFIG.Economy.Name)
 	}
 
 	return fmt.Sprintf("%s %s", visualStreakProgress, streakMessage), percentageText
