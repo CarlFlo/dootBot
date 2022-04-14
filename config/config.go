@@ -57,8 +57,11 @@ type economy struct {
 }
 
 type bank struct {
-	Name         string  `json:"name"`
-	InterestRate float32 `json:"interestRate"`
+	Name                 string  `json:"name"`
+	InterestRate         float32 `json:"interestRate"`
+	MinAmountForInterest int     `json:"minAmountForInterest"`
+	WithdrawFee          int     `json:"withdrawFee"`
+	MaxWithdrawWaitHours int     `json:"maxWithdrawWaitHours"`
 }
 
 type work struct {
@@ -94,10 +97,11 @@ type colors struct {
 }
 
 type emojis struct {
-	Bank     string `json:"bank"`
-	Wallet   string `json:"wallet"`
-	Economy  string `json:"economy"`
-	NetWorth string `json:"netWorth"`
+	Bank      string `json:"bank"`
+	Wallet    string `json:"wallet"`
+	Economy   string `json:"economy"`
+	NetWorth  string `json:"netWorth"`
+	Transfers string `json:"transfers"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -150,8 +154,11 @@ func createConfig() error {
 			Name: "credits",
 		},
 		Bank: bank{
-			Name:         "Banana Republic Bank",
-			InterestRate: 0.005,
+			Name:                 "Banana Republic Bank",
+			InterestRate:         0.005,
+			MinAmountForInterest: 1000,
+			WithdrawFee:          100,
+			MaxWithdrawWaitHours: 48,
 		},
 		Work: work{
 			Cooldown:  6,
@@ -180,10 +187,11 @@ func createConfig() error {
 			Failure: 0xcc0000,
 		},
 		Emojis: emojis{
-			Bank:     ":bank:",
-			Wallet:   ":dollar:",
-			Economy:  ":moneybag:",
-			NetWorth: ":bar_chart:",
+			Bank:      ":bank:",
+			Wallet:    ":dollar:",
+			Economy:   ":moneybag:",
+			NetWorth:  ":bar_chart:",
+			Transfers: ":money_with_wings:",
 		},
 	}
 

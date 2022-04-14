@@ -11,6 +11,11 @@ import (
 
 func BankWithdraw(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
+	if len(input.GetArgs()) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "No amount specified!")
+		return
+	}
+
 	// convert string to int
 	amount, err := strconv.Atoi(input.GetArgs()[0])
 	if err != nil {

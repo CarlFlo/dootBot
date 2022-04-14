@@ -14,6 +14,11 @@ import (
 
 func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
+	if len(input.GetArgs()) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "No amount specified!")
+		return
+	}
+
 	// convert string to int
 	amount, err := strconv.Atoi(input.GetArgs()[0])
 	if err != nil {
@@ -32,6 +37,9 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 	var bank database.Bank
 	bank.GetBankInfo(&user)
 
+	oldUserMoney := user.PrettyPrintMoney()
+	oldBankMoney := bank.PrettyPrintMoney()
+
 	err = bank.Deposit(&user, uint64(amount))
 
 	if err != nil {
@@ -39,34 +47,44 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 		return
 	}
 
+	footerText := fmt.Sprintf("While bank deposits are always instant, be advised that there is a %d %s withdrawal fee and that it can take upwards of %d hours to process the withdrawal!\nAccounts with a balance over %d %s will receive a daily interest rate of %.2f%%.", config.CONFIG.Bank.WithdrawFee, config.CONFIG.Economy.Name, config.CONFIG.Bank.MaxWithdrawWaitHours, config.CONFIG.Bank.MinAmountForInterest, config.CONFIG.Economy.Name, config.CONFIG.Bank.InterestRate*100)
+
+	prettyAmount := utils.HumanReadableNumber(amount)
+
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
-			Type:  discordgo.EmbedTypeRich,
-			Title: fmt.Sprintf("Bank Deposit to %s", config.CONFIG.Bank.Name),
-			Color: config.CONFIG.Colors.Success,
-			Author: &discordgo.MessageEmbedAuthor{
-				Name:    fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator),
-				IconURL: m.Author.AvatarURL(""),
-			},
+			Type:        discordgo.EmbedTypeRich,
+			Color:       config.CONFIG.Colors.Success,
+			Title:       fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Bank, config.CONFIG.Bank.Name, config.CONFIG.Emojis.Bank),
+			Description: fmt.Sprintf("You have successfully deposited ``%s`` %s into your bank account", prettyAmount, config.CONFIG.Economy.Name),
+			/*
+				Author: &discordgo.MessageEmbedAuthor{
+					Name:    fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator),
+					IconURL: m.Author.AvatarURL(""),
+				},
+			*/
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
-					Name:   "Wallet funds",
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintMoney()),
+					Name:   "Wallet Funds",
+					Value:  fmt.Sprintf("%s - %s (%s)", oldUserMoney, prettyAmount, user.PrettyPrintMoney()),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
-					Name:   "",
-					Value:  fmt.Sprintf("==(%s)=>", utils.HumanReadableNumber(amount)),
+					Name:   fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers),
+					Value:  fmt.Sprintf("=(%s)=>", prettyAmount),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
-					Name:   "Bank funds",
-					Value:  "",
+					Name:   "Bank Funds",
+					Value:  fmt.Sprintf("%s + %s (%s)", oldBankMoney, prettyAmount, bank.PrettyPrintMoney()),
 					Inline: true,
 				},
 			},
+			Thumbnail: &discordgo.MessageEmbedThumbnail{
+				URL: m.Author.AvatarURL("256"),
+			},
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Depositing money in the bank will earn you interest.",
+				Text: footerText,
 			},
 		},
 	}}
@@ -77,41 +95,3 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 		return
 	}
 }
-
-/*
-const lib = require('lib')({token: process.env.STDLIB_SECRET_TOKEN});
-
-await lib.discord.channels['@0.3.0'].messages.create({
-  "channel_id": `${context.params.event.channel_id}`,
-  "content": "",
-  "tts": false,
-  "embeds": [
-    {
-      "type": "rich",
-      "title": `Bank Deposit to (BankName)`,
-      "description": `You successfully deposited X amount into your bank account!`,
-      "color": 0x00FFFF,
-      "fields": [
-        {
-          "name": `Wallet Funds `,
-          "value": `350 - 200 (150)`,
-          "inline": true
-        },
-        {
-          "name": "\u200B",
-          "value": `==(200)=>`,
-          "inline": true
-        },
-        {
-          "name": `Bank Funds`,
-          "value": `4000 + 200 (4200)`,
-          "inline": true
-        }
-      ],
-      "footer": {
-        "text": `While bank deposits are always instant, be advised that bank withdrawal can take upwards of 48 hours to process and show up in your wallet!\\nA convenience fee of 100 is also deducted when you withdraw any amount.`
-      }
-    }
-  ]
-});
-*/
