@@ -15,7 +15,7 @@ import (
 func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
 	if len(input.GetArgs()) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "No amount specified!")
+		handleDepositFailure(s, m, fmt.Errorf("no amount specified"))
 		return
 	}
 
@@ -23,11 +23,11 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 	amount, err := strconv.Atoi(input.GetArgs()[0])
 	if err != nil {
 		// Invalid input
-		s.ChannelMessageSend(m.ChannelID, "Invalid deposit amount!")
+		handleDepositFailure(s, m, fmt.Errorf("invalid deposit amount"))
 		return
 	} else if amount < 1 {
 		// Zero or negative value
-		s.ChannelMessageSend(m.ChannelID, "Cannot deposit zero or negative amounts!")
+		handleDepositFailure(s, m, fmt.Errorf("cannot deposit zero or negative amounts"))
 		return
 	}
 
@@ -43,7 +43,7 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 	err = bank.Deposit(&user, uint64(amount))
 
 	if err != nil {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Deposit failed! (%s)", err))
+		handleDepositFailure(s, m, err)
 		return
 	}
 
@@ -69,11 +69,13 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 					Value:  fmt.Sprintf("%s - %s (%s)", oldUserMoney, prettyAmount, user.PrettyPrintMoney()),
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
-					Name:   fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers),
-					Value:  fmt.Sprintf("=(%s)=>", prettyAmount),
-					Inline: true,
-				},
+				/*
+					&discordgo.MessageEmbedField{
+						Name:   fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers, config.CONFIG.Emojis.Transfers),
+						Value:  prettyAmount,
+						Inline: true,
+					},
+				*/
 				&discordgo.MessageEmbedField{
 					Name:   "Bank Funds",
 					Value:  fmt.Sprintf("%s + %s (%s)", oldBankMoney, prettyAmount, bank.PrettyPrintMoney()),
@@ -88,6 +90,35 @@ func BankDeposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs
 			},
 		},
 	}}
+
+	// Sends the message
+	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
+		malm.Error("Could not send message! %s", err)
+		return
+	}
+}
+
+func handleDepositFailure(s *discordgo.Session, m *discordgo.MessageCreate, err error) {
+
+	complexMessage := &discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{
+			&discordgo.MessageEmbed{
+				Type:        discordgo.EmbedTypeRich,
+				Color:       config.CONFIG.Colors.Failure,
+				Title:       fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Bank, config.CONFIG.Bank.Name, config.CONFIG.Emojis.Bank),
+				Description: fmt.Sprintf("%s The bank deposit could **not** be completed!", config.CONFIG.Emojis.Failure),
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:  "Failure Reason",
+						Value: err.Error(),
+					},
+				},
+				Thumbnail: &discordgo.MessageEmbedThumbnail{
+					URL: m.Author.AvatarURL("256"),
+				},
+			},
+		},
+	}
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {

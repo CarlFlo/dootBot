@@ -86,7 +86,7 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 			&discordgo.MessageEmbed{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Failure,
-				Title:       ":x: Slow down!",
+				Title:       fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure),
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
 					&discordgo.MessageEmbedField{

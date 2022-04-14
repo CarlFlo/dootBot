@@ -102,6 +102,7 @@ type emojis struct {
 	Economy   string `json:"economy"`
 	NetWorth  string `json:"netWorth"`
 	Transfers string `json:"transfers"`
+	Failure   string `json:"failure"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -192,6 +193,7 @@ func createConfig() error {
 			Economy:   ":moneybag:",
 			NetWorth:  ":bar_chart:",
 			Transfers: ":money_with_wings:",
+			Failure:   ":x:",
 		},
 	}
 
