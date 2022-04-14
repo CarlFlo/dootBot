@@ -19,8 +19,6 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.Cmd
 
 	//timestamp := fmt.Sprintf("Timestamp: <t:%d:R>", time.Now().Unix())
 
-	footerText := fmt.Sprintf("Depositing money in the bank will earn you interest.")
-
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type:  discordgo.EmbedTypeRich,
@@ -47,7 +45,7 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.Cmd
 				},
 			},
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: footerText,
+				Text: "Depositing money in the bank will earn you interest.",
 			},
 		},
 	}}
