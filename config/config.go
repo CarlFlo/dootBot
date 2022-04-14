@@ -97,12 +97,11 @@ type colors struct {
 }
 
 type emojis struct {
-	Bank      string `json:"bank"`
-	Wallet    string `json:"wallet"`
-	Economy   string `json:"economy"`
-	NetWorth  string `json:"netWorth"`
-	Transfers string `json:"transfers"`
-	Failure   string `json:"failure"`
+	Bank     string `json:"bank"`
+	Wallet   string `json:"wallet"`
+	Economy  string `json:"economy"`
+	NetWorth string `json:"netWorth"`
+	Failure  string `json:"failure"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -188,12 +187,11 @@ func createConfig() error {
 			Failure: 0xcc0000,
 		},
 		Emojis: emojis{
-			Bank:      ":bank:",
-			Wallet:    ":dollar:",
-			Economy:   ":moneybag:",
-			NetWorth:  ":bar_chart:",
-			Transfers: ":money_with_wings:",
-			Failure:   ":x:",
+			Bank:     ":bank:",
+			Wallet:   ":dollar:",
+			Economy:  ":moneybag:",
+			NetWorth: ":bar_chart:",
+			Failure:  ":x:",
 		},
 	}
 
