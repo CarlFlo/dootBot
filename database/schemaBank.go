@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"gorm.io/gorm"
 )
@@ -38,7 +39,7 @@ func (b *Bank) GetBankInfo(u *User) {
 func (b *Bank) Deposit(u *User, depositAmount uint64) error {
 	// Does the user have enought money?
 	if depositAmount > u.Money {
-		return fmt.Errorf("insufficient wallet funds")
+		return fmt.Errorf("insufficient wallet funds. Your wallet has %d %s, but you are trying to deposit %d %s", u.Money, config.CONFIG.Economy.Name, depositAmount, config.CONFIG.Economy.Name)
 	}
 
 	u.Money -= depositAmount
@@ -56,7 +57,7 @@ func (b *Bank) Withdraw(u *User, withdrawAmount uint64) error {
 	// Does the bank account have enough money?
 
 	if withdrawAmount > b.Money {
-		return fmt.Errorf("insufficient bank funds")
+		return fmt.Errorf("insufficient bank funds. Your bank has %d %s, but you are trying to withdraw %d %s", b.Money, config.CONFIG.Economy.Name, withdrawAmount, config.CONFIG.Economy.Name)
 	}
 
 	u.Money += withdrawAmount
