@@ -50,10 +50,10 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			// Executes the command
 			command.function(s, m, data)
 		}
-	} else {
-		// Message is not a command
-
+		return
 	}
+	// Message is not a command
+
 }
 
 // Will only allowed messages from bound channels, if any are specified.
