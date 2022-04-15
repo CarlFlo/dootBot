@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/cmdutils"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -81,7 +81,7 @@ func Presence(s *discordgo.Session, m *discordgo.MessageCreate, input structs.Cm
 	} else {
 		// Output to discord. Discord message limit is ~5 messages a second
 		for _, line := range outputBuffer {
-			cmdutils.SendDirectMessage(s, m, fmt.Sprintf("```%s```", line))
+			utils.SendDirectMessage(s, m, fmt.Sprintf("```%s```", line))
 		}
 	}
 }

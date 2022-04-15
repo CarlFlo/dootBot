@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/cmdutils"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -16,10 +16,8 @@ var cache = make(map[string]time.Time)
 // Ping - Sends back a 'Pong' message
 func Ping(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
 
-	//cmdutils.SendDirectMessage(s, m, "Pong!")
-
 	// Send ping
-	pingMsg, err := cmdutils.SendDirectMessage(s, m, "Pinging...")
+	pingMsg, err := utils.SendDirectMessage(s, m, "Pinging...")
 	if err != nil {
 		malm.Error("Error: %s", err)
 		return

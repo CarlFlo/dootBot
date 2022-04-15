@@ -1,4 +1,4 @@
-package cmdutils
+package utils
 
 import (
 	"github.com/bwmarrin/discordgo"

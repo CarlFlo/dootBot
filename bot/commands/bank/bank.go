@@ -1,4 +1,4 @@
-package commands
+package bank
 
 import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"

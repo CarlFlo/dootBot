@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/cmdutils"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -17,5 +17,5 @@ func Reload(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdI
 		return
 	}
 
-	cmdutils.SendDirectMessage(s, m, "Config reloaded")
+	utils.SendDirectMessage(s, m, "Config reloaded")
 }

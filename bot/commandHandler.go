@@ -4,6 +4,10 @@ import (
 	"unicode"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/bank"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/daily"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/dungeon"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
 
@@ -78,29 +82,34 @@ func mapValidCommands() {
 		commandType:        typeGeneral}
 
 	validCommands["bank"] = command{
-		function:           commands.Bank,
+		function:           bank.Bank,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
 	validCommands["deposit"] = command{
-		function:           commands.BankDeposit,
+		function:           bank.Deposit,
 		requiredPermission: enumUser,
 		helpSyntax:         "[amount]",
 		commandType:        typeGeneral}
 
 	validCommands["withdraw"] = command{
-		function:           commands.BankWithdraw,
+		function:           bank.Withdraw,
 		requiredPermission: enumUser,
 		helpSyntax:         "[amount]",
 		commandType:        typeGeneral}
 
+	validCommands["dungeon"] = command{
+		function:           dungeon.Dungeon,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	validCommands["work"] = command{
-		function:           commands.Work,
+		function:           work.Work,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
 	validCommands["daily"] = command{
-		function:           commands.Daily,
+		function:           daily.Daily,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
