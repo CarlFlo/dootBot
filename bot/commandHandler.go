@@ -23,6 +23,7 @@ const (
 const (
 	typeGeneral uint8 = iota // General commands (All admin commands should be considered general)
 	typeUser                 // Commands for the users
+	typeEconomy              // Commands for the economy
 	typeMisc                 // Miscellaneous commands
 )
 
@@ -76,28 +77,6 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
-	validCommands["balance"] = command{
-		function:           commands.Balance,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
-	validCommands["bank"] = command{
-		function:           bank.Bank,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
-	validCommands["deposit"] = command{
-		function:           bank.Deposit,
-		requiredPermission: enumUser,
-		helpSyntax:         "[amount]",
-		commandType:        typeGeneral}
-
-	validCommands["withdraw"] = command{
-		function:           bank.Withdraw,
-		requiredPermission: enumUser,
-		helpSyntax:         "[amount]",
-		commandType:        typeGeneral}
-
 	validCommands["dungeon"] = command{
 		function:           dungeon.Dungeon,
 		requiredPermission: enumUser,
@@ -112,6 +91,29 @@ func mapValidCommands() {
 		function:           daily.Daily,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
+
+	// Perm User - Economy commands
+	validCommands["balance"] = command{
+		function:           commands.Balance,
+		requiredPermission: enumUser,
+		commandType:        typeEconomy}
+
+	validCommands["bank"] = command{
+		function:           bank.Bank,
+		requiredPermission: enumUser,
+		commandType:        typeEconomy}
+
+	validCommands["deposit"] = command{
+		function:           bank.Deposit,
+		requiredPermission: enumUser,
+		helpSyntax:         "[amount]",
+		commandType:        typeEconomy}
+
+	validCommands["withdraw"] = command{
+		function:           bank.Withdraw,
+		requiredPermission: enumUser,
+		helpSyntax:         "[amount]",
+		commandType:        typeEconomy}
 
 	// Perm User - Misc commands
 	validCommands["ping"] = command{

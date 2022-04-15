@@ -1,4 +1,4 @@
-package commands
+package crypto
 
 import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
