@@ -10,7 +10,7 @@ import (
 // StartBot starts the bot and returns any errors that might occu
 func StartBot() *discordgo.Session {
 
-	checkForRequiredVariables()
+	variableCheck()
 
 	// Creates the bot/session
 	session, err := discordgo.New("Bot " + config.CONFIG.Token)
@@ -37,7 +37,7 @@ func StartBot() *discordgo.Session {
 	return session
 }
 
-func checkForRequiredVariables() {
+func variableCheck() {
 
 	// This function checks if some important variables are set in the config file
 	problem := false
