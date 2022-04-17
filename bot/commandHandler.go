@@ -77,6 +77,11 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	validCommands["profile"] = command{
+		function:           commands.Profile,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	validCommands["dungeon"] = command{
 		function:           dungeon.Dungeon,
 		requiredPermission: enumUser,

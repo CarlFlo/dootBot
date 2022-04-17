@@ -102,6 +102,7 @@ type emojis struct {
 	Wallet   string `json:"wallet"`
 	Economy  string `json:"economy"`
 	NetWorth string `json:"netWorth"`
+	Success  string `json:"success"`
 	Failure  string `json:"failure"`
 }
 
@@ -137,7 +138,7 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2022-04-14",
+		Version:             "2022-04-18",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
@@ -185,7 +186,7 @@ func createConfig() error {
 			StreakResetHours: 24,
 		}, Colors: colors{
 			Success: 0x198754,
-			Failure: 0xcc0000,
+			Failure: 0xE9302A,
 			Neutral: 0x006ED0,
 		},
 		Emojis: emojis{
@@ -193,6 +194,7 @@ func createConfig() error {
 			Wallet:   ":dollar:",
 			Economy:  ":moneybag:",
 			NetWorth: ":bar_chart:",
+			Success:  ":white_check_mark:",
 			Failure:  ":x:",
 		},
 	}
