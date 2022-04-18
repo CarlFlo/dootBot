@@ -29,14 +29,15 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
 
 	// The statuses on the cooldown's
-	workStatus := work.CanDoWorkAt()
-	if work.CanDoWork() {
-		workStatus = config.CONFIG.Emojis.Success
+
+	workStatus := config.CONFIG.Emojis.Success
+	if !work.CanDoWork() {
+		workStatus = fmt.Sprintf("%s Available %s", config.CONFIG.Emojis.Failure, work.CanDoWorkAt())
 	}
 
-	dailyStatus := daily.CanDoDailyAt()
-	if daily.CanDoDaily() {
-		dailyStatus = config.CONFIG.Emojis.Success
+	dailyStatus := config.CONFIG.Emojis.Success
+	if !daily.CanDoDaily() {
+		dailyStatus = fmt.Sprintf("%s Available %s", config.CONFIG.Emojis.Failure, daily.CanDoDailyAt())
 	}
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
@@ -44,7 +45,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       fmt.Sprintf("%s#%s profile", m.Author.Username, m.Author.Discriminator),
-			Description: "-",
+			Description: "",
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   fmt.Sprintf("Wallet %s", config.CONFIG.Emojis.Wallet),

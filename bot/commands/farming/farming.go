@@ -5,6 +5,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -25,21 +26,27 @@ func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 }
 
 func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+
+	var user database.User
+
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
-			Title:       fmt.Sprintf("%s#%s profile", m.Author.Username, m.Author.Discriminator),
+			Title:       fmt.Sprintf("%s#%s farm", m.Author.Username, m.Author.Discriminator),
 			Description: "-",
-			Fields:      []*discordgo.MessageEmbedField{},
+			Fields:      createFieldsForPlots(&user),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Crops will perish if not watered everyday!\nUse command 'Farm <help / h>' for assistance",
+				Text: "Crops will perish if not watered everyday!\nUse command 'Farm <help or h>' for assistance",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
 			},
 		},
 	}}
+
+	// Buttons for harvesting and watering
+	// Buttons are disabled if the actions are unavailable to be performed
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
@@ -48,8 +55,9 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 }
 
-func createFieldsForPlots() {
+func createFieldsForPlots(user *database.User) []*discordgo.MessageEmbedField {
 
+	return nil
 }
 
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
