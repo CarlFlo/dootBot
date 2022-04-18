@@ -14,6 +14,7 @@ func PopulateDatabase() {
 func farming() {
 
 	// Default crops
+	// duration / reward = ratio
 
 	crops := []FarmCrop{
 		{
