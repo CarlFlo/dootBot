@@ -3,7 +3,6 @@ package daily
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -45,9 +44,6 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 
 	if daily.CanDoDaily() {
 
-		// Calculates the cooldown
-		nextDailyTime := time.Now().Add(time.Hour * config.CONFIG.Daily.Cooldown)
-
 		daily.UpdateStreakAndTime()
 
 		// Calculates the income
@@ -58,7 +54,14 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again <t:%d:R>\nCurrent streak: ``%d``", config.CONFIG.Emojis.Economy, moneyEarnedString, config.CONFIG.Economy.Name, user.PrettyPrintMoney(), config.CONFIG.Economy.Name, nextDailyTime.Unix(), daily.ConsecutiveStreaks)
+		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again %s\nCurrent streak: ``%d``",
+			config.CONFIG.Emojis.Economy,
+			moneyEarnedString,
+			config.CONFIG.Economy.Name,
+			user.PrettyPrintMoney(),
+			config.CONFIG.Economy.Name,
+			daily.CanDoDailyAt(),
+			daily.ConsecutiveStreaks)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
@@ -73,13 +76,16 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.", config.CONFIG.Daily.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Daily.StreakResetHours),
+					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.",
+						config.CONFIG.Daily.StreakBonus,
+						config.CONFIG.Economy.Name,
+						config.CONFIG.Daily.StreakResetHours),
 				},
 			},
 		}
 	} else {
 
-		description := fmt.Sprintf("You can get your next daily again <t:%d:R>", daily.LastDailyAt.Add(time.Hour*6).Unix())
+		description := fmt.Sprintf("You can get your next daily again %s", daily.CanDoDailyAt())
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, false)
 
 		msg.Embeds = []*discordgo.MessageEmbed{

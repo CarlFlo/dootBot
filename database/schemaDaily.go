@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -44,6 +45,13 @@ func (d *Daily) CanDoDaily() bool {
 
 	since := time.Since(d.LastDailyAt).Hours()
 	return config.CONFIG.Debug.IgnoreDailyCooldown || since > float64(config.CONFIG.Daily.Cooldown)
+}
+
+// Returns the time the user can do their daily next as a formatted discord string
+// https://hammertime.cyou/
+func (d *Daily) CanDoDailyAt() string {
+	nextTime := d.LastDailyAt.Add(time.Hour * config.CONFIG.Daily.Cooldown).Unix()
+	return fmt.Sprintf("<t:%d:R>", nextTime)
 }
 
 // CheckStreak - Checks the streak for the work object

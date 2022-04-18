@@ -3,7 +3,6 @@ package work
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -48,9 +47,6 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 	if work.CanDoWork() {
 
-		// Calculates the cooldown
-		nextWorkTime := time.Now().Add(time.Hour * config.CONFIG.Work.Cooldown)
-
 		work.UpdateStreakAndTime()
 
 		// Calculates the income
@@ -61,7 +57,15 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to work again <t:%d:R>\nCurrent streak: ``%d``\n\n%s", config.CONFIG.Emojis.Economy, moneyEarnedString, config.CONFIG.Economy.Name, user.PrettyPrintMoney(), config.CONFIG.Economy.Name, nextWorkTime.Unix(), work.ConsecutiveStreaks, toolsTooltip)
+		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to work again %s\nCurrent streak: ``%d``\n\n%s",
+			config.CONFIG.Emojis.Economy,
+			moneyEarnedString,
+			config.CONFIG.Economy.Name,
+			user.PrettyPrintMoney(),
+			config.CONFIG.Economy.Name,
+			work.CanDoWorkAt(),
+			work.ConsecutiveStreaks,
+			toolsTooltip)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
 			&discordgo.MessageEmbed{
@@ -76,13 +80,16 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.", config.CONFIG.Work.StreakBonus, config.CONFIG.Economy.Name, config.CONFIG.Work.StreakResetHours),
+					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.",
+						config.CONFIG.Work.StreakBonus,
+						config.CONFIG.Economy.Name,
+						config.CONFIG.Work.StreakResetHours),
 				},
 			},
 		}
 	} else {
 
-		description := fmt.Sprintf("You can work again <t:%d:R>\n\n%s", work.LastWorkedAt.Add(time.Hour*6).Unix(), toolsTooltip)
+		description := fmt.Sprintf("You can work again %s\n\n%s", work.CanDoWorkAt(), toolsTooltip)
 		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, false)
 
 		msg.Embeds = []*discordgo.MessageEmbed{

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -45,6 +46,13 @@ func (w *Work) CanDoWork() bool {
 
 	since := time.Since(w.LastWorkedAt).Hours()
 	return config.CONFIG.Debug.IgnoreWorkCooldown || since > float64(config.CONFIG.Work.Cooldown)
+}
+
+// Returns the time the user can work next as a formatted discord string
+// https://hammertime.cyou/
+func (w *Work) CanDoWorkAt() string {
+	nextTime := w.LastWorkedAt.Add(time.Hour * config.CONFIG.Work.Cooldown).Unix()
+	return fmt.Sprintf("<t:%d:R>", nextTime)
 }
 
 // CheckStreak - Checks the streak for the work object
