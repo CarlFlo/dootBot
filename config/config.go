@@ -29,6 +29,7 @@ type configStruct struct {
 	Bank                bank              `json:"bank"`
 	Work                work              `json:"work"`
 	Daily               daily             `json:"daily"`
+	Farm                farm              `json:"farm"`
 	Colors              colors            `json:"colors"`
 	Emojis              emojis            `json:"emojis"`
 }
@@ -91,6 +92,11 @@ type daily struct {
 	StreakResetHours int           `json:"streakResetHours"`
 }
 
+type farm struct {
+	DefaultOwnedFarmPlots uint8 `json:"defaultOwnedFarmPlots"`
+	CropSeedPrice         int   `json:"cropSeedPrice"`
+}
+
 type colors struct {
 	Success int `json:"success"`
 	Failure int `json:"failure"`
@@ -138,7 +144,7 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2022-04-18",
+		Version:             "2022-04-19",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
@@ -184,6 +190,9 @@ func createConfig() error {
 			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
 			StreakBonus:      10000,
 			StreakResetHours: 24,
+		}, Farm: farm{
+			DefaultOwnedFarmPlots: 1,
+			CropSeedPrice:         500,
 		}, Colors: colors{
 			Success: 0x198754,
 			Failure: 0xE9302A,

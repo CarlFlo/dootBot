@@ -10,7 +10,7 @@ type FarmCrop struct {
 	gorm.Model
 	Name           string
 	Emoji          string
-	DurationToGrow time.Time
+	DurationToGrow time.Duration
 	HarvestReward  int
 }
 

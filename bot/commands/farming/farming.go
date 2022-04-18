@@ -28,6 +28,12 @@ func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
+	defer user.Save()
+	user.GetUserByDiscordID(m.Author.ID)
+
+	var farm database.Farm
+	defer farm.Save()
+	farm.GetFarmInfo(&user)
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
@@ -35,7 +41,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       fmt.Sprintf("%s#%s farm", m.Author.Username, m.Author.Discriminator),
 			Description: "-",
-			Fields:      createFieldsForPlots(&user),
+			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: "Crops will perish if not watered everyday!\nUse command 'Farm <help or h>' for assistance",
 			},
@@ -55,7 +61,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 }
 
-func createFieldsForPlots(user *database.User) []*discordgo.MessageEmbedField {
+func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	return nil
 }

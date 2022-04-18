@@ -41,6 +41,9 @@ func connectToDB() error {
 
 		malm.Info("Resetting database...")
 
+		// Populates the database with the default values
+		defer PopulateDatabase()
+
 		tableList := []string{
 			(&User{}).TableName(),
 			(&Work{}).TableName(),

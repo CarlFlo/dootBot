@@ -15,9 +15,11 @@ import (
 func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
+	defer user.Save()
 	user.GetUserByDiscordID(m.Author.ID)
 
 	var daily database.Daily
+	defer daily.Save()
 	daily.GetDailyInfo(&user)
 
 	// Reset streak if user hasn't done their daily in a specified amount of time (set in config)
@@ -34,10 +36,6 @@ func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdI
 
 	// Wrap around the streak
 	daily.Streak %= uint16(len(config.CONFIG.Daily.StreakOutput))
-
-	// Save the new streak, time and money to the user
-	user.Save()
-	daily.Save()
 }
 
 func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, user *database.User, daily *database.Daily) {

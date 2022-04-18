@@ -16,10 +16,12 @@ import (
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
+	defer user.Save()
 	user.GetUserByDiscordID(m.Author.ID)
 
 	var work database.Work
 	work.GetWorkInfo(&user)
+	defer work.Save()
 
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
 	work.CheckStreak()
@@ -35,10 +37,6 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 
 	// Wrap around the streak
 	work.Streak %= uint16(len(config.CONFIG.Work.StreakOutput))
-
-	// Save the new streak, time and money to the user
-	user.Save()
-	work.Save()
 }
 
 func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, user *database.User, work *database.Work) {
@@ -87,6 +85,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 				},
 			},
 		}
+
 	} else {
 
 		description := fmt.Sprintf("You can work again %s\n\n%s", work.CanDoWorkAt(), toolsTooltip)

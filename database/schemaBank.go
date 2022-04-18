@@ -45,9 +45,6 @@ func (b *Bank) Deposit(u *User, depositAmount uint64) error {
 	u.Money -= depositAmount
 	b.Money += depositAmount
 
-	u.Save()
-	b.Save()
-
 	return nil
 }
 
@@ -62,9 +59,6 @@ func (b *Bank) Withdraw(u *User, withdrawAmount uint64) error {
 
 	u.Money += withdrawAmount
 	b.Money -= withdrawAmount
-
-	u.Save()
-	b.Save()
 
 	return nil
 }

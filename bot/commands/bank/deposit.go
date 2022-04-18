@@ -32,9 +32,11 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	}
 
 	var user database.User
+	defer user.Save()
 	user.GetUserByDiscordID(m.Author.ID)
 
 	var bank database.Bank
+	defer bank.Save()
 	bank.GetBankInfo(&user)
 
 	oldUserMoney := user.PrettyPrintMoney()

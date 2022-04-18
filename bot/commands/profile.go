@@ -29,7 +29,6 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
 
 	// The statuses on the cooldown's
-
 	workStatus := config.CONFIG.Emojis.Success
 	if !work.CanDoWork() {
 		workStatus = fmt.Sprintf("%s Available %s", config.CONFIG.Emojis.Failure, work.CanDoWorkAt())
@@ -74,7 +73,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 				},
 			},
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "footer",
+				Text: "Profile footer",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
