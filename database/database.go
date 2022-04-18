@@ -24,6 +24,19 @@ func connectToDB() error {
 		return err
 	}
 
+	/*
+		var modelList = []interface{}{
+			&User{},
+			&Work{},
+			&Daily{},
+			&Bank{},
+			&Farm{},
+			&FarmPlot{},
+			&FarmCrop{},
+			&Debug{},
+		}
+	*/
+
 	if resetDatabaseOnStart {
 
 		malm.Info("Resetting database...")
@@ -33,17 +46,29 @@ func connectToDB() error {
 			(&Work{}).TableName(),
 			(&Daily{}).TableName(),
 			(&Bank{}).TableName(),
+			(&Farm{}).TableName(),
+			(&FarmPlot{}).TableName(),
+			(&FarmCrop{}).TableName(),
 			(&Debug{}).TableName()}
-
+		/*
+			if len(tableList) != len(modelList) {
+				return fmt.Errorf("Table list and model list are not the same length")
+			}
+		*/
 		for _, name := range tableList {
 			DB.Exec(fmt.Sprintf("DROP TABLE %s", name))
 		}
 	}
 
 	// Remeber to add new tables to the tableList and not just here!
-	DB.AutoMigrate(&User{}, &Work{}, &Daily{}, &Bank{}, &Debug{})
-
-	return nil
+	return DB.AutoMigrate(&User{},
+		&Work{},
+		&Daily{},
+		&Bank{},
+		&Farm{},
+		&FarmPlot{},
+		&FarmCrop{},
+		&Debug{})
 }
 
 func SetupDatabase() error {

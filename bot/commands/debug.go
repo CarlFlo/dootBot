@@ -10,7 +10,7 @@ import (
 )
 
 // Debug - prints some debug information
-func Debug(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Debug(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	currentOS := runtime.GOOS
 

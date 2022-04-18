@@ -10,7 +10,7 @@ import (
 )
 
 // Reload - Reloads the configuration without restarting the application
-func Reload(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Reload(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if err := config.ReloadConfig(); err != nil {
 		malm.Error("Could not reload config! %s", err)

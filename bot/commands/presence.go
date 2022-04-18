@@ -15,7 +15,7 @@ import (
 )
 
 // Presence - Reloads the configuration without restarting the application
-func Presence(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Presence(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Should extra information be provided?
 	verbose := input.ArgsContains([]string{"v", "verbose"}) // Will output additional information

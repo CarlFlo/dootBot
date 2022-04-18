@@ -12,7 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
 	user.GetUserByDiscordID(m.Author.ID)

@@ -13,7 +13,7 @@ import (
 )
 
 // Balance - Output the users balance to the chat
-func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
 

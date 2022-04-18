@@ -94,7 +94,7 @@ func commandTypeToString(key uint8) string {
 }
 
 // Automatically generate help for the user
-func help(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func help(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	start := "```ini\n"
 	end := "\n[Note]\nCommands are not case sensitive.\n```"

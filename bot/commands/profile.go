@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
 	user.GetUserByDiscordID(m.Author.ID)

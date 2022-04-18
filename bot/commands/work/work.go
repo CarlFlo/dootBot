@@ -13,7 +13,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Work(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
 	user.GetUserByDiscordID(m.Author.ID)

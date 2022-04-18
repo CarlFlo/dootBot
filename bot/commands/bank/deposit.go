@@ -12,7 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if len(input.GetArgs()) == 0 {
 		handleDepositFailure(s, m, fmt.Errorf("no amount specified"))

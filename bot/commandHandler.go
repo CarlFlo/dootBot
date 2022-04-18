@@ -7,6 +7,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/bank"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/daily"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/dungeon"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
@@ -28,7 +29,7 @@ const (
 )
 
 type command struct {
-	function           func(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput)
+	function           func(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput)
 	requiredPermission uint8
 	helpSyntax         string
 	commandType        uint8
@@ -72,18 +73,13 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
-	validCommands["hub"] = command{
-		function:           commands.Hub,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
 	validCommands["profile"] = command{
 		function:           commands.Profile,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
-	validCommands["dungeon"] = command{
-		function:           dungeon.Dungeon,
+	validCommands["farm"] = command{
+		function:           farming.Farming,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
@@ -94,6 +90,11 @@ func mapValidCommands() {
 
 	validCommands["daily"] = command{
 		function:           daily.Daily,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["dungeon"] = command{
+		function:           dungeon.Dungeon,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 

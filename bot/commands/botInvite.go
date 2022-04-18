@@ -12,7 +12,7 @@ import (
 )
 
 // BotInvite - Sends back the invite link to the bot
-func BotInvite(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func BotInvite(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if len(config.CONFIG.BotInfo.AppID) == 0 {
 		malm.Warn("ClientID not set in config file")

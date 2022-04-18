@@ -10,7 +10,7 @@ import (
 )
 
 // LeaveServer - Leaves the server of the guild ID provided
-func LeaveServer(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func LeaveServer(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if len(input.GetArgs()) == 0 {
 		utils.SendDirectMessage(s, m, "No guild ID provided")

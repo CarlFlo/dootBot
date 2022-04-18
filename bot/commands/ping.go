@@ -14,7 +14,7 @@ import (
 var cache = make(map[string]time.Time)
 
 // Ping - Sends back a 'Pong' message
-func Ping(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Ping(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Send ping
 	pingMsg, err := utils.SendDirectMessage(s, m, "Pinging...")

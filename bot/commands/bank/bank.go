@@ -5,6 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Bank(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Bank(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 }

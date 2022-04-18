@@ -9,7 +9,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Withdraw(s *discordgo.Session, m *discordgo.MessageCreate, input structs.CmdInput) {
+func Withdraw(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if len(input.GetArgs()) == 0 {
 		s.ChannelMessageSend(m.ChannelID, "No amount specified!")
