@@ -28,8 +28,8 @@ func farming() {
 			DurationToGrow: time.Minute * 30,
 			HarvestReward:  1200,
 		}, {
-			Name:           "Blueberry",
-			Emoji:          ":blueberries:",
+			Name:           "Pineapple",
+			Emoji:          ":pineapple:",
 			DurationToGrow: time.Hour,
 			HarvestReward:  1750,
 		}, {
@@ -78,8 +78,8 @@ func farming() {
 			DurationToGrow: time.Hour * 24 * 8,
 			HarvestReward:  150000,
 		}, {
-			Name:           "Rice",
-			Emoji:          ":ear_of_rice:",
+			Name:           "Avocado",
+			Emoji:          ":avocado:",
 			DurationToGrow: time.Hour * 24 * 10,
 			HarvestReward:  195000,
 		}, {
@@ -88,8 +88,8 @@ func farming() {
 			DurationToGrow: time.Hour * 24 * 15,
 			HarvestReward:  305000,
 		}, {
-			Name:           "Pumpkin",
-			Emoji:          ":jack_o_lantern:",
+			Name:           "Peach",
+			Emoji:          ":peach:",
 			DurationToGrow: time.Hour * 24 * 25,
 			HarvestReward:  550000,
 		},

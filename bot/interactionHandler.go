@@ -53,7 +53,7 @@ sendInteraction:
 			Components: []discordgo.MessageComponent{},
 		},
 	}); err != nil {
-		malm.Error("Could not respond to the interaction! %s", err)
+		malm.Error("Could not respond to the interaction! %w", err)
 	}
 
 }

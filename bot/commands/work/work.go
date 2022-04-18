@@ -66,13 +66,13 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 			toolsTooltip)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Success,
 				Title:       "Pay Check",
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
+					{
 						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
 						Value: extraRewardValue,
 					},
@@ -92,13 +92,13 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, false)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Failure,
 				Title:       fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure),
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
+					{
 						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
 						Value: extraRewardValue,
 					},

@@ -49,12 +49,18 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 		return
 	}
 
-	footerText := fmt.Sprintf("While bank deposits are always instant, be advised that there is a %d %s withdrawal fee and that it can take upwards of %d hours to process the withdrawal!\nAccounts with a balance over %d %s will receive a daily interest rate of %.2f%%.", config.CONFIG.Bank.WithdrawFee, config.CONFIG.Economy.Name, config.CONFIG.Bank.MaxWithdrawWaitHours, config.CONFIG.Bank.MinAmountForInterest, config.CONFIG.Economy.Name, config.CONFIG.Bank.InterestRate*100)
+	footerText := fmt.Sprintf("While bank deposits are always instant, be advised that there is a %d %s withdrawal fee and that it can take upwards of %d hours to process the withdrawal!\nAccounts with a balance over %d %s will receive a daily interest rate of %.2f%%.",
+		config.CONFIG.Bank.WithdrawFee,
+		config.CONFIG.Economy.Name,
+		config.CONFIG.Bank.MaxWithdrawWaitHours,
+		config.CONFIG.Bank.MinAmountForInterest,
+		config.CONFIG.Economy.Name,
+		config.CONFIG.Bank.InterestRate*100)
 
 	prettyAmount := utils.HumanReadableNumber(amount)
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Success,
 			Title:       fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Bank, config.CONFIG.Bank.Name, config.CONFIG.Emojis.Bank),
@@ -66,7 +72,7 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 				},
 			*/
 			Fields: []*discordgo.MessageEmbedField{
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Wallet Funds",
 					Value:  fmt.Sprintf("%s - %s (%s)", oldUserMoney, prettyAmount, user.PrettyPrintMoney()),
 					Inline: true,
@@ -78,7 +84,7 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 						Inline: true,
 					},
 				*/
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Bank Funds",
 					Value:  fmt.Sprintf("%s + %s (%s)", oldBankMoney, prettyAmount, bank.PrettyPrintMoney()),
 					Inline: true,
@@ -104,13 +110,13 @@ func handleDepositFailure(s *discordgo.Session, m *discordgo.MessageCreate, err 
 
 	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Failure,
 				Title:       fmt.Sprintf("%s %s %s", config.CONFIG.Emojis.Bank, config.CONFIG.Bank.Name, config.CONFIG.Emojis.Bank),
 				Description: fmt.Sprintf("%s The bank deposit could **not** be completed!", config.CONFIG.Emojis.Failure),
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
+					{
 						Name:  "Failure Reason",
 						Value: err.Error(),
 					},

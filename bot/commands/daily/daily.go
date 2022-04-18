@@ -62,13 +62,13 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 			daily.ConsecutiveStreaks)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Success,
 				Title:       "Daily Bonus",
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
+					{
 						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
 						Value: extraRewardValue,
 					},
@@ -87,13 +87,13 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, false)
 
 		msg.Embeds = []*discordgo.MessageEmbed{
-			&discordgo.MessageEmbed{
+			{
 				Type:        discordgo.EmbedTypeRich,
 				Color:       config.CONFIG.Colors.Failure,
 				Title:       fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure),
 				Description: description,
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
+					{
 						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
 						Value: extraRewardValue,
 					},
