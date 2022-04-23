@@ -32,6 +32,14 @@ func (I *CmdInput) ParseInput(input string, adminPerm bool) {
 	I.adminPermission = adminPerm
 }
 
+func (I *CmdInput) NumberOfArgsAreAtleast(n int) bool {
+	return len(I.args) >= n
+}
+
+func (I *CmdInput) NumberOfArgsAre(n int) bool {
+	return len(I.args) == n
+}
+
 // GetCommand returns the command
 func (I *CmdInput) GetCommand() string {
 	return I.command

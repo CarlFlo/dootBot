@@ -28,6 +28,10 @@ func (fc *FarmCrop) GetAllCrops() []FarmCrop {
 	return crops
 }
 
+func (fc *FarmCrop) GetCropByName(name string) {
+	DB.Where("name = ?", name).First(&fc)
+}
+
 // Outputs the duration in a pretty format
 // Example: 10 days; 1 day; 16 hours; 1 hour; 20 mins
 // Does not handle days with hours, or hours with minutes

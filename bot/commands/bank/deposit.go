@@ -32,11 +32,9 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	}
 
 	var user database.User
-	defer user.Save()
 	user.GetUserByDiscordID(m.Author.ID)
 
 	var bank database.Bank
-	defer bank.Save()
 	bank.GetBankInfo(&user)
 
 	oldUserMoney := user.PrettyPrintMoney()
@@ -104,6 +102,9 @@ func Deposit(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 		malm.Error("Could not send message! %s", err)
 		return
 	}
+
+	user.Save()
+	bank.Save()
 }
 
 func handleDepositFailure(s *discordgo.Session, m *discordgo.MessageCreate, err error) {
