@@ -29,7 +29,7 @@ func (fc *FarmCrop) GetAllCrops() []FarmCrop {
 }
 
 // Outputs the duration in a pretty format
-// Example: 10 days, 1 day, 16 hours, 1 hour, 20 mins
+// Example: 10 days; 1 day; 16 hours; 1 hour; 20 mins
 // Does not handle days with hours, or hours with minutes
 // Does not handle seconds
 func (fc *FarmCrop) GetDuration() string {

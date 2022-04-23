@@ -2,6 +2,7 @@ package farming
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -11,19 +12,29 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+	farmCommands = [][]string{
+		{"Plant a crop", "p", "plant"},
+		{"Get info about available crops", "c", "crop", "crops"},
+		{"Get help on farming", "h", "help"},
+	}
+
+	defaultFooter = fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm [h | help]' for assistance", config.CONFIG.BotPrefix)
+)
+
 func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Handle farm arguments
 
-	if input.ArgsContains([]string{"p", "plant"}) {
+	if input.ArgsContains(farmCommands[0][1:]) {
 		// User wants to plant some seeds
 		farmPlant(s, m, input)
 		return
-	} else if input.ArgsContains([]string{"c", "crop", "crops"}) {
+	} else if input.ArgsContains(farmCommands[1][1:]) {
 		// User wants info about crops/seeds
 		farmCrops(s, m)
 		return
-	} else if input.ArgsContains([]string{"h", "help"}) {
+	} else if input.ArgsContains(farmCommands[2][1:]) {
 		farmHelp(s, m)
 		return
 	}
@@ -49,7 +60,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Description: "",
 			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm [help | h]' for assistance", config.CONFIG.BotPrefix),
+				Text: defaultFooter,
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
@@ -82,6 +93,20 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
+	// Check for input (that a plant has been specified)
+
+	// Check if the user has a free plot
+
+	// Check if the user has enough money to buy seeds
+
+	// parse the input plant (check the database)
+
+	// Plant the seed
+
+	// Update the database
+
+	// Send message to the user
+
 }
 
 func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -89,20 +114,21 @@ func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var crops []database.FarmCrop
 	database.DB.Find(&crops)
 
-	Description := fmt.Sprintf("Type ``%sfarm [plant | p] <crop>`` to plant a crop!\nAll seeds cost %s ``%s``",
+	description := fmt.Sprintf("Type ``%sfarm [p | plant] <crop>`` to plant a crop!\nAll seeds cost %s ``%s`` %s",
 		config.CONFIG.BotPrefix,
 		config.CONFIG.Emojis.Economy,
-		utils.HumanReadableNumber(config.CONFIG.Farm.CropSeedPrice))
+		utils.HumanReadableNumber(config.CONFIG.Farm.CropSeedPrice),
+		config.CONFIG.Economy.Name)
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       "Crops",
-			Description: Description,
+			Description: description,
 			Fields:      createFieldsForCrops(&crops),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm [help | h]' for assistance", config.CONFIG.BotPrefix),
+				Text: defaultFooter,
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
@@ -134,4 +160,45 @@ func createFieldsForCrops(fc *[]database.FarmCrop) []*discordgo.MessageEmbedFiel
 
 func farmHelp(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	title := "Farming Help"
+	description := "These are the commands you can use with the farming system"
+
+	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
+		{
+			Type:        discordgo.EmbedTypeRich,
+			Color:       config.CONFIG.Colors.Neutral,
+			Title:       title,
+			Description: description,
+			Fields:      createHelpFields(),
+			Footer: &discordgo.MessageEmbedFooter{
+				Text: defaultFooter,
+			},
+			Thumbnail: &discordgo.MessageEmbedThumbnail{
+				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
+			},
+		},
+	}}
+
+	// Sends the message
+	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
+		malm.Error("Could not send message! %s", err)
+		return
+	}
+}
+
+func createHelpFields() []*discordgo.MessageEmbedField {
+
+	var embed []*discordgo.MessageEmbedField
+
+	command := fmt.Sprintf("%sfarm ", config.CONFIG.BotPrefix)
+
+	for i, e := range farmCommands {
+		embed = append(embed, &discordgo.MessageEmbedField{
+			Name:   fmt.Sprintf("%s [%v]", command, strings.Join(e[1:], " | ")),
+			Value:  farmCommands[i][0],
+			Inline: true,
+		})
+	}
+
+	return embed
 }
