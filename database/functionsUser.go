@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/malm"
 )
 
@@ -8,7 +9,7 @@ func InitializeNewUser(userID string) {
 
 	user := User{
 		DiscordID: userID,
-		Money:     0}
+		Money:     config.CONFIG.Economy.StartingMoney}
 
 	result := DB.Create(&user)
 

@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/CarlFlo/malm"
 	"gorm.io/gorm"
 )
 
@@ -20,6 +21,8 @@ func (FarmPlot) TableName() string {
 }
 
 func (fp *FarmPlot) AfterCreate(tx *gorm.DB) error {
+
+	malm.Debug("After create just ran for crop")
 
 	fp.PlantedAt = time.Now().UTC()
 	return nil

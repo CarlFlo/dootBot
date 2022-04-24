@@ -19,17 +19,21 @@ func (User) TableName() string {
 	return "users"
 }
 
+func (u *User) AfterCreate(tx *gorm.DB) error {
+	// Log in debug DB maybe
+	return nil
+}
+
 // Saves the data to the database
 func (u *User) Save() {
 	DB.Save(&u)
 }
 
 // Returns true if a user with that discord ID exists in the database
-func (u *User) DoesUserExists(discordID string) bool {
+func (u *User) DoesUserExist(discordID string) bool {
 
 	var count int
-	tx := DB.Exec("SELECT COUNT(*) FROM users WHERE discord_id = ?)", discordID)
-	tx.Row().Scan(&count)
+	DB.Raw("SELECT COUNT(*) FROM users WHERE discord_id = ?", discordID).Scan(&count)
 
 	if count > 1 {
 		malm.Error("More than one user with the same discord ID exists in the database [%s]", discordID)
