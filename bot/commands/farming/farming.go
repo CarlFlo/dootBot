@@ -3,7 +3,6 @@ package farming
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -13,6 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// First index is the help, the rest is the commands
 var farmCommands = [][]string{
 	{"Plant a crop", "p", "plant"},
 	{"Get info about available crops", "c", "crop", "crops"},
@@ -49,15 +49,20 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	user.GetUserByDiscordID(m.Author.ID)
 
 	var farm database.Farm
-	farm.GetFarmInfo(&user)
+	farm.GetUserFarmData(&user)
 
-	description := fmt.Sprintf("You currently own %d plots", farm.OwnedPlots)
+	description := fmt.Sprintf("You currently own %d plot", farm.OwnedPlots)
+
+	// Pluralize the word "plot"
+	if farm.OwnedPlots > 1 {
+		description += "s"
+	}
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
-			Title:       fmt.Sprintf("%s#%s farm", m.Author.Username, m.Author.Discriminator),
+			Title:       fmt.Sprintf("%s#%s's farm", m.Author.Username, m.Author.Discriminator),
 			Description: description,
 			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
@@ -85,14 +90,11 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	var embed []*discordgo.MessageEmbedField
 
-	plots := f.GetFarmPlots()
+	f.GetFarmPlots()
 
-	// Nothing planted & plots has not been initialised
-	if plots == nil {
-		malm.Error("Farm plots for farm ID: '%d' not initialised!", f.ID)
-		return embed
-	}
-	for i, p := range *plots {
+	unusedPlots := f.OwnedPlots - uint8(len(f.Plots))
+
+	for i, p := range f.Plots {
 
 		crop := p.GetCropInfo()
 
@@ -103,9 +105,20 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 		})
 	}
 
+	for i := 0; i < int(unusedPlots); i++ {
+		embed = append(embed, &discordgo.MessageEmbedField{
+			Name:   "Empty Plot",
+			Value:  "⠀",
+			Inline: true,
+		})
+	}
+
 	return embed
 }
 
+func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {}
+
+/*
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Check for input (that a plant has been specified)
@@ -127,12 +140,12 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Check if the user has a free plot
 	var farm database.Farm
 	farm.GetFarmInfo(&user)
-	plots := farm.GetFarmPlots()
+	farm.GetFarmPlots()
 
 	malm.Debug("User has %d plots", farm.OwnedPlots)
 
 	freeSlotIndex := -1
-	for i, p := range *plots {
+	for i, p := range farm.plots {
 		malm.Debug("Plot crop ID: %d", p.CropID)
 		if p.CropID == 0 {
 			freeSlotIndex = i
@@ -162,6 +175,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	user.Save()
 	farm.Save()
 }
+*/
 
 func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
