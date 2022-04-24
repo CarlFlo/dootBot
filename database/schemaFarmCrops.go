@@ -28,8 +28,9 @@ func (fc *FarmCrop) GetAllCrops() []FarmCrop {
 	return crops
 }
 
-func (fc *FarmCrop) GetCropByName(name string) {
-	DB.Where("name = ?", name).First(&fc)
+func (fc *FarmCrop) GetCropByName(name string) bool {
+	ok := DB.Raw("SELECT * FROM farmCrops WHERE name LIKE ?", name).First(&fc)
+	return ok.RowsAffected > 0
 }
 
 // Outputs the duration in a pretty format

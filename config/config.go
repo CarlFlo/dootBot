@@ -54,7 +54,8 @@ type debug struct {
 }
 
 type economy struct {
-	Name string `json:"name"`
+	Name          string `json:"name"`
+	StartingMoney uint64 `json:"startingMoney"`
 }
 
 type bank struct {
@@ -159,7 +160,8 @@ func createConfig() error {
 		}, Database: database{
 			FileName: "database.db",
 		}, Economy: economy{
-			Name: "credits",
+			Name:          "credits",
+			StartingMoney: 0,
 		},
 		Bank: bank{
 			Name:                 "Banana Republic Bank",

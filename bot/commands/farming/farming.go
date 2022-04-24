@@ -83,7 +83,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	farm.Save()
+	//farm.Save()
 }
 
 func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
@@ -116,9 +116,6 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 	return embed
 }
 
-func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {}
-
-/*
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Check for input (that a plant has been specified)
@@ -139,34 +136,29 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Check if the user has a free plot
 	var farm database.Farm
-	farm.GetFarmInfo(&user)
+	farm.GetUserFarmData(&user)
 	farm.GetFarmPlots()
 
-	malm.Debug("User has %d plots", farm.OwnedPlots)
-
-	freeSlotIndex := -1
-	for i, p := range farm.plots {
-		malm.Debug("Plot crop ID: %d", p.CropID)
-		if p.CropID == 0 {
-			freeSlotIndex = i
-			break
-		}
-	}
-
-	if freeSlotIndex == -1 {
-		s.ChannelMessageSend(m.ChannelID, "You don't have a free slot to plant in!")
+	// TODO: This does not seem to be working
+	if !farm.HasFreePlot() {
+		s.ChannelMessageSend(m.ChannelID, "You don't have a free farm plot to plant in!")
 		return
 	}
 
-	// parse the input plant (check the database)
+	// Parse the input plant (checks the database)
 	var crop database.FarmCrop
-	crop.GetCropByName(cropName)
+	if ok := crop.GetCropByName(cropName); !ok {
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The crop '%s' is not valid!", cropName))
+		return
+	}
 
-	// What a mess
+	// Deduct the money from the user
 
-	(*plots)[freeSlotIndex].Crop = crop
-	(*plots)[freeSlotIndex].Planted = time.Now().UTC()
-	//(*plots)[freeSlotIndex].CropID = int(crop.ID)
+	// Create a userFarmPlots entry with the data
+	database.DB.Create(&database.FarmPlot{
+		Farm: farm,
+		Crop: crop,
+	})
 
 	// Update the database
 
@@ -174,9 +166,8 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	user.Save()
 	farm.Save()
-}
-*/
 
+}
 func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var crops []database.FarmCrop

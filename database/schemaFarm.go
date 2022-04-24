@@ -60,16 +60,23 @@ func (f *Farm) Save() {
 func (f *Farm) GetUserFarmData(u *User) {
 	DB.Raw("SELECT * FROM userFarms WHERE userFarms.ID = ?", u.ID).First(&f)
 	if f.ID == 0 { // Meaning there is not data so we initialize it
-		f.ID = u.ID
-		f.OwnedPlots = config.CONFIG.Farm.DefaultOwnedFarmPlots // Create entry in database
+		f.ID = u.ID // The farms index is the same as the user
+		f.OwnedPlots = config.CONFIG.Farm.DefaultOwnedFarmPlots
+
+		f.Save()
 	}
 }
 
 func (f *Farm) GetFarmPlots() {
-	DB.Raw("SELECT * FROM userFarmPlots WHERE userFarmPlots.Farm = ? LIMIT ?", f.ID, f.OwnedPlots).Find(f.Plots)
+	DB.Raw("SELECT * FROM userFarmPlots WHERE userFarmPlots.Farm_ID = ? LIMIT ?", f.ID, f.OwnedPlots).Find(&f.Plots)
 }
 
 // Rember to run GetFarmPlots() before running this function
 func (f *Farm) GetUnusedPlots() int {
 	return int(f.OwnedPlots) - len(f.Plots)
+}
+
+// Returns true if the user has a free (unused) farm plot
+func (f *Farm) HasFreePlot() bool {
+	return f.GetUnusedPlots() > 0
 }

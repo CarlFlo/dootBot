@@ -19,6 +19,12 @@ func (FarmPlot) TableName() string {
 	return "userFarmPlots"
 }
 
+func (fp *FarmPlot) AfterCreate(tx *gorm.DB) error {
+
+	fp.PlantedAt = time.Now().UTC()
+	return nil
+}
+
 // Saves the data to the database
 func (fp *FarmPlot) Save() {
 	DB.Save(&fp)
@@ -29,10 +35,4 @@ func (fp *FarmPlot) GetCropInfo() FarmCrop {
 	var fc FarmCrop
 	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fc)
 	return fc
-}
-
-func (fp *FarmPlot) UpdatePlotSlot(i int, crop *FarmCrop) {
-	fp.Crop = *crop
-	fp.PlantedAt = time.Now().UTC()
-	fp.Save()
 }

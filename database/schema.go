@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/CarlFlo/malm"
 	"gorm.io/gorm"
 )
 
@@ -25,11 +26,16 @@ func (u *User) Save() {
 
 // Returns true if a user with that discord ID exists in the database
 func (u *User) DoesUserExists(discordID string) bool {
-	// Works... but rewrite this function later
-	if err := DB.Where("discord_ID = ?", discordID).First(&u).Error; err != nil {
-		return false
+
+	var count int
+	tx := DB.Exec("SELECT COUNT(*) FROM users WHERE discord_id = ?)", discordID)
+	tx.Row().Scan(&count)
+
+	if count > 1 {
+		malm.Error("More than one user with the same discord ID exists in the database [%s]", discordID)
 	}
-	return true
+
+	return count == 1
 }
 
 // Queries the database for the user with the given discord ID.
