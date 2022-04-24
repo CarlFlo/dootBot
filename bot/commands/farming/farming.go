@@ -3,6 +3,7 @@ package farming
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -94,12 +95,15 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	unusedPlots := f.OwnedPlots - uint8(len(f.Plots))
 
+	malm.Debug("Unused plots: %d = owned (%d) - used (%D) ", unusedPlots, f.OwnedPlots, uint8(len(f.Plots)))
+
 	for i, p := range f.Plots {
 
 		crop := p.GetCropInfo()
 
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   fmt.Sprintf("Plot %d growing %s", i+1, crop.Name),
+			Name: fmt.Sprintf("Plot %d growing %s", i+1, crop.Name),
+			/*TODO: Change to discord formatted time*/
 			Value:  fmt.Sprintf("%s in %s", crop.Name, crop.GetDuration()),
 			Inline: true,
 		})
@@ -156,8 +160,9 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Create a userFarmPlots entry with the data
 	database.DB.Create(&database.FarmPlot{
-		Farm: farm,
-		Crop: crop,
+		Farm:      farm,
+		Crop:      crop,
+		PlantedAt: time.Now(),
 	})
 
 	// Update the database

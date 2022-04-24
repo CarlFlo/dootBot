@@ -21,9 +21,6 @@ func (Work) TableName() string {
 }
 
 func (w *Work) AfterCreate(tx *gorm.DB) error {
-
-	// January 1st 1970
-	w.LastWorkedAt = time.Unix(0, 0).UTC()
 	return nil
 }
 

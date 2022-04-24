@@ -20,9 +20,6 @@ func (Daily) TableName() string {
 }
 
 func (d *Daily) AfterCreate(tx *gorm.DB) error {
-
-	// January 1st 1970
-	d.LastDailyAt = time.Unix(0, 0).UTC()
 	return nil
 }
 
@@ -77,4 +74,5 @@ func (d *Daily) UpdateStreakAndTime() {
 	if d.Streak > uint16(len(config.CONFIG.Daily.StreakOutput)) {
 		d.Streak = uint16(len(config.CONFIG.Daily.StreakOutput))
 	}
+
 }

@@ -25,26 +25,6 @@ func (Farm) TableName() string {
 
 func (f *Farm) AfterCreate(tx *gorm.DB) error {
 
-	// initialize the plots
-
-	/*
-		var crop FarmCrop
-		crop.GetCropByName("Banana")
-
-		for i := 0; i < int(config.CONFIG.Farm.DefaultOwnedFarmPlots); i++ {
-
-			malm.Debug("Creating plot entry for '%s'", crop.Name)
-
-			// Create a new plot
-			var plot FarmPlot
-
-			plot.Farm = *f
-			plot.Crop = crop
-			plot.Planted = time.Now().UTC()
-
-			plot.Save()
-		}
-	*/
 	// January 1st 1970
 	f.LastWatered = time.Unix(0, 0).UTC()
 	return nil

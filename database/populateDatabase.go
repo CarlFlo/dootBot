@@ -8,7 +8,15 @@ import (
 
 func PopulateDatabase() {
 	malm.Info("Populating database...")
+	debug()
 	farming()
+}
+
+func debug() {
+	DB.Create(&Debug{
+		DailyCount: 0,
+		WorkCount:  0,
+	})
 }
 
 func farming() {

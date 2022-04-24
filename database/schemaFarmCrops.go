@@ -41,6 +41,8 @@ func (fc *FarmCrop) GetDuration() string {
 
 	var err error
 
+	// TODO: subtract the plantedAt duration from the durationToGrow
+
 	duration := fmt.Sprintf("%v", fc.DurationToGrow)
 
 	split := strings.Split(duration, "h")
