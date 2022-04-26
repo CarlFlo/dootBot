@@ -51,6 +51,7 @@ type database struct {
 type debug struct {
 	IgnoreWorkCooldown  bool `json:"ignoreWorkCooldown"`
 	IgnoreDailyCooldown bool `json:"ignoreDailyCooldown"`
+	IgnoreWaterCooldown bool `json:"ignoreWaterCooldown"`
 }
 
 type economy struct {
@@ -94,8 +95,11 @@ type daily struct {
 }
 
 type farm struct {
-	DefaultOwnedFarmPlots uint8 `json:"defaultOwnedFarmPlots"`
-	CropSeedPrice         int   `json:"cropSeedPrice"`
+	DefaultOwnedFarmPlots       uint8         `json:"defaultOwnedFarmPlots"`
+	CropSeedPrice               int           `json:"cropSeedPrice"`
+	WaterCooldown               time.Duration `json:"waterCooldown"`
+	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
+	CropsPreishAfter            int           `json:"cropsPreishAfter"`
 }
 
 type colors struct {
@@ -157,9 +161,11 @@ func createConfig() error {
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.
 			MaxIncommingMsgLength: 0,    // Set to 0 for ignore
-		}, Database: database{
+		},
+		Database: database{
 			FileName: "database.db",
-		}, Economy: economy{
+		},
+		Economy: economy{
 			Name:          "credits",
 			StartingMoney: 0,
 		},
@@ -192,10 +198,15 @@ func createConfig() error {
 			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
 			StreakBonus:      10000,
 			StreakResetHours: 24,
-		}, Farm: farm{
-			DefaultOwnedFarmPlots: 1,
-			CropSeedPrice:         500,
-		}, Colors: colors{
+		},
+		Farm: farm{
+			DefaultOwnedFarmPlots:       1,
+			CropSeedPrice:               500,
+			WaterCooldown:               2,
+			WaterCropTimeReductionHours: 1,
+			CropsPreishAfter:            24,
+		},
+		Colors: colors{
 			Success: 0x198754,
 			Failure: 0xE9302A,
 			Neutral: 0x006ED0,
@@ -207,6 +218,11 @@ func createConfig() error {
 			NetWorth: ":bar_chart:",
 			Success:  ":white_check_mark:",
 			Failure:  ":x:",
+		},
+		Debug: debug{
+			IgnoreWorkCooldown:  false,
+			IgnoreDailyCooldown: false,
+			IgnoreWaterCooldown: false,
 		},
 	}
 

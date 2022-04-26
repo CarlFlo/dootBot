@@ -1,9 +1,11 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/malm"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +25,7 @@ func (Farm) TableName() string {
 	return "userFarms"
 }
 
-func (f *Farm) AfterCreate(tx *gorm.DB) error {
+func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
 	// January 1st 1970
 	f.LastWatered = time.Unix(0, 0).UTC()
@@ -47,6 +49,7 @@ func (f *Farm) GetUserFarmData(u *User) {
 	}
 }
 
+// Updates the object to contain all the farmplots
 func (f *Farm) GetFarmPlots() {
 	DB.Raw("SELECT * FROM userFarmPlots WHERE userFarmPlots.Farm_ID = ? LIMIT ?", f.ID, f.OwnedPlots).Find(&f.Plots)
 }
@@ -59,4 +62,29 @@ func (f *Farm) GetUnusedPlots() int {
 // Returns true if the user has a free (unused) farm plot
 func (f *Farm) HasFreePlot() bool {
 	return f.GetUnusedPlots() > 0
+}
+
+// Returns true if the user can water their crops
+func (f *Farm) CanWater() bool {
+
+	malm.Debug("%v > %v", time.Since(f.LastWatered).Hours(), float64(config.CONFIG.Farm.WaterCooldown))
+
+	since := time.Since(f.LastWatered).Hours()
+	return config.CONFIG.Debug.IgnoreWorkCooldown || since > float64(config.CONFIG.Farm.WaterCooldown)
+}
+
+// Returns the time the user can water their crops as a formatted discord string
+// https://hammertime.cyou/
+func (f *Farm) CanWaterAt() string {
+	nextTime := f.LastWatered.Add(time.Hour * config.CONFIG.Farm.WaterCooldown).Unix()
+	return fmt.Sprintf("<t:%d:R>", nextTime)
+}
+
+func (f *Farm) WaterPlots() {
+
+	for _, plot := range f.Plots {
+		plot.Water()
+		plot.Save()
+	}
+
 }

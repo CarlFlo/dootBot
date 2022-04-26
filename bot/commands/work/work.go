@@ -13,6 +13,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+/* TODO
+Make this and Daily functions into a wrapper
+where you pass in the database object as pointers
+if everything went ok then the returned error is nil
+therefore we save the database object.
+
+Which will look cleaner and be easier to understand
+*/
+
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User

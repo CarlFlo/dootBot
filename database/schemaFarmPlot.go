@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,12 @@ type FarmPlot struct {
 
 func (FarmPlot) TableName() string {
 	return "userFarmPlots"
+}
+
+func (fp *FarmPlot) BeforeCreate(tx *gorm.DB) error {
+
+	fp.PlantedAt = time.Now()
+	return nil
 }
 
 func (fp *FarmPlot) AfterCreate(tx *gorm.DB) error {
@@ -34,4 +41,11 @@ func (fp *FarmPlot) GetCropInfo() FarmCrop {
 	var fc FarmCrop
 	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fc)
 	return fc
+}
+
+// Wateres the plot by updating the PlantedAt time
+func (fp *FarmPlot) Water() {
+
+	// The plantedAt time is moved back
+	fp.PlantedAt = fp.PlantedAt.Add(time.Hour * config.CONFIG.Farm.WaterCropTimeReductionHours * -1)
 }
