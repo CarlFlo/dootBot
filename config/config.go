@@ -99,7 +99,7 @@ type farm struct {
 	CropSeedPrice               int           `json:"cropSeedPrice"`
 	WaterCooldown               time.Duration `json:"waterCooldown"`
 	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
-	CropsPreishAfter            int           `json:"cropsPreishAfter"`
+	CropsPreishAfter            time.Duration `json:"cropsPreishAfter"`
 }
 
 type colors struct {

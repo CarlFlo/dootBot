@@ -2,7 +2,6 @@ package farming
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/bwmarrin/discordgo"
@@ -23,14 +22,24 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Check if the user have any planted crops to water?
+	farm.GetFarmPlots()
+	if len(farm.Plots) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "You don't have any plots to water, plant a crop first!")
+		return
+	}
 
-	// Update last watered at
-	farm.LastWatered = time.Now()
+	// Check for perished crops
+	preishedCrops := farm.CropsPerishedCheck()
 
 	// Decrease the wait time for each crop on the users plots
-	farm.GetFarmPlots()
 	farm.WaterPlots()
+	message := "You watered your plots!"
+
+	if len(preishedCrops) > 0 {
+		message += fmt.Sprintf("\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
+	}
+
+	s.ChannelMessageSend(m.ChannelID, message)
 
 	farm.Save()
 }

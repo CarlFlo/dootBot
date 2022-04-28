@@ -36,11 +36,22 @@ func (fp *FarmPlot) Save() {
 	DB.Save(&fp)
 }
 
-// Broken
+// Removes the entry from the database
+func (fp *FarmPlot) DeleteFromDB() {
+	DB.Delete(&fp)
+}
+
 func (fp *FarmPlot) GetCropInfo() FarmCrop {
 	var fc FarmCrop
 	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fc)
 	return fc
+}
+
+// Check if the crop has fully grown by comparing the duration to grow
+// with the planted at time and the current time
+func (fp *FarmPlot) HasFullyGrown() bool {
+
+	return time.Now().After(fp.PlantedAt.Add(fp.Crop.DurationToGrow))
 }
 
 // Wateres the plot by updating the PlantedAt time

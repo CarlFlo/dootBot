@@ -11,9 +11,11 @@ import (
 
 type Farm struct {
 	gorm.Model
-	Plots       []FarmPlot
-	OwnedPlots  uint8
-	LastWatered time.Time // Last time the user watered the farm plots
+	Plots         []FarmPlot
+	OwnedPlots    uint8
+	LastWateredAt time.Time // Last time the user watered the farm plots
+
+	PlotsChanged bool `gorm:"-"` // Ignored by the database
 }
 
 /*
@@ -27,14 +29,20 @@ func (Farm) TableName() string {
 
 func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
-	// January 1st 1970
-	f.LastWatered = time.Unix(0, 0).UTC()
+	f.LastWateredAt = time.Now().Add(time.Hour * config.CONFIG.Farm.WaterCooldown * -1)
 	return nil
 }
 
 // Saves the data to the database
 func (f *Farm) Save() {
 	DB.Save(&f)
+
+	// Updates/saves the plots as well
+	if f.PlotsChanged {
+		for _, plot := range f.Plots {
+			plot.Save()
+		}
+	}
 }
 
 // Queries the database for the farm data with the given user object.
@@ -67,24 +75,69 @@ func (f *Farm) HasFreePlot() bool {
 // Returns true if the user can water their crops
 func (f *Farm) CanWater() bool {
 
-	malm.Debug("%v > %v", time.Since(f.LastWatered).Hours(), float64(config.CONFIG.Farm.WaterCooldown))
+	malm.Debug("%v > %v", time.Since(f.LastWateredAt).Hours(), float64(config.CONFIG.Farm.WaterCooldown))
 
-	since := time.Since(f.LastWatered).Hours()
+	since := time.Since(f.LastWateredAt).Hours()
 	return config.CONFIG.Debug.IgnoreWorkCooldown || since > float64(config.CONFIG.Farm.WaterCooldown)
 }
 
 // Returns the time the user can water their crops as a formatted discord string
 // https://hammertime.cyou/
 func (f *Farm) CanWaterAt() string {
-	nextTime := f.LastWatered.Add(time.Hour * config.CONFIG.Farm.WaterCooldown).Unix()
+	nextTime := f.LastWateredAt.Add(time.Hour * config.CONFIG.Farm.WaterCooldown).Unix()
 	return fmt.Sprintf("<t:%d:R>", nextTime)
 }
 
+// Functions waters every single plot
+// Meaning it will update the plantedAt time
 func (f *Farm) WaterPlots() {
+
+	// Update last watered at
+	f.LastWateredAt = time.Now()
+	// A change was made so it needs to be saved when farm Save function is called
+	f.PlotsChanged = true
 
 	for _, plot := range f.Plots {
 		plot.Water()
-		plot.Save()
+	}
+}
+
+// Will return the amount of crops that have perished from plots
+// Will also remove perished crop plots from the database
+// Untested
+func (f *Farm) CropsPerishedCheck() []string {
+
+	// Checks if the user has watered their crops in the last x hours
+	if float64(config.CONFIG.Farm.CropsPreishAfter) > time.Since(f.LastWateredAt).Hours() {
+		return []string{}
 	}
 
+	// User has not watered in the last x hours. Missing the set deadline
+	// Ungrown crops will perish
+
+	var perishedCrops []string
+
+	for _, plot := range f.Plots {
+
+		plot.GetCropInfo()
+
+		if plot.HasFullyGrown() {
+			// Crop has fully grown so we need to check if the user didn't
+			// just wait the whole growth duration without watering it
+
+			crop := &plot.Crop
+			fullyGrownAt := plot.PlantedAt.Add(crop.DurationToGrow)
+
+			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPreishAfter * -1)
+
+			if !f.LastWateredAt.Before(waterDeadline) {
+				continue
+			}
+		}
+
+		perishedCrops = append(perishedCrops, plot.Crop.Name)
+		plot.DeleteFromDB()
+	}
+
+	return perishedCrops
 }
