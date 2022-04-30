@@ -29,6 +29,10 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		goto sendInteraction
 	}
 
+	/* TODO
+	Update the original farming message with the updated information on successful interaction
+	*/
+
 	switch cData[0] {
 	case "BWT": // BWT: Buy Work Tool
 		disableButton = buyWorkTool(cData, &response, commandIssuerID)
