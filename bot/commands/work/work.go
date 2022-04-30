@@ -25,7 +25,7 @@ Which will look cleaner and be easier to understand
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	var work database.Work
 	work.GetWorkInfo(&user)

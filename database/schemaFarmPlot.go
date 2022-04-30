@@ -41,14 +41,13 @@ func (fp *FarmPlot) DeleteFromDB() {
 	DB.Delete(&fp)
 }
 
-func (fp *FarmPlot) GetCropInfo() FarmCrop {
-	var fc FarmCrop
-	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fc)
-	return fc
+func (fp *FarmPlot) QueryCropInfo() {
+	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fp.Crop)
 }
 
 // Check if the crop has fully grown by comparing the duration to grow
 // with the planted at time and the current time
+// Call QueryCropInfo() first
 func (fp *FarmPlot) HasFullyGrown() bool {
 
 	return time.Now().After(fp.PlantedAt.Add(fp.Crop.DurationToGrow))

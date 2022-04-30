@@ -20,7 +20,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Check if the user has enough money to buy seeds
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	if uint64(config.CONFIG.Farm.CropSeedPrice) > user.Money {
 		s.ChannelMessageSend(m.ChannelID, "You don't have enough money to plant a seed!")
@@ -29,8 +29,8 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Check if the user has a free plot
 	var farm database.Farm
-	farm.GetUserFarmData(&user)
-	farm.GetFarmPlots()
+	farm.QueryUserFarmData(&user)
+	farm.QueryFarmPlots()
 
 	if !farm.HasFreePlot() {
 		s.ChannelMessageSend(m.ChannelID, "You don't have a free farm plot to plant in!")

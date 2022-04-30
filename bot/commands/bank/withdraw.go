@@ -29,7 +29,7 @@ func Withdraw(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.C
 	}
 
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	var bank database.Bank
 	bank.GetBankInfo(&user)

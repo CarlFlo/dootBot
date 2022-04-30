@@ -13,10 +13,10 @@ import (
 func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	var farm database.Farm
-	farm.GetUserFarmData(&user)
+	farm.QueryUserFarmData(&user)
 
 	description := fmt.Sprintf("You currently own %d plot", farm.OwnedPlots)
 
@@ -24,6 +24,8 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	if farm.OwnedPlots > 1 {
 		description += "s"
 	}
+
+	// Check if any of the crops perished
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		{
@@ -33,7 +35,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Description: description,
 			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm [h | help]' for assistance", config.CONFIG.BotPrefix),
+				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm help' for assistance", config.CONFIG.BotPrefix),
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
@@ -57,16 +59,16 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	var embed []*discordgo.MessageEmbedField
 
-	f.GetFarmPlots()
+	f.QueryFarmPlots()
 
 	for i, p := range f.Plots {
 
-		crop := p.GetCropInfo()
+		p.QueryCropInfo()
 
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name: fmt.Sprintf("Plot %d growing %s", i+1, crop.Name),
+			Name: fmt.Sprintf("Plot %d growing %s", i+1, p.Crop.Name),
 			/*TODO: Change to discord formatted time*/
-			Value:  fmt.Sprintf("%s in %s", crop.Name, crop.GetDuration()),
+			Value:  fmt.Sprintf("%s in %s", p.Crop.Name, p.Crop.GetDuration()),
 			Inline: true,
 		})
 	}

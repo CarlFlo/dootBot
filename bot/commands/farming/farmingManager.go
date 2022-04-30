@@ -9,7 +9,7 @@ import (
 var farmCommands = [][]string{
 	{"Plant a crop", "p", "plant"},
 	{"Get info about available crops", "c", "crop", "crops"},
-	{"Get help on farming", "h", "help"},
+	{"Get help on farming", "help"},
 	{"Water your crops", "w", "water"},
 	{"Harvest your crops", "h", "harvest"},
 }

@@ -15,7 +15,7 @@ import (
 func Daily(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	var daily database.Daily
 	daily.GetDailyInfo(&user)

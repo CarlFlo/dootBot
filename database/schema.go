@@ -39,7 +39,7 @@ func (u *User) DoesUserExist(discordID string) bool {
 
 // Queries the database for the user with the given discord ID.
 // The object which calls the method will be updated with the user's data
-func (u *User) GetUserByDiscordID(discordID string) {
+func (u *User) QueryUserByDiscordID(discordID string) {
 	DB.Table("users").Where("discord_id = ?", discordID).First(&u)
 }
 

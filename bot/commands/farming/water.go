@@ -10,10 +10,10 @@ import (
 func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var user database.User
-	user.GetUserByDiscordID(m.Author.ID)
+	user.QueryUserByDiscordID(m.Author.ID)
 
 	var farm database.Farm
-	farm.GetUserFarmData(&user)
+	farm.QueryUserFarmData(&user)
 
 	// Check if user can water their plot
 	if !farm.CanWater() {
@@ -22,7 +22,7 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	farm.GetFarmPlots()
+	farm.QueryFarmPlots()
 	if len(farm.Plots) == 0 {
 		s.ChannelMessageSend(m.ChannelID, "You don't have any plots to water, plant a crop first!")
 		return

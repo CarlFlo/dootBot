@@ -78,7 +78,7 @@ func buyWorkTool(cData []string, response *string, authorID string) bool {
 	// Check if the user has enough money
 
 	var user database.User
-	user.GetUserByDiscordID(authorID)
+	user.QueryUserByDiscordID(authorID)
 
 	if config.CONFIG.Work.Tools[index].Price > int(user.Money) {
 		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)

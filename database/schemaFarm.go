@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
-	"github.com/CarlFlo/malm"
 	"gorm.io/gorm"
 )
 
@@ -15,12 +14,17 @@ type Farm struct {
 	OwnedPlots    uint8
 	LastWateredAt time.Time // Last time the user watered the farm plots
 
-	PlotsChanged bool `gorm:"-"` // Ignored by the database
+	PlotsChanged    bool `gorm:"-"` // Ignored by the database
+	HarvestEarnings int  `gorm:"-"` // If 0 then no earnings
 }
 
 /*
 	One farm per user, but you can have many plots
 	The farm plot keeps track of which farm it belongs to
+
+	Limit the crops the user can plant
+	They unlock better crops by planting the basic first
+	Planting crop ID 1 will then unlock ID 2 and so on
 */
 
 func (Farm) TableName() string {
@@ -47,9 +51,9 @@ func (f *Farm) Save() {
 
 // Queries the database for the farm data with the given user object.
 // Needs to be called first
-func (f *Farm) GetUserFarmData(u *User) {
+func (f *Farm) QueryUserFarmData(u *User) {
 	DB.Raw("SELECT * FROM userFarms WHERE userFarms.ID = ?", u.ID).First(&f)
-	if f.ID == 0 { // Meaning there is not data so we initialize it
+	if f.ID == 0 { // Meaning there is no data, so we initialize it
 		f.ID = u.ID // The farms index is the same as the user
 		f.OwnedPlots = config.CONFIG.Farm.DefaultOwnedFarmPlots
 
@@ -58,7 +62,7 @@ func (f *Farm) GetUserFarmData(u *User) {
 }
 
 // Updates the object to contain all the farmplots
-func (f *Farm) GetFarmPlots() {
+func (f *Farm) QueryFarmPlots() {
 	DB.Raw("SELECT * FROM userFarmPlots WHERE userFarmPlots.Farm_ID = ? LIMIT ?", f.ID, f.OwnedPlots).Find(&f.Plots)
 }
 
@@ -74,9 +78,6 @@ func (f *Farm) HasFreePlot() bool {
 
 // Returns true if the user can water their crops
 func (f *Farm) CanWater() bool {
-
-	malm.Debug("%v > %v", time.Since(f.LastWateredAt).Hours(), float64(config.CONFIG.Farm.WaterCooldown))
-
 	since := time.Since(f.LastWateredAt).Hours()
 	return config.CONFIG.Debug.IgnoreWorkCooldown || since > float64(config.CONFIG.Farm.WaterCooldown)
 }
@@ -90,6 +91,7 @@ func (f *Farm) CanWaterAt() string {
 
 // Functions waters every single plot
 // Meaning it will update the plantedAt time
+// Run QueryFarmPlots() before running this function
 func (f *Farm) WaterPlots() {
 
 	// Update last watered at
@@ -102,9 +104,51 @@ func (f *Farm) WaterPlots() {
 	}
 }
 
+type harvestResult struct {
+	Name    string
+	Emoji   string
+	Earning int
+}
+
+// Returns an array containing the crop object that was harvested
+// Money earned is saved in f.HarvestEarnings. Remember to add it to the user's balance
+// Run QueryFarmPlots() before running this function
+func (f *Farm) HarvestPlots() []harvestResult {
+
+	var result []harvestResult
+
+	for _, plot := range f.Plots {
+
+		plot.QueryCropInfo()
+
+		if !plot.HasFullyGrown() {
+			continue // Not fully grown, so skip
+		}
+
+		result = append(result,
+			harvestResult{
+				Name:    plot.Crop.Name,
+				Emoji:   plot.Crop.Emoji,
+				Earning: plot.Crop.HarvestReward,
+			})
+
+		f.HarvestEarnings += plot.Crop.HarvestReward
+
+		// Delete from the database
+		f.PlotsChanged = true
+		plot.DeleteFromDB()
+	}
+
+	return result
+}
+
+func (f *Farm) SuccessfulHarvest() bool {
+	return f.HarvestEarnings > 0
+}
+
 // Will return the amount of crops that have perished from plots
 // Will also remove perished crop plots from the database
-// Untested
+// Remember to have call GetFarmPlots() before calling this function
 func (f *Farm) CropsPerishedCheck() []string {
 
 	// Checks if the user has watered their crops in the last x hours
@@ -113,29 +157,35 @@ func (f *Farm) CropsPerishedCheck() []string {
 	}
 
 	// User has not watered in the last x hours. Missing the set deadline
-	// Ungrown crops will perish
+	// Crops not fully grown (ready to be harvested) will perish
 
 	var perishedCrops []string
 
 	for _, plot := range f.Plots {
 
-		plot.GetCropInfo()
+		plot.QueryCropInfo()
 
 		if plot.HasFullyGrown() {
 			// Crop has fully grown so we need to check if the user didn't
 			// just wait the whole growth duration without watering it
 
 			crop := &plot.Crop
+			// Calc the time when the crop will be fully grown
 			fullyGrownAt := plot.PlantedAt.Add(crop.DurationToGrow)
 
+			// Calc the time when the crop would have had to be watered
 			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPreishAfter * -1)
 
-			if !f.LastWateredAt.Before(waterDeadline) {
+			// If the last time the plant was watered is after the deadline
+			// Then the crop is ok, lse it will perish
+			if f.LastWateredAt.After(waterDeadline) {
+				// The crop is ok
 				continue
 			}
 		}
 
 		perishedCrops = append(perishedCrops, plot.Crop.Name)
+		f.PlotsChanged = true
 		plot.DeleteFromDB()
 	}
 

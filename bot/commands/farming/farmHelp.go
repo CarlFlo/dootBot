@@ -22,7 +22,7 @@ func farmHelp(s *discordgo.Session, m *discordgo.MessageCreate) {
 			Description: description,
 			Fields:      createHelpFields(),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm [h | help]' for assistance", config.CONFIG.BotPrefix),
+				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm help' for assistance", config.CONFIG.BotPrefix),
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
