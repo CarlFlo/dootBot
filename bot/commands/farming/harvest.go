@@ -79,7 +79,7 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 			Description: "",
 			Fields:      fields,
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm help' for assistance", config.CONFIG.BotPrefix),
+				Text: "Crops will perish if not watered everyday!",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),

@@ -36,7 +36,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Description: description,
 			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm help' for assistance", config.CONFIG.BotPrefix),
+				Text: "Crops will perish if not watered everyday!",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
@@ -126,7 +126,7 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 		Label:    "Help",
 		Style:    2, // Gray color style
 		Disabled: false,
-		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information
+		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information regarding farming
 	})
 
 	if len(components) == 0 {
