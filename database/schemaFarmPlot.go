@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -58,6 +59,13 @@ func (fp *FarmPlot) HasFullyGrown() bool {
 // Wateres the plot by updating the PlantedAt time
 func (fp *FarmPlot) Water() {
 
-	// The plantedAt time is moved back
+	// The plantedAt time is moved back - Not moving back the time the set amount for some reason
 	fp.PlantedAt = fp.PlantedAt.Add(time.Hour * config.CONFIG.Farm.WaterCropTimeReductionHours * -1)
+}
+
+// Returns a discord formatted string showing when the crop will be harvestable
+func (fp *FarmPlot) HarvestableAt() string {
+
+	fullyGrown := fp.PlantedAt.Add(fp.Crop.DurationToGrow).Unix()
+	return fmt.Sprintf("<t:%d:R>", fullyGrown)
 }

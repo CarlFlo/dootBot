@@ -3,9 +3,14 @@ package farming
 import (
 	"fmt"
 
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/bwmarrin/discordgo"
 )
+
+/*
+	The correct water reduce amount is not applied to the database when watering
+*/
 
 func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
@@ -16,7 +21,7 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	farm.QueryUserFarmData(&user)
 
 	// Check if user can water their plot
-	if !farm.CanWater() {
+	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
 		msg := fmt.Sprintf("You can't water your farm right now! You can water again %s", farm.CanWaterAt())
 		s.ChannelMessageSend(m.ChannelID, msg)
 		return
@@ -33,7 +38,7 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Decrease the wait time for each crop on the users plots
 	farm.WaterPlots()
-	message := "You watered your plots!"
+	message := "You watered your plots and reduced the growth time"
 
 	if len(preishedCrops) > 0 {
 		message += fmt.Sprintf("\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)

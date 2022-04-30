@@ -61,14 +61,14 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	f.QueryFarmPlots()
 
-	for i, p := range f.Plots {
+	for _, p := range f.Plots {
 
 		p.QueryCropInfo()
 
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name: fmt.Sprintf("Plot %d growing %s", i+1, p.Crop.Name),
+			Name: fmt.Sprintf("Growing %s %s", p.Crop.Emoji, p.Crop.Name),
 			/*TODO: Change to discord formatted time*/
-			Value:  fmt.Sprintf("%s in %s", p.Crop.Name, p.Crop.GetDuration()),
+			Value:  fmt.Sprintf("%s Harvestable %s", p.Crop.Emoji, p.HarvestableAt()),
 			Inline: true,
 		})
 	}
