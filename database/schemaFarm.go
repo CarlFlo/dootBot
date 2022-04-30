@@ -90,6 +90,13 @@ func (f *Farm) CanWaterAt() string {
 	return fmt.Sprintf("<t:%d:R>", nextTime)
 }
 
+// Returns true if the user can harvest any of their crops
+// unifinished
+func (f *Farm) CanHarvest() bool {
+
+	return true
+}
+
 // Functions waters every single plot
 // Meaning it will update the plantedAt time
 // Run QueryFarmPlots() before running this function

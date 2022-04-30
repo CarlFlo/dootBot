@@ -65,14 +65,13 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	f.QueryFarmPlots()
 
-	for _, p := range f.Plots {
+	for i, p := range f.Plots {
 
 		p.QueryCropInfo()
 
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name: fmt.Sprintf("Growing %s %s", p.Crop.Emoji, p.Crop.Name),
-			/*TODO: Change to discord formatted time*/
-			Value:  fmt.Sprintf("%s Harvestable %s", p.Crop.Emoji, p.HarvestableAt()),
+			Name:   fmt.Sprintf("%d) %s %s", i+1, p.Crop.Emoji, p.Crop.Name),
+			Value:  p.HarvestableAt(),
 			Inline: true,
 		})
 	}
@@ -81,7 +80,7 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	for i := 0; i < int(unusedPlots); i++ {
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   fmt.Sprintf("Empty Plot #%d", i+1),
+			Name:   fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
 			Value:  "⠀",
 			Inline: true,
 		})
@@ -97,8 +96,8 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 	// Harvest and water buttons
 	components = append(components, &discordgo.Button{
 		Label:    "Harvest",
-		Disabled: false,
-		CustomID: "FH", // 'FH' is code for 'Farm Harvest'
+		Disabled: false, // !farm.CanHarvest()
+		CustomID: "FH",  // 'FH' is code for 'Farm Harvest'
 	})
 	components = append(components, &discordgo.Button{
 		Label:    "Water",
