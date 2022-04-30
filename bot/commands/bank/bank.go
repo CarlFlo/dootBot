@@ -6,5 +6,4 @@ import (
 )
 
 func Bank(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-
 }

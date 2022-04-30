@@ -9,7 +9,7 @@ import (
 )
 
 type Farm struct {
-	gorm.Model
+	Model
 	Plots         []FarmPlot
 	OwnedPlots    uint8
 	LastWateredAt time.Time // Last time the user watered the farm plots
@@ -135,8 +135,7 @@ func (f *Farm) HarvestPlots() []harvestResult {
 		f.HarvestEarnings += plot.Crop.HarvestReward
 
 		// Delete from the database
-		f.PlotsChanged = true
-		plot.DeleteFromDB()
+		defer f.DeletePlot(&plot) // We cannot delete it at once, because we are iterating over it
 	}
 
 	return result
@@ -185,9 +184,22 @@ func (f *Farm) CropsPerishedCheck() []string {
 		}
 
 		perishedCrops = append(perishedCrops, plot.Crop.Name)
-		f.PlotsChanged = true
-		plot.DeleteFromDB()
+		defer f.DeletePlot(&plot) // We cannot delete it at once, because we are iterating over it
 	}
 
 	return perishedCrops
+}
+
+func (f *Farm) DeletePlot(plot *FarmPlot) {
+
+	f.PlotsChanged = true
+	// Remove plot from f.Plots
+	for i, p := range f.Plots {
+		if p.ID == plot.ID {
+			f.Plots = append(f.Plots[:i], f.Plots[i+1:]...)
+			break
+		}
+	}
+
+	plot.DeleteFromDB()
 }

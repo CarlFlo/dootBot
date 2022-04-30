@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/CarlFlo/malm"
-	"gorm.io/gorm"
 )
 
 type FarmCrop struct {
-	gorm.Model
+	Model
 	Name           string
 	Emoji          string
 	DurationToGrow time.Duration

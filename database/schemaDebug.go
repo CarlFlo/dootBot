@@ -1,11 +1,7 @@
 package database
 
-import (
-	"gorm.io/gorm"
-)
-
 type Debug struct {
-	gorm.Model
+	Model
 	DailyCount uint64
 	WorkCount  uint64
 }

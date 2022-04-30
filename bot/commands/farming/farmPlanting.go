@@ -9,7 +9,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Make prettier to match the style of the other messages
+
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+
+	if input.NumberOfArgsAre(1) {
+		// only ,farm plant. Missing plant name. Give some help
+		s.ChannelMessageSend(m.ChannelID, "You need to specify a plant name. Use the command ',farm [c | crops]' to see a list of available crops.")
+		return
+	}
 
 	// Check for input (that a plant has been specified)
 	if !input.NumberOfArgsAre(2) {

@@ -9,7 +9,7 @@ import (
 )
 
 type Daily struct {
-	gorm.Model
+	Model
 	LastDailyAt        time.Time
 	ConsecutiveStreaks uint16
 	Streak             uint16

@@ -9,7 +9,7 @@ import (
 )
 
 type Work struct {
-	gorm.Model
+	Model
 	LastWorkedAt       time.Time
 	ConsecutiveStreaks uint16
 	Streak             uint16

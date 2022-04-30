@@ -20,8 +20,6 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	farm.QueryUserFarmData(&user)
 	farm.QueryFarmPlots()
 
-	description := "<no description>"
-
 	fields := createFieldsForHarvest(&farm)
 
 	color := config.CONFIG.Colors.Failure
@@ -37,7 +35,7 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 			Type:        discordgo.EmbedTypeRich,
 			Color:       color,
 			Title:       fmt.Sprintf("%s#%s's harvest", m.Author.Username, m.Author.Discriminator),
-			Description: description,
+			Description: "",
 			Fields:      fields,
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nUse command '%sfarm help' for assistance", config.CONFIG.BotPrefix),

@@ -8,7 +8,7 @@ import (
 )
 
 type FarmPlot struct {
-	gorm.Model
+	Model
 	FarmID    uint `gorm:"index"`
 	Farm      Farm `gorm:"references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // The farm this plot belongs to
 	CropID    int
@@ -38,10 +38,12 @@ func (fp *FarmPlot) Save() {
 
 // Removes the entry from the database
 func (fp *FarmPlot) DeleteFromDB() {
+
 	DB.Delete(&fp)
 }
 
 func (fp *FarmPlot) QueryCropInfo() {
+
 	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fp.Crop)
 }
 

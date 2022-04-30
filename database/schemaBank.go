@@ -5,11 +5,10 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
-	"gorm.io/gorm"
 )
 
 type Bank struct {
-	gorm.Model
+	Model
 	Money uint64
 }
 

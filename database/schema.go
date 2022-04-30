@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	gorm.Model
+	Model
 	DiscordID string `gorm:"uniqueIndex"`
 	Money     uint64
 	Work      Work  `gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

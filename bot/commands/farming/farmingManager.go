@@ -5,6 +5,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Redo this better later...
+
 // First index is the help, the rest is the commands
 var farmCommands = [][]string{
 	{"Plant a crop", "p", "plant"},
@@ -12,6 +14,7 @@ var farmCommands = [][]string{
 	{"Get help on farming", "help"},
 	{"Water your crops", "w", "water"},
 	{"Harvest your crops", "h", "harvest"},
+	{"Removes 1 crop with the matching name from the farm", "rm", "remove"},
 }
 
 func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -36,6 +39,10 @@ func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	} else if input.ArgsContains(farmCommands[4][1:]) {
 		// Harvest the crops
 		farmHarvestCrops(s, m)
+		return
+	} else if input.ArgsContains(farmCommands[5][1:]) {
+		// Removes a crop
+		farmRemoveCrops(s, m, input)
 		return
 	}
 
