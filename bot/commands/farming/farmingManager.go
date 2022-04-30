@@ -11,7 +11,6 @@ import (
 var farmCommands = [][]string{
 	{"Plant a crop", "p", "plant"},
 	{"Get info about available crops", "c", "crop", "crops"},
-	{"Get help on farming", "help"},
 	{"Water your crops", "w", "water"},
 	{"Harvest your crops", "h", "harvest"},
 }
@@ -28,13 +27,10 @@ func Farming(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 		farmCrops(s, m)
 		return
 	} else if input.ArgsContains(farmCommands[2][1:]) {
-		farmHelp(s, m)
-		return
-	} else if input.ArgsContains(farmCommands[3][1:]) {
 		// Water the crops
 		farmWaterCrops(s, m)
 		return
-	} else if input.ArgsContains(farmCommands[4][1:]) {
+	} else if input.ArgsContains(farmCommands[3][1:]) {
 		// Harvest the crops
 		farmHarvestCrops(s, m)
 		return

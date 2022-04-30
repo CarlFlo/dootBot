@@ -77,6 +77,12 @@ func (f *Farm) HasFreePlot() bool {
 	return f.GetUnusedPlots() > 0
 }
 
+// Returns true if anything is planted on the farm
+// Run QueryFarmPlots() first
+func (f *Farm) HasPlantedPlots() bool {
+	return len(f.Plots) > 0
+}
+
 // Returns true if the user can water their crops
 func (f *Farm) CanWater() bool {
 	since := time.Since(f.LastWateredAt).Hours()
@@ -93,7 +99,6 @@ func (f *Farm) CanWaterAt() string {
 // Returns true if the user can harvest any of their crops
 // unifinished
 func (f *Farm) CanHarvest() bool {
-
 	return true
 }
 

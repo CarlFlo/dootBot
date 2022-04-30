@@ -93,16 +93,18 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 
 	components := []discordgo.MessageComponent{}
 
+	farm.QueryFarmPlots()
+
 	// Harvest and water buttons
 	components = append(components, &discordgo.Button{
 		Label:    "Harvest",
-		Disabled: false, // !farm.CanHarvest()
-		CustomID: "FH",  // 'FH' is code for 'Farm Harvest'
+		Disabled: !(farm.HasPlantedPlots() && farm.CanHarvest()), // !farm.CanHarvest()
+		CustomID: "FH",                                           // 'FH' is code for 'Farm Harvest'
 	})
 	components = append(components, &discordgo.Button{
 		Label:    "Water",
-		Disabled: !farm.CanWater(),
-		CustomID: "FW", // 'FW' is code for 'Farm Water'
+		Disabled: !(farm.CanWater() && farm.HasPlantedPlots()), // Disable if nothing is planted
+		CustomID: "FW",                                         // 'FW' is code for 'Farm Water'
 	})
 
 	// For buying an additional plot
@@ -111,10 +113,20 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 
 	plotPrice := utils.HumanReadableNumber(config.CONFIG.Farm.FarmPlotPrice)
 
+	// Add limit to the number of plots a user can buy
+
 	components = append(components, &discordgo.Button{
-		Label:    fmt.Sprintf("Buy additional farm plot (%s)", plotPrice),
+		Label:    fmt.Sprintf("Add farm plot (%s)", plotPrice),
+		Style:    3, // Green color style
 		Disabled: !canAffordPlot,
 		CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
+	})
+
+	components = append(components, &discordgo.Button{
+		Label:    "Help",
+		Style:    2, // Gray color style
+		Disabled: false,
+		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information
 	})
 
 	if len(components) == 0 {

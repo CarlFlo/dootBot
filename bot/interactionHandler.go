@@ -20,6 +20,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	disableButton := false
 
 	var response string
+	var embeds []*discordgo.MessageEmbed
 
 	commandIssuerID := strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
 
@@ -37,6 +38,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		disableButton = farming.HarvestInteraction(commandIssuerID, &response)
 	case "FW": // FW: Farm Water
 		disableButton = farming.WaterInteraction(commandIssuerID, &response)
+	case "FHELP":
+		disableButton, embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
@@ -59,6 +62,7 @@ sendInteraction:
 			Content:    response,
 			Flags:      1 << 6, // Makes it so only the 'clicker' can see the message
 			Components: []discordgo.MessageComponent{},
+			Embeds:     embeds,
 		},
 	}); err != nil {
 		malm.Error("Could not respond to the interaction! %w", err)

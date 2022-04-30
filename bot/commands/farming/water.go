@@ -44,7 +44,7 @@ func WaterInteraction(discordID string, response *string) bool {
 
 	farm.Save()
 
-	return true
+	return true && !config.CONFIG.Debug.IgnoreWaterCooldown
 }
 
 /*
