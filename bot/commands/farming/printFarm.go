@@ -81,7 +81,7 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	for i := 0; i < int(unusedPlots); i++ {
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   "Empty Plot",
+			Name:   fmt.Sprintf("Empty Plot #%d", i+1),
 			Value:  "⠀",
 			Inline: true,
 		})
@@ -114,7 +114,7 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 
 	components = append(components, &discordgo.Button{
 		Label:    fmt.Sprintf("Buy additional farm plot (%s)", plotPrice),
-		Disabled: true || !canAffordPlot,
+		Disabled: !canAffordPlot,
 		CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
 	})
 
