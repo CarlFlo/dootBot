@@ -97,6 +97,7 @@ type daily struct {
 type farm struct {
 	DefaultOwnedFarmPlots       uint8         `json:"defaultOwnedFarmPlots"`
 	CropSeedPrice               int           `json:"cropSeedPrice"`
+	FarmPlotPrice               int           `json:"farmPlotPrice"`
 	WaterCooldown               time.Duration `json:"waterCooldown"`
 	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
 	CropsPreishAfter            time.Duration `json:"cropsPreishAfter"`
@@ -109,12 +110,13 @@ type colors struct {
 }
 
 type emojis struct {
-	Bank     string `json:"bank"`
-	Wallet   string `json:"wallet"`
-	Economy  string `json:"economy"`
-	NetWorth string `json:"netWorth"`
-	Success  string `json:"success"`
-	Failure  string `json:"failure"`
+	Bank         string `json:"bank"`
+	Wallet       string `json:"wallet"`
+	Economy      string `json:"economy"`
+	NetWorth     string `json:"netWorth"`
+	Success      string `json:"success"`
+	Failure      string `json:"failure"`
+	PerishedCrop string `json:"perishedCrop"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -202,6 +204,7 @@ func createConfig() error {
 		Farm: farm{
 			DefaultOwnedFarmPlots:       1,
 			CropSeedPrice:               500,
+			FarmPlotPrice:               250000,
 			WaterCooldown:               2,
 			WaterCropTimeReductionHours: 1,
 			CropsPreishAfter:            24,
@@ -212,12 +215,13 @@ func createConfig() error {
 			Neutral: 0x006ED0,
 		},
 		Emojis: emojis{
-			Bank:     ":bank:",
-			Wallet:   ":dollar:",
-			Economy:  ":moneybag:",
-			NetWorth: ":bar_chart:",
-			Success:  ":white_check_mark:",
-			Failure:  ":x:",
+			Bank:         ":bank:",
+			Wallet:       ":dollar:",
+			Economy:      ":moneybag:",
+			NetWorth:     ":bar_chart:",
+			Success:      ":white_check_mark:",
+			Failure:      ":x:",
+			PerishedCrop: ":wilted_rose:",
 		},
 		Debug: debug{
 			IgnoreWorkCooldown:  false,

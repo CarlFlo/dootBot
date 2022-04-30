@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/malm"
@@ -16,7 +17,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	cData := strings.Split(i.MessageComponentData().CustomID, "-")
 
-	interactionSuccess := false
+	disableButton := false
 
 	var response string
 
@@ -29,7 +30,14 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch cData[0] {
 	case "BWT": // BWT: Buy Work Tool
-		interactionSuccess = buyWorkTool(cData, &response, commandIssuerID)
+		disableButton = buyWorkTool(cData, &response, commandIssuerID)
+	case "BFP": // BFP: Buy Farm Plot
+		disableButton = farming.BuyFarmPlotInteraction(commandIssuerID, &response)
+	case "FH": // FH: Farm Harvest
+		disableButton = farming.HarvestInteraction(commandIssuerID, &response)
+	case "FW": // FW: Farm Water
+		disableButton = farming.WaterInteraction(commandIssuerID, &response)
+
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return
@@ -38,7 +46,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 sendInteraction:
 
 	// Disables the button
-	if interactionSuccess {
+	if disableButton {
 		if err := disableButtonComponent(s, i.Interaction, i.MessageComponentData().CustomID); err != nil {
 			malm.Error("editMsgComponentsRemoved, error: %w", err)
 		}

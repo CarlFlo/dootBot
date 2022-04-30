@@ -124,7 +124,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 		URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
 	}
 
-	// Adds the button
+	// Adds the button(s)
 	if components := createButtonComponent(work); components != nil {
 		msg.Components = components
 	}

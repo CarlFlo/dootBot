@@ -5,9 +5,50 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
+
+func HarvestInteraction(discordID string, response *string) bool {
+
+	var user database.User
+	user.QueryUserByDiscordID(discordID)
+
+	var farm database.Farm
+	defer farm.Save()
+
+	farm.QueryUserFarmData(&user)
+	farm.QueryFarmPlots()
+
+	perishedCrops := farm.CropsPerishedCheck()
+
+	result := farm.HarvestPlots()
+
+	if len(result) == 0 && len(perishedCrops) == 0 {
+		*response = "There is currently nothing ready to be harvested!"
+		return false
+	}
+
+	*response = "Your harvest:\n"
+
+	for _, e := range result {
+		*response += fmt.Sprintf("%s %s\n", e.Emoji, e.Name)
+	}
+
+	for _, name := range perishedCrops {
+
+		*response += fmt.Sprintf("%s %s perished\n", config.CONFIG.Emojis.PerishedCrop, name)
+	}
+
+	if farm.SuccessfulHarvest() {
+		*response += fmt.Sprintf("\nYou earned %s", utils.HumanReadableNumber(farm.HarvestEarnings))
+		user.Money += uint64(farm.HarvestEarnings)
+		user.Save()
+	}
+
+	return true
+}
 
 func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
@@ -71,7 +112,7 @@ func createFieldsForHarvest(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	for _, name := range perishedCrops {
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   fmt.Sprintf("%s perished", name),
+			Name:   fmt.Sprintf("%s %s perished", config.CONFIG.Emojis.PerishedCrop, name),
 			Value:  "You didn't water it in time!",
 			Inline: true,
 		})
@@ -80,7 +121,7 @@ func createFieldsForHarvest(f *database.Farm) []*discordgo.MessageEmbedField {
 	if len(embed) == 0 {
 		embed = append(embed, &discordgo.MessageEmbedField{
 			Name:   "Harvest information",
-			Value:  "There is currently nothing to harvest",
+			Value:  "There is currently nothing ready to be harvested",
 			Inline: true,
 		})
 	}

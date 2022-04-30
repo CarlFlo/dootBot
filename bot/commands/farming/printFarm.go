@@ -6,6 +6,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -31,7 +32,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
-			Title:       fmt.Sprintf("%s#%s's farm", m.Author.Username, m.Author.Discriminator),
+			Title:       fmt.Sprintf("%s#%s's Farm", m.Author.Username, m.Author.Discriminator),
 			Description: description,
 			Fields:      createFieldsForPlots(&farm),
 			Footer: &discordgo.MessageEmbedFooter{
@@ -43,7 +44,12 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		},
 	}}
 
-	// Buttons for harvesting and watering
+	// Adds the button(s)
+	if components := createButtonComponent(&user, &farm); components != nil {
+		complexMessage.Components = components
+	}
+
+	// Buttons for harvesting, watering and buying new plots (and items)
 	// Buttons are disabled if the actions are unavailable to be performed
 
 	// Sends the message
@@ -51,8 +57,6 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		malm.Error("Could not send message! %s", err)
 		return
 	}
-
-	//farm.Save()
 }
 
 func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
@@ -84,4 +88,39 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 	}
 
 	return embed
+}
+
+func createButtonComponent(user *database.User, farm *database.Farm) []discordgo.MessageComponent {
+
+	components := []discordgo.MessageComponent{}
+
+	// Harvest and water buttons
+	components = append(components, &discordgo.Button{
+		Label:    "Harvest",
+		Disabled: false,
+		CustomID: "FH", // 'FH' is code for 'Farm Harvest'
+	})
+	components = append(components, &discordgo.Button{
+		Label:    "Water",
+		Disabled: !farm.CanWater(),
+		CustomID: "FW", // 'FW' is code for 'Farm Water'
+	})
+
+	// For buying an additional plot
+
+	canAffordPlot := user.Money >= uint64(config.CONFIG.Farm.FarmPlotPrice)
+
+	plotPrice := utils.HumanReadableNumber(config.CONFIG.Farm.FarmPlotPrice)
+
+	components = append(components, &discordgo.Button{
+		Label:    fmt.Sprintf("Buy additional farm plot (%s)", plotPrice),
+		Disabled: true || !canAffordPlot,
+		CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
+	})
+
+	if len(components) == 0 {
+		return nil
+	}
+
+	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }

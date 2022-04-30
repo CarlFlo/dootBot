@@ -5,14 +5,51 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
-	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
+
+// Code duplication...
+
+func WaterInteraction(discordID string, response *string) bool {
+
+	var user database.User
+	user.QueryUserByDiscordID(discordID)
+
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
+	// Check if user can water their plot
+	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
+		*response = fmt.Sprintf("You can't water your farm right now! You can water again %s", farm.CanWaterAt())
+		return false
+	}
+
+	farm.QueryFarmPlots()
+	if len(farm.Plots) == 0 {
+		*response = "You don't have any plots to water, plant a crop first!"
+		return false
+	}
+
+	// Check for perished crops
+	preishedCrops := farm.CropsPerishedCheck()
+
+	// Decrease the wait time for each crop on the users plots
+	farm.WaterPlots()
+
+	*response = "You watered your plots and reduced the growth time"
+
+	if len(preishedCrops) > 0 {
+		*response += fmt.Sprintf("\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
+	}
+
+	farm.Save()
+
+	return true
+}
 
 /*
 	The correct water reduce amount is not applied to the database when watering
 */
-
 func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var user database.User
@@ -37,18 +74,8 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Check for perished crops
 	preishedCrops := farm.CropsPerishedCheck()
 
-	malm.Debug("Before watering")
-	for i, plot := range farm.Plots {
-		malm.Debug("%d - %v", i, plot.PlantedAt)
-	}
-
 	// Decrease the wait time for each crop on the users plots
 	farm.WaterPlots()
-
-	malm.Debug("After watering")
-	for i, plot := range farm.Plots {
-		malm.Debug("%d - %v", i, plot.PlantedAt)
-	}
 
 	message := "You watered your plots and reduced the growth time"
 
