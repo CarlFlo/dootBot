@@ -31,7 +31,7 @@ func farmRemoveCrops(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		plot.QueryCropInfo()
 		if plot.Crop.Name == cropName {
 
-			farm.DeletePlot(&plot)
+			farm.DeletePlot(plot)
 			break
 		}
 	}

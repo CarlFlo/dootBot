@@ -10,7 +10,7 @@ import (
 
 type Farm struct {
 	Model
-	Plots         []FarmPlot
+	Plots         []*FarmPlot
 	OwnedPlots    uint8
 	LastWateredAt time.Time // Last time the user watered the farm plots
 
@@ -39,7 +39,6 @@ func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
 // Saves the data to the database
 func (f *Farm) Save() {
-	DB.Save(&f)
 
 	// Updates/saves the plots as well
 	if f.PlotsChanged {
@@ -47,6 +46,8 @@ func (f *Farm) Save() {
 			plot.Save()
 		}
 	}
+
+	DB.Save(&f)
 }
 
 // Queries the database for the farm data with the given user object.
@@ -135,7 +136,7 @@ func (f *Farm) HarvestPlots() []harvestResult {
 		f.HarvestEarnings += plot.Crop.HarvestReward
 
 		// Delete from the database
-		defer f.DeletePlot(&plot) // We cannot delete it at once, because we are iterating over it
+		defer f.DeletePlot(plot) // We cannot delete it at once, because we are iterating over it
 	}
 
 	return result
@@ -184,7 +185,7 @@ func (f *Farm) CropsPerishedCheck() []string {
 		}
 
 		perishedCrops = append(perishedCrops, plot.Crop.Name)
-		defer f.DeletePlot(&plot) // We cannot delete it at once, because we are iterating over it
+		defer f.DeletePlot(plot) // We cannot delete it at once, because we are iterating over it
 	}
 
 	return perishedCrops

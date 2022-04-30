@@ -5,6 +5,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -36,8 +37,19 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Check for perished crops
 	preishedCrops := farm.CropsPerishedCheck()
 
+	malm.Debug("Before watering")
+	for i, plot := range farm.Plots {
+		malm.Debug("%d - %v", i, plot.PlantedAt)
+	}
+
 	// Decrease the wait time for each crop on the users plots
 	farm.WaterPlots()
+
+	malm.Debug("After watering")
+	for i, plot := range farm.Plots {
+		malm.Debug("%d - %v", i, plot.PlantedAt)
+	}
+
 	message := "You watered your plots and reduced the growth time"
 
 	if len(preishedCrops) > 0 {
