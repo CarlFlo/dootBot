@@ -56,7 +56,7 @@ sendInteraction:
 	}
 
 	// Nothing to reply with
-	if len(response) == 0 {
+	if len(response) == 0 && len(embeds) == 0 {
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 		}); err != nil {
