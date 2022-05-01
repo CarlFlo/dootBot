@@ -219,7 +219,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
 
-func BuyToolInteraction(response *string, authorID string, disableButton *bool, newButtonText *string) {
+func BuyToolInteraction(authorID string, response *string, disableButton *bool, newButtonText *string) {
 
 	// Check if the user has enough money
 	var user database.User
@@ -228,7 +228,7 @@ func BuyToolInteraction(response *string, authorID string, disableButton *bool, 
 	var work database.Work
 	work.GetWorkInfo(&user)
 
-	price, priceStr := work.CalcBuyToolPrice()
+	price, _ := work.CalcBuyToolPrice()
 
 	if uint64(price) > user.Money {
 		difference := uint64(price) - user.Money
@@ -247,8 +247,5 @@ func BuyToolInteraction(response *string, authorID string, disableButton *bool, 
 	user.Save()
 	work.Save()
 
-	// TODO: Update the original message with the updated price
-	// TODO: SOme bug with calculating the new price.
-
-	*response = fmt.Sprintf("You succesfully bought an additional tool for %s %s", priceStr, config.CONFIG.Economy.Name)
+	//*response = fmt.Sprintf("You succesfully bought an additional tool for %s %s", priceStr, config.CONFIG.Economy.Name)
 }

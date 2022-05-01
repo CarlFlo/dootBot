@@ -33,7 +33,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		work.BuyToolInteraction(&response, commandIssuerID, &disableButton, &newButtonText)
+		work.BuyToolInteraction(commandIssuerID, &response, &disableButton, &newButtonText)
 	case "BFP": // BFP: Buy Farm Plot
 		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &disableButton)
 	case "FH": // FH: Farm Harvest
@@ -50,11 +50,21 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 sendInteraction:
 
+	// Updates the button on the original message
 	if err := updateButtonComponent(s, i.Interaction, i.MessageComponentData().CustomID, disableButton, &newButtonText); err != nil {
 		malm.Error("editMsgComponentsRemoved, error: %w", err)
 	}
 
-	// Delete this after some seconds?
+	// Nothing to reply with
+	if len(response) == 0 {
+		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseUpdateMessage,
+		}); err != nil {
+			malm.Error("Could not respond to the interaction! %w", err)
+		}
+		return
+	}
+
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -75,39 +85,10 @@ func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, custo
 		if v.(*discordgo.Button).CustomID == customID {
 			v.(*discordgo.Button).Disabled = disableButton
 
-			if newButtonText != nil {
+			if len(*newButtonText) != 0 {
 				v.(*discordgo.Button).Label = *newButtonText
 			}
 
-			break
-		}
-	}
-
-	// Edits the message to disable the pressed button
-	msgEdit := &discordgo.MessageEdit{
-		Content: &i.Message.Content,
-		Embed:   i.Message.Embeds[0],
-		ID:      i.Message.ID,
-		Channel: i.ChannelID,
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: i.Message.Components[0].(*discordgo.ActionsRow).Components,
-			},
-		},
-	}
-
-	_, err := s.ChannelMessageEditComplex(msgEdit)
-	if err != nil {
-		return fmt.Errorf("cannot create message edit, error: %w", err)
-	}
-	return nil
-}
-
-func disableButtonComponent(s *discordgo.Session, i *discordgo.Interaction, customID string) error {
-
-	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
-		if v.(*discordgo.Button).CustomID == customID {
-			v.(*discordgo.Button).Disabled = true
 			break
 		}
 	}
