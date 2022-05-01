@@ -198,24 +198,32 @@ func numberOfBoughtTools(work *database.Work) int {
 	return numBoughtTools
 }
 
+/*
+Instead of buying individual tools, have a single button to just buy a tool
+
+Formula:
+b: base price
+t: tools owned
+
+b*(1.15^t)
+*/
+
 func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
 
+	_, priceString := work.CalcBuyToolPrice()
+
 	// Adds each tool present in the config file
-	for i, v := range config.CONFIG.Work.Tools {
-		if work.Tools&(1<<i) == 0 {
-			components = append(components, &discordgo.Button{
-				Label:    fmt.Sprintf("Buy %s (%d)", v.Name, v.Price),
-				Style:    3, // Green color style
-				Disabled: false,
-				Emoji: discordgo.ComponentEmoji{
-					Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
-				},
-				CustomID: fmt.Sprintf("BWT-%s", v.Name), // 'BWT' is code for 'Buy Work Tool'
-			})
-		}
-	}
+	components = append(components, &discordgo.Button{
+		Label:    fmt.Sprintf("Buy tool (%s)", priceString),
+		Style:    3, // Green color style
+		Disabled: false,
+		Emoji: discordgo.ComponentEmoji{
+			Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
+		},
+		CustomID: fmt.Sprintf("BWT"), // 'BWT' is code for 'Buy Work Tool'
+	})
 
 	if len(components) == 0 {
 		return nil

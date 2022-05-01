@@ -2,9 +2,11 @@ package database
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"gorm.io/gorm"
 )
 
@@ -75,4 +77,16 @@ func (w *Work) UpdateStreakAndTime() {
 	if w.Streak > uint16(len(config.CONFIG.Work.StreakOutput)) {
 		w.Streak = uint16(len(config.CONFIG.Work.StreakOutput))
 	}
+}
+
+// Returns how much it would cost the user to buy a new tool
+// Returns the amount as an int and formatted string
+func (w *Work) CalcBuyToolPrice() (int, string) {
+
+	multiplier := config.CONFIG.Work.ToolBasePriceMultiplier
+
+	price := config.CONFIG.Work.ToolBasePrice * int(math.Pow(multiplier, float64(w.Tools)))
+	priceString := utils.HumanReadableNumber(price)
+
+	return price, priceString
 }

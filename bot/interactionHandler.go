@@ -15,8 +15,6 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	cData := strings.Split(i.MessageComponentData().CustomID, "-")
-
 	disableButton := false
 
 	var response string
@@ -33,9 +31,9 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	Update the original farming message with the updated information on successful interaction
 	*/
 
-	switch cData[0] {
+	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		disableButton = buyWorkTool(cData, &response, commandIssuerID)
+		disableButton = buyWorkTool(&response, commandIssuerID)
 	case "BFP": // BFP: Buy Farm Plot
 		disableButton = farming.BuyFarmPlotInteraction(commandIssuerID, &response)
 	case "FH": // FH: Farm Harvest
@@ -74,53 +72,33 @@ sendInteraction:
 
 }
 
-func buyWorkTool(cData []string, response *string, authorID string) bool {
-
-	// Find the item in config.CONFIG.Work.Tools
-	index := -1
-	for i, e := range config.CONFIG.Work.Tools {
-		if e.Name == cData[1] {
-			index = i
-			break
-		}
-	}
-
-	// We got nothing
-	if index == -1 {
-		malm.Error("Could not find the item '%s' '%s'", cData[0], cData[1])
-		return false
-	}
+func buyWorkTool(response *string, authorID string) bool {
 
 	// Check if the user has enough money
-
 	var user database.User
 	user.QueryUserByDiscordID(authorID)
-
-	if config.CONFIG.Work.Tools[index].Price > int(user.Money) {
-		//*response = fmt.Sprintf("You do not have enough %s for this transaction\nYou have %d and you need %d", config.CONFIG.Economy.Name, user.Money, config.CONFIG.Work.Tools[index].Price)
-
-		difference := uint64(config.CONFIG.Work.Tools[index].Price) - user.Money
-		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction.\nYour balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
-		return false
-	}
-
-	user.Money -= uint64(config.CONFIG.Work.Tools[index].Price)
 
 	var work database.Work
 	work.GetWorkInfo(&user)
 
-	// Check if the user already bought this item
-	if work.Tools&(1<<index) != 0 {
-		*response = fmt.Sprintf("You cannot buy the same tool (%s) again", cData[1])
+	price, priceStr := work.CalcBuyToolPrice()
+
+	if uint64(price) > user.Money {
+		difference := uint64(price) - user.Money
+		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction.\nYour balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
 		return false
 	}
 
-	work.Tools |= 1 << index
+	user.Money -= uint64(price)
 
-	database.DB.Save(&user)
-	database.DB.Save(&work)
+	work.Tools += 1
 
-	*response = fmt.Sprintf("You succesfully bought the %s for %d %s", cData[1], config.CONFIG.Work.Tools[index].Price, config.CONFIG.Economy.Name)
+	user.Save()
+	work.Save()
+
+	// TODO: Update the original message with the updated price
+
+	*response = fmt.Sprintf("You succesfully bought an additioanl tool for %s %s", priceStr, config.CONFIG.Economy.Name)
 	return true
 }
 

@@ -69,21 +69,16 @@ type bank struct {
 
 type work struct {
 	// Cooldown in hours
-	Cooldown         time.Duration `json:"cooldown"`
-	MinMoney         int           `json:"minMoney"`
-	MaxMoney         int           `json:"maxMoney"`
-	ToolBonus        int           `json:"toolBonus"`
-	Tools            []workTool    `json:"tools"`
-	StreakOutput     []string      `json:"streakOutput"`
-	StreakBonus      int           `json:"streakBonus"`
-	StreakResetHours int           `json:"streakResetHours"`
+	Cooldown                time.Duration `json:"cooldown"`
+	MinMoney                int           `json:"minMoney"`
+	MaxMoney                int           `json:"maxMoney"`
+	ToolBonus               int           `json:"toolBonus"`
+	ToolBasePrice           int           `json:"toolBasePrice"`
+	ToolBasePriceMultiplier float64       `json:"toolBasePriceMultiplier"`
+	StreakOutput            []string      `json:"streakOutput"`
+	StreakBonus             int           `json:"streakBonus"`
+	StreakResetHours        int           `json:"streakResetHours"`
 }
-
-type workTool struct {
-	Name  string `json:"name"`
-	Price int    `json:"price"`
-}
-
 type daily struct {
 	// Cooldown in hours
 	Cooldown         time.Duration `json:"cooldown"`
@@ -185,19 +180,15 @@ func createConfig() error {
 			MaxWithdrawWaitHours: 48,
 		},
 		Work: work{
-			Cooldown:  6,
-			MinMoney:  100,
-			MaxMoney:  250,
-			ToolBonus: 100,
-			Tools: []workTool{
-				{Name: "Axe", Price: 500},
-				{Name: "Pickaxe", Price: 750},
-				{Name: "Shovel", Price: 850},
-				{Name: "Hammer", Price: 1000},
-			},
-			StreakOutput:     []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
-			StreakBonus:      1000,
-			StreakResetHours: 24,
+			Cooldown:                6,
+			MinMoney:                100,
+			MaxMoney:                250,
+			ToolBonus:               100,
+			ToolBasePrice:           100,
+			ToolBasePriceMultiplier: 1.15,
+			StreakOutput:            []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
+			StreakBonus:             1000,
+			StreakResetHours:        24,
 		},
 		Daily: daily{
 			Cooldown:         24,
