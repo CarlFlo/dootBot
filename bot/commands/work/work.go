@@ -139,10 +139,11 @@ func generateToolTooltip(work *database.Work) string {
 			wordFormat = "tools"
 		}
 
-		return fmt.Sprintf(":tools: You have %d %s, giving you an additional %d %s", numOfBoughtTools, wordFormat, numOfBoughtTools*config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+		bonus := utils.HumanReadableNumber(numOfBoughtTools * config.CONFIG.Work.ToolBonus)
+		return fmt.Sprintf(":tools: You have %d %s, giving you an additional **%s** %s", numOfBoughtTools, wordFormat, bonus, config.CONFIG.Economy.Name)
 	}
 
-	return fmt.Sprintf("Buying additional tools will add an extra income of **%d** %s", config.CONFIG.Work.ToolBonus, config.CONFIG.Economy.Name)
+	return fmt.Sprintf("Buying additional tools will add an extra income of **%s** %s", utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus), config.CONFIG.Economy.Name)
 }
 
 func generateWorkStreakMessage(streak uint16, addStreakMessage bool) (string, string) {
@@ -185,32 +186,25 @@ func generateWorkIncome(work *database.Work) int {
 	return moneyEarned
 }
 
-/*
-Instead of buying individual tools, have a single button to just buy a tool
-
-Formula:
-b: base price
-t: tools owned
-
-b*(1.15^t)
-*/
-
 func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
 
 	_, priceString := work.CalcBuyToolPrice()
 
-	// Adds each tool present in the config file
-	components = append(components, &discordgo.Button{
-		Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
-		Style:    3, // Green color style
-		Disabled: false,
-		Emoji: discordgo.ComponentEmoji{
-			Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
-		},
-		CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'
-	})
+	if !work.HasHitMaxToolLimit() {
+
+		// Adds each tool present in the config file
+		components = append(components, &discordgo.Button{
+			Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
+			Style:    3, // Green color style
+			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
+			},
+			CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'
+		})
+	}
 
 	if len(components) == 0 {
 		return nil
@@ -239,6 +233,9 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 	user.Money -= uint64(price)
 
 	work.Tools += 1
+
+	// Update the message as well to reflect that a new tool was bought.
+	// You have n tools, giving you an additional 100*n credits
 
 	// Calculate new cost
 	_, newPriceStr := work.CalcBuyToolPrice()

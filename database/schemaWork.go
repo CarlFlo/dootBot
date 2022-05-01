@@ -79,6 +79,10 @@ func (w *Work) UpdateStreakAndTime() {
 	}
 }
 
+func (w *Work) HasHitMaxToolLimit() bool {
+	return w.Tools >= config.CONFIG.Work.MaxTools
+}
+
 // Returns how much it would cost the user to buy a new tool
 // Returns the amount as an int and formatted string
 func (w *Work) CalcBuyToolPrice() (int, string) {
