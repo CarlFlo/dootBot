@@ -132,7 +132,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 }
 
 func generateToolTooltip(work *database.Work) string {
-	numOfBoughtTools := numberOfBoughtTools(work)
+	numOfBoughtTools := int(work.Tools)
 	if numOfBoughtTools > 0 {
 		wordFormat := "tool"
 		if numOfBoughtTools > 1 {
@@ -180,22 +180,9 @@ func generateWorkIncome(work *database.Work) int {
 		moneyEarned += config.CONFIG.Work.StreakBonus
 	}
 
-	moneyEarned += numberOfBoughtTools(work) * config.CONFIG.Work.ToolBonus
+	moneyEarned += int(work.Tools) * config.CONFIG.Work.ToolBonus
 
 	return moneyEarned
-}
-
-func numberOfBoughtTools(work *database.Work) int {
-	// Factor in the number of bought tools
-	// Count the numbers of bits set in the variable work.Tools
-
-	numBoughtTools := 0
-	for i := 0; i < 8; i++ {
-		if work.Tools&(1<<uint8(i)) != 0 {
-			numBoughtTools++
-		}
-	}
-	return numBoughtTools
 }
 
 /*
@@ -216,13 +203,13 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 
 	// Adds each tool present in the config file
 	components = append(components, &discordgo.Button{
-		Label:    fmt.Sprintf("Buy tool (%s)", priceString),
+		Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
 		Style:    3, // Green color style
 		Disabled: false,
 		Emoji: discordgo.ComponentEmoji{
 			Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
 		},
-		CustomID: fmt.Sprintf("BWT"), // 'BWT' is code for 'Buy Work Tool'
+		CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'
 	})
 
 	if len(components) == 0 {

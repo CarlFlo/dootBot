@@ -75,6 +75,7 @@ type work struct {
 	ToolBonus               int           `json:"toolBonus"`
 	ToolBasePrice           int           `json:"toolBasePrice"`
 	ToolBasePriceMultiplier float64       `json:"toolBasePriceMultiplier"`
+	MaxTools                uint8         `json:"maxTools"`
 	StreakOutput            []string      `json:"streakOutput"`
 	StreakBonus             int           `json:"streakBonus"`
 	StreakResetHours        int           `json:"streakResetHours"`
@@ -185,7 +186,8 @@ func createConfig() error {
 			MaxMoney:                250,
 			ToolBonus:               100,
 			ToolBasePrice:           100,
-			ToolBasePriceMultiplier: 1.15,
+			ToolBasePriceMultiplier: 1.5,
+			MaxTools:                6,
 			StreakOutput:            []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
 			StreakBonus:             1000,
 			StreakResetHours:        24,

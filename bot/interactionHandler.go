@@ -97,6 +97,7 @@ func buyWorkTool(response *string, authorID string) bool {
 	work.Save()
 
 	// TODO: Update the original message with the updated price
+	// TODO: SOme bug with calculating the new price.
 
 	*response = fmt.Sprintf("You succesfully bought an additioanl tool for %s %s", priceStr, config.CONFIG.Economy.Name)
 	return true

@@ -85,7 +85,7 @@ func (w *Work) CalcBuyToolPrice() (int, string) {
 
 	multiplier := config.CONFIG.Work.ToolBasePriceMultiplier
 
-	price := config.CONFIG.Work.ToolBasePrice * int(math.Pow(multiplier, float64(w.Tools)))
+	price := int(float64(config.CONFIG.Work.ToolBasePrice) * math.Pow(multiplier, float64(w.Tools)))
 	priceString := utils.HumanReadableNumber(price)
 
 	return price, priceString
