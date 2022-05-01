@@ -10,7 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string) bool {
+func HarvestInteraction(discordID string, response *string, disableButton *bool) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -27,7 +27,7 @@ func HarvestInteraction(discordID string, response *string) bool {
 
 	if len(result) == 0 && len(perishedCrops) == 0 {
 		*response = "There is currently nothing ready to be harvested!"
-		return false
+		return
 	}
 
 	*response = "Your harvest:\n"
@@ -47,7 +47,7 @@ func HarvestInteraction(discordID string, response *string) bool {
 		user.Save()
 	}
 
-	return true
+	*disableButton = true
 }
 
 func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {

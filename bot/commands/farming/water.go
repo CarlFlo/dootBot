@@ -10,7 +10,7 @@ import (
 
 // Code duplication...
 
-func WaterInteraction(discordID string, response *string) bool {
+func WaterInteraction(discordID string, response *string, disableButton *bool) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -21,13 +21,13 @@ func WaterInteraction(discordID string, response *string) bool {
 	// Check if user can water their plot
 	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
 		*response = fmt.Sprintf("You can't water your farm right now! You can water again %s", farm.CanWaterAt())
-		return false
+		return
 	}
 
 	farm.QueryFarmPlots()
 	if len(farm.Plots) == 0 {
 		*response = "You don't have any plots to water, plant a crop first!"
-		return false
+		return
 	}
 
 	// Check for perished crops
@@ -44,7 +44,7 @@ func WaterInteraction(discordID string, response *string) bool {
 
 	farm.Save()
 
-	return true && !config.CONFIG.Debug.IgnoreWaterCooldown
+	*disableButton = true && !config.CONFIG.Debug.IgnoreWaterCooldown
 }
 
 /*

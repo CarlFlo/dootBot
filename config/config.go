@@ -187,7 +187,7 @@ func createConfig() error {
 			ToolBonus:               100,
 			ToolBasePrice:           100,
 			ToolBasePriceMultiplier: 1.5,
-			MaxTools:                6,
+			MaxTools:                10,
 			StreakOutput:            []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
 			StreakBonus:             1000,
 			StreakResetHours:        24,

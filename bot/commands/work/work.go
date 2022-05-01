@@ -114,7 +114,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("You can only work once every %d hours!", int(config.CONFIG.Work.Cooldown)),
+					Text: fmt.Sprintf("You can work once every %d hours!", int(config.CONFIG.Work.Cooldown)),
 				},
 			},
 		}
@@ -217,4 +217,38 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	}
 
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
+}
+
+func BuyToolInteraction(response *string, authorID string, disableButton *bool, newButtonText *string) {
+
+	// Check if the user has enough money
+	var user database.User
+	user.QueryUserByDiscordID(authorID)
+
+	var work database.Work
+	work.GetWorkInfo(&user)
+
+	price, priceStr := work.CalcBuyToolPrice()
+
+	if uint64(price) > user.Money {
+		difference := uint64(price) - user.Money
+		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction.\nYour balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
+		return
+	}
+
+	user.Money -= uint64(price)
+
+	work.Tools += 1
+
+	// Calculate new cost
+	_, newPriceStr := work.CalcBuyToolPrice()
+	*newButtonText = fmt.Sprintf("Buy Tool (%s)", newPriceStr)
+
+	user.Save()
+	work.Save()
+
+	// TODO: Update the original message with the updated price
+	// TODO: SOme bug with calculating the new price.
+
+	*response = fmt.Sprintf("You succesfully bought an additional tool for %s %s", priceStr, config.CONFIG.Economy.Name)
 }

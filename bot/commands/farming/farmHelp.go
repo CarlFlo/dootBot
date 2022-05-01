@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func FarmHelpInteraction(discordID string, response *string) (bool, []*discordgo.MessageEmbed) {
+func FarmHelpInteraction(discordID string, response *string, disableButton *bool) []*discordgo.MessageEmbed {
 
 	embeds := []*discordgo.MessageEmbed{{
 		Title:       "Farming Help",
@@ -20,7 +20,7 @@ func FarmHelpInteraction(discordID string, response *string) (bool, []*discordgo
 	},
 	}
 
-	return false, embeds
+	return embeds
 }
 
 func createHelpFields() []*discordgo.MessageEmbedField {
