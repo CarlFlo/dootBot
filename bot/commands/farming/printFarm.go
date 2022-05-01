@@ -98,7 +98,7 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 	// Harvest and water buttons
 	components = append(components, &discordgo.Button{
 		Label:    "Harvest",
-		Disabled: !(farm.HasPlantedPlots() && farm.CanHarvest()), // !farm.CanHarvest()
+		Disabled: !(farm.CanHarvest() && farm.HasPlantedPlots()), // !farm.CanHarvest()
 		CustomID: "FH",                                           // 'FH' is code for 'Farm Harvest'
 	})
 	components = append(components, &discordgo.Button{

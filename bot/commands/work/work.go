@@ -65,7 +65,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to work again %s\nCurrent streak: ``%d``\n\n%s",
+		description := fmt.Sprintf("%sYou earned ``%s`` %s! Your new balance is ``%s`` %s!\nYou will be able to work again %s\nCurrent streak: ``%d``\n\n%s",
 			config.CONFIG.Emojis.Economy,
 			moneyEarnedString,
 			config.CONFIG.Economy.Name,
@@ -207,7 +207,11 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 		if work.Tools&(1<<i) == 0 {
 			components = append(components, &discordgo.Button{
 				Label:    fmt.Sprintf("Buy %s (%d)", v.Name, v.Price),
+				Style:    3, // Green color style
 				Disabled: false,
+				Emoji: discordgo.ComponentEmoji{
+					Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
+				},
 				CustomID: fmt.Sprintf("BWT-%s", v.Name), // 'BWT' is code for 'Buy Work Tool'
 			})
 		}
