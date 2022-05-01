@@ -116,9 +116,12 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 	// Add limit to the number of plots a user can buy
 
 	components = append(components, &discordgo.Button{
-		Label:    fmt.Sprintf("Add farm plot (%s)", plotPrice),
+		Label:    fmt.Sprintf("Buy Farm Plot (%s)", plotPrice),
 		Style:    3, // Green color style
 		Disabled: !canAffordPlot,
+		Emoji: discordgo.ComponentEmoji{
+			Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
+		},
 		CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
 	})
 
@@ -126,6 +129,9 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 		Label:    "Help",
 		Style:    2, // Gray color style
 		Disabled: false,
+		Emoji: discordgo.ComponentEmoji{
+			Name: config.CONFIG.Emojis.ComponentEmojiNames.Help,
+		},
 		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information regarding farming
 	})
 

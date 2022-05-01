@@ -110,13 +110,19 @@ type colors struct {
 }
 
 type emojis struct {
-	Bank         string `json:"bank"`
-	Wallet       string `json:"wallet"`
-	Economy      string `json:"economy"`
-	NetWorth     string `json:"netWorth"`
-	Success      string `json:"success"`
-	Failure      string `json:"failure"`
-	PerishedCrop string `json:"perishedCrop"`
+	ComponentEmojiNames componentEmojiNames `json:"componentEmojiNames"`
+	Bank                string              `json:"bank"`
+	Wallet              string              `json:"wallet"`
+	Economy             string              `json:"economy"`
+	NetWorth            string              `json:"netWorth"`
+	Success             string              `json:"success"`
+	Failure             string              `json:"failure"`
+	PerishedCrop        string              `json:"perishedCrop"`
+}
+
+type componentEmojiNames struct {
+	MoneyBag string `json:"moneyBag"`
+	Help     string `json:"help"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -151,7 +157,7 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2022-04-19",
+		Version:             "2022-05-01",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
@@ -215,6 +221,10 @@ func createConfig() error {
 			Neutral: 0x006ED0,
 		},
 		Emojis: emojis{
+			ComponentEmojiNames: componentEmojiNames{
+				MoneyBag: "💰",
+				Help:     "💡", // Alt: 💡, ❔
+			},
 			Bank:         ":bank:",
 			Wallet:       ":dollar:",
 			Economy:      ":moneybag:",
