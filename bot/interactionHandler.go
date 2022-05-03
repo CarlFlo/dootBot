@@ -76,7 +76,6 @@ sendInteraction:
 	}); err != nil {
 		malm.Error("Could not respond to the interaction! %w", err)
 	}
-
 }
 
 func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, customID string, disableButton bool, newButtonText *string) error {
@@ -93,10 +92,10 @@ func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, custo
 		}
 	}
 
-	// Edits the message to disable the pressed button
+	// Edits the message
 	msgEdit := &discordgo.MessageEdit{
 		Content: &i.Message.Content,
-		Embed:   i.Message.Embeds[0],
+		Embeds:  i.Message.Embeds,
 		ID:      i.Message.ID,
 		Channel: i.ChannelID,
 		Components: []discordgo.MessageComponent{
