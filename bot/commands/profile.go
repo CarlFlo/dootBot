@@ -6,7 +6,6 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
-	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,11 +21,8 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
-	var bank database.Bank
-	bank.GetBankInfo(&user)
-
 	// You have this much money
-	netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
+	//netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
 
 	// The statuses on the cooldown's
 	workStatus := config.CONFIG.Emojis.Success
@@ -51,16 +47,13 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintMoney()),
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
-					Name:   fmt.Sprintf("Bank %s", config.CONFIG.Emojis.Bank),
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, bank.PrettyPrintMoney()),
-					Inline: true,
-				},
-				&discordgo.MessageEmbedField{
-					Name:   fmt.Sprintf("Net Worth %s", config.CONFIG.Emojis.NetWorth),
-					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, netWorth),
-					Inline: true,
-				},
+				/*
+					&discordgo.MessageEmbedField{
+						Name:   fmt.Sprintf("Net Worth %s", config.CONFIG.Emojis.NetWorth),
+						Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, netWorth),
+						Inline: true,
+					},
+				*/
 				&discordgo.MessageEmbedField{
 					Name:   "Daily",
 					Value:  dailyStatus,

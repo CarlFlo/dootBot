@@ -4,7 +4,6 @@ import (
 	"unicode"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
-	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/bank"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/daily"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/dungeon"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
@@ -102,23 +101,6 @@ func mapValidCommands() {
 	validCommands["balance"] = command{
 		function:           commands.Balance,
 		requiredPermission: enumUser,
-		commandType:        typeEconomy}
-
-	validCommands["bank"] = command{
-		function:           bank.Bank,
-		requiredPermission: enumUser,
-		commandType:        typeEconomy}
-
-	validCommands["deposit"] = command{
-		function:           bank.Deposit,
-		requiredPermission: enumUser,
-		helpSyntax:         "[amount]",
-		commandType:        typeEconomy}
-
-	validCommands["withdraw"] = command{
-		function:           bank.Withdraw,
-		requiredPermission: enumUser,
-		helpSyntax:         "[amount]",
 		commandType:        typeEconomy}
 
 	// Perm User - Misc commands

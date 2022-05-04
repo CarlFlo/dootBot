@@ -26,7 +26,6 @@ type configStruct struct {
 	Database            database          `json:"database"`
 	Debug               debug             `json:"debug"`
 	Economy             economy           `json:"economy"`
-	Bank                bank              `json:"bank"`
 	Work                work              `json:"work"`
 	Daily               daily             `json:"daily"`
 	Farm                farm              `json:"farm"`
@@ -57,14 +56,6 @@ type debug struct {
 type economy struct {
 	Name          string `json:"name"`
 	StartingMoney uint64 `json:"startingMoney"`
-}
-
-type bank struct {
-	Name                 string  `json:"name"`
-	InterestRate         float32 `json:"interestRate"`
-	MinAmountForInterest int     `json:"minAmountForInterest"`
-	WithdrawFee          int     `json:"withdrawFee"`
-	MaxWithdrawWaitHours int     `json:"maxWithdrawWaitHours"`
 }
 
 type work struct {
@@ -174,13 +165,6 @@ func createConfig() error {
 		Economy: economy{
 			Name:          "credits",
 			StartingMoney: 0,
-		},
-		Bank: bank{
-			Name:                 "Banana Republic Bank",
-			InterestRate:         0.005,
-			MinAmountForInterest: 1000,
-			WithdrawFee:          100,
-			MaxWithdrawWaitHours: 48,
 		},
 		Work: work{
 			Cooldown:                6,
