@@ -35,7 +35,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "BWT": // BWT: Buy Work Tool
 		work.BuyToolInteraction(commandIssuerID, &response, &disableButton, &newButtonText)
 	case "BFP": // BFP: Buy Farm Plot
-		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &disableButton)
+		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &disableButton, &newButtonText)
 	case "FH": // FH: Farm Harvest
 		farming.HarvestInteraction(commandIssuerID, &response, &disableButton)
 	case "FW": // FW: Farm Water

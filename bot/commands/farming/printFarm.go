@@ -26,7 +26,9 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		description += "s"
 	}
 
-	// Check if any of the crops perished
+	// TODO: Check if any of the crops perished
+
+	// TODO: Create a farm method that creates that description or the entire message
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		{
@@ -45,12 +47,12 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}}
 
 	// Adds the button(s)
+	// Buttons are disabled if the actions are unavailable to be performed
 	if components := createButtonComponent(&user, &farm); components != nil {
 		complexMessage.Components = components
 	}
 
 	// Buttons for harvesting, watering and buying new plots (and items)
-	// Buttons are disabled if the actions are unavailable to be performed
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {

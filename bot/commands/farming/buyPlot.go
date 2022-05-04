@@ -5,12 +5,13 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 )
 
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool) {
+func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool, newButtonText *string) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -33,5 +34,8 @@ func BuyFarmPlotInteraction(discordID string, response *string, disableButton *b
 	user.Save()
 	farm.Save()
 
-	*response = "You successfully bought another plot!"
+	//*response = "You successfully bought another plot!"
+
+	// TODO: Update the message showing the plots
+	*newButtonText = fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice()))
 }
