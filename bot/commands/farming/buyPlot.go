@@ -8,7 +8,7 @@ import (
 )
 
 // printFarm button component is turned off for now
-// Incease the price after each buy
+// Implement limit on how many plots a user can own
 
 func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool) {
 

@@ -95,6 +95,7 @@ type farm struct {
 	CropSeedPrice               int           `json:"cropSeedPrice"`
 	FarmPlotPrice               int           `json:"farmPlotPrice"`
 	FarmPlotCostMultiplier      float64       `json:"farmPlotCostMultiplier"`
+	MaxPlots                    uint8         `json:"maxPlots"`
 	WaterCooldown               time.Duration `json:"waterCooldown"`
 	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
 	CropsPreishAfter            time.Duration `json:"cropsPreishAfter"`
@@ -206,6 +207,7 @@ func createConfig() error {
 			CropSeedPrice:               50,
 			FarmPlotPrice:               5000,
 			FarmPlotCostMultiplier:      1.5,
+			MaxPlots:                    10,
 			WaterCooldown:               2,
 			WaterCropTimeReductionHours: 1,
 			CropsPreishAfter:            24,
