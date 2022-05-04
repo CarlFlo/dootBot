@@ -109,14 +109,14 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 
 	// For buying an additional plot
 
-	canAffordPlot := user.Money >= uint64(config.CONFIG.Farm.FarmPlotPrice)
+	plotPrice := farm.CalcFarmPlotPrice()
 
-	plotPrice := utils.HumanReadableNumber(config.CONFIG.Farm.FarmPlotPrice)
+	canAffordPlot := user.Money >= uint64(plotPrice)
 
 	// Add limit to the number of plots a user can buy
 
 	components = append(components, &discordgo.Button{
-		Label:    fmt.Sprintf("Buy Farm Plot (%s)", plotPrice),
+		Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(plotPrice)),
 		Style:    3, // Green color style
 		Disabled: !canAffordPlot,
 		Emoji: discordgo.ComponentEmoji{

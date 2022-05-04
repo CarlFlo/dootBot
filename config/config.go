@@ -94,6 +94,7 @@ type farm struct {
 	DefaultOwnedFarmPlots       uint8         `json:"defaultOwnedFarmPlots"`
 	CropSeedPrice               int           `json:"cropSeedPrice"`
 	FarmPlotPrice               int           `json:"farmPlotPrice"`
+	FarmPlotCostMultiplier      float64       `json:"farmPlotCostMultiplier"`
 	WaterCooldown               time.Duration `json:"waterCooldown"`
 	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
 	CropsPreishAfter            time.Duration `json:"cropsPreishAfter"`
@@ -203,7 +204,8 @@ func createConfig() error {
 		Farm: farm{
 			DefaultOwnedFarmPlots:       1,
 			CropSeedPrice:               50,
-			FarmPlotPrice:               10000,
+			FarmPlotPrice:               5000,
+			FarmPlotCostMultiplier:      1.5,
 			WaterCooldown:               2,
 			WaterCropTimeReductionHours: 1,
 			CropsPreishAfter:            24,

@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -215,4 +216,15 @@ func (f *Farm) DeletePlot(plot *FarmPlot) {
 	}
 
 	plot.DeleteFromDB()
+}
+
+// Returns the cost of what buying a new plot would cost for the user
+func (f *Farm) CalcFarmPlotPrice() int {
+
+	// floor (Base price * multiplier ^ (number of plots - 1))
+
+	return int(math.Floor(
+		float64(config.CONFIG.Farm.FarmPlotPrice) * math.Pow(
+			config.CONFIG.Farm.FarmPlotCostMultiplier,
+			float64(f.OwnedPlots-1))))
 }
