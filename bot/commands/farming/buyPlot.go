@@ -8,6 +8,7 @@ import (
 )
 
 // printFarm button component is turned off for now
+// Incease the price after each buy
 
 func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool) {
 

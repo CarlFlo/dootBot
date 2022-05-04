@@ -22,84 +22,84 @@ func debug() {
 func farming() {
 
 	// Default crops
-	// duration / reward = ratio
+	// (reward-seedprice) / duration  = ratio
 
 	crops := []FarmCrop{
 		{
 			Name:           "Tomato",
 			Emoji:          ":tomato:",
 			DurationToGrow: time.Minute * 20,
-			HarvestReward:  1000,
+			HarvestReward:  100,
 		}, {
 			Name:           "Potato",
 			Emoji:          ":potato:",
 			DurationToGrow: time.Minute * 30,
-			HarvestReward:  1200,
+			HarvestReward:  120,
 		}, {
 			Name:           "Pineapple",
 			Emoji:          ":pineapple:",
 			DurationToGrow: time.Hour,
-			HarvestReward:  1750,
+			HarvestReward:  175,
 		}, {
 			Name:           "Strawberry",
 			Emoji:          ":strawberry:",
 			DurationToGrow: time.Hour * 3,
-			HarvestReward:  3800,
+			HarvestReward:  380,
 		}, {
 			Name:           "Corn",
 			Emoji:          ":corn:",
 			DurationToGrow: time.Hour * 6,
-			HarvestReward:  6800,
+			HarvestReward:  680,
 		}, {
 			Name:           "Mango",
 			Emoji:          ":mango: ",
 			DurationToGrow: time.Hour * 12,
-			HarvestReward:  12200,
+			HarvestReward:  1220,
 		}, {
 			Name:           "Watermelon",
 			Emoji:          ":watermelon:",
 			DurationToGrow: time.Hour * 24,
-			HarvestReward:  23000,
+			HarvestReward:  2300,
 		}, {
 			Name:           "Apple",
 			Emoji:          ":apple:",
 			DurationToGrow: time.Hour * 24 * 2,
-			HarvestReward:  43000,
+			HarvestReward:  4300,
 		}, {
 			Name:           "Onion",
 			Emoji:          ":onion:",
 			DurationToGrow: time.Hour * 24 * 3,
-			HarvestReward:  62000,
+			HarvestReward:  6200,
 		}, {
 			Name:           "Carrot",
 			Emoji:          ":carrot:",
 			DurationToGrow: time.Hour * 24 * 4,
-			HarvestReward:  76000,
+			HarvestReward:  8000,
 		}, {
 			Name:           "Banana",
 			Emoji:          ":banana:",
 			DurationToGrow: time.Hour * 24 * 6,
-			HarvestReward:  110000,
+			HarvestReward:  11500,
 		}, {
 			Name:           "Hot Pepper",
 			Emoji:          ":hot_pepper:",
 			DurationToGrow: time.Hour * 24 * 8,
-			HarvestReward:  150000,
+			HarvestReward:  15000,
 		}, {
 			Name:           "Avocado",
 			Emoji:          ":avocado:",
 			DurationToGrow: time.Hour * 24 * 10,
-			HarvestReward:  195000,
+			HarvestReward:  20000,
 		}, {
 			Name:           "Grapes",
 			Emoji:          ":grapes:",
 			DurationToGrow: time.Hour * 24 * 15,
-			HarvestReward:  305000,
+			HarvestReward:  30000,
 		}, {
 			Name:           "Peach",
 			Emoji:          ":peach:",
 			DurationToGrow: time.Hour * 24 * 25,
-			HarvestReward:  550000,
+			HarvestReward:  50000,
 		},
 	}
 
