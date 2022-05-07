@@ -33,7 +33,18 @@ func init() {
 		malm.Fatal("Database initialization error: %s", err)
 	}
 
-	//malm.Debug("Version %s", config.CONFIG.Version)
+	// Handles checking if there is an update available for the bot
+	upToDate, sysVersion, githubVersion, err := botVersonHandler()
+
+	if err != nil {
+		malm.Error("%s", err)
+	}
+
+	if !upToDate {
+		malm.Info("Bot is out of date. Current version: %s. Version on Github: %s", sysVersion, githubVersion)
+	} else {
+		malm.Debug("Version %s", sysVersion)
+	}
 }
 
 func main() {
@@ -51,8 +62,4 @@ func main() {
 	// Run cleanup code here
 	close(sc)
 	session.Close() // Stops the discord bot
-}
-
-func checkVersion() {
-
 }

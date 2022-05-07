@@ -35,6 +35,7 @@ type configStruct struct {
 type botInfo struct {
 	AppID      string `json:"appID"`
 	Permission uint64 `json:"permission"`
+	VersionURL string `json:"versionURL"`
 }
 
 type messageProcessing struct {
@@ -152,6 +153,7 @@ func createConfig() error {
 		BotInfo: botInfo{
 			AppID:      "",
 			Permission: 139690691648,
+			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/version",
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.
