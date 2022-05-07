@@ -33,7 +33,7 @@ func init() {
 		malm.Fatal("Database initialization error: %s", err)
 	}
 
-	malm.Debug("Version %s", config.CONFIG.Version)
+	//malm.Debug("Version %s", config.CONFIG.Version)
 }
 
 func main() {
@@ -51,4 +51,8 @@ func main() {
 	// Run cleanup code here
 	close(sc)
 	session.Close() // Stops the discord bot
+}
+
+func checkVersion() {
+
 }

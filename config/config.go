@@ -16,7 +16,6 @@ var CONFIG *configStruct
 type configStruct struct {
 	Token               string            `json:"token"`
 	BotPrefix           string            `json:"botPrefix"`
-	Version             string            `json:"version"`
 	OwnerID             string            `json:"ownerID"`
 	DispConfOnStart     bool              `json:"dispConfOnStart"`
 	BoundChannels       []string          `json:"boundChannels"`
@@ -146,7 +145,6 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		Version:             "2022-05-01",
 		OwnerID:             "",
 		DispConfOnStart:     false,
 		BoundChannels:       []string{},
