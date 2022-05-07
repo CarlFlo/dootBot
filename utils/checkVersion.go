@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"io/ioutil"
@@ -14,7 +14,7 @@ import (
 	Return version on github
 	return error
 */
-func botVersonHandler() (bool, string, string, error) {
+func BotVersonHandler() (bool, string, string, error) {
 
 	current := currentVersion()
 	githubVersion, err := githubVersion()

@@ -34,14 +34,13 @@ func init() {
 	}
 
 	// Handles checking if there is an update available for the bot
-	upToDate, sysVersion, githubVersion, err := botVersonHandler()
-
+	upToDate, sysVersion, githubVersion, err := utils.BotVersonHandler()
 	if err != nil {
 		malm.Error("%s", err)
 	}
 
 	if !upToDate {
-		malm.Info("Bot is out of date. Current version: %s. Version on Github: %s", sysVersion, githubVersion)
+		malm.Info("Bot is out of date! Your version: '%s'; New version: '%s'", sysVersion, githubVersion)
 	} else {
 		malm.Debug("Version %s", sysVersion)
 	}
