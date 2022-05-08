@@ -8,12 +8,10 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-/*
-	Return true or false if the version is up to date
-	Return version on system
-	Return version on github
-	return error
-*/
+//	Return true or false if the version is up to date
+//	Return version on system
+//	Return version on github
+//	return error
 func BotVersonHandler() (bool, string, string, error) {
 
 	current := currentVersion()

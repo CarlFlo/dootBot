@@ -40,7 +40,7 @@ func init() {
 	}
 
 	if !upToDate {
-		malm.Info("Bot is out of date! Your version: '%s'; New version: '%s'", sysVersion, githubVersion)
+		malm.Info("New version available! New version: '%s'; Your version: '%s'", githubVersion, sysVersion)
 	} else {
 		malm.Debug("Version %s", sysVersion)
 	}
