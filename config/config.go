@@ -107,6 +107,7 @@ type emojis struct {
 	Success             string              `json:"success"`
 	Failure             string              `json:"failure"`
 	PerishedCrop        string              `json:"perishedCrop"`
+	EmptyPlot           string              `json:"emptyPlot"`
 }
 
 type componentEmojiNames struct {
@@ -213,6 +214,7 @@ func createConfig() error {
 			Success:      ":white_check_mark:",
 			Failure:      ":x:",
 			PerishedCrop: ":wilted_rose:",
+			EmptyPlot:    ":brown_square:",
 		},
 		Debug: debug{
 			IgnoreWorkCooldown:  false,

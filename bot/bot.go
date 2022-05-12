@@ -30,7 +30,7 @@ func StartBot() *discordgo.Session {
 	// Attempts to open connection
 	err = session.Open()
 	if err != nil {
-		malm.Fatal("%v", err)
+		malm.Fatal("%s", err)
 	}
 
 	// Returns session

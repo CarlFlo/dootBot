@@ -2,6 +2,7 @@ package farming
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -80,10 +81,13 @@ func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	unusedPlots := f.OwnedPlots - uint8(len(f.Plots))
 
+	emptyPlotValue := strings.Repeat(config.CONFIG.Emojis.EmptyPlot, 5)
+
 	for i := 0; i < int(unusedPlots); i++ {
 		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
-			Value:  "⠀",
+			Name: fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
+			//Value:  "⠀",
+			Value:  emptyPlotValue,
 			Inline: true,
 		})
 	}
