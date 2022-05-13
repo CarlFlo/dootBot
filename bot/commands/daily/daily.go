@@ -53,7 +53,7 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 
 		extraRewardValue, percentage := generateDailyStreakMessage(daily.Streak, true)
 
-		description := fmt.Sprintf("%sYou earned ``%s`` %s and your new balance is ``%s`` %s!\nYou will be able to get your daily again %s\nCurrent streak: ``%d``",
+		description := fmt.Sprintf("%sYou earned ``%s`` %s! Your new balance is ``%s`` %s!\nYou will be able to get your daily again %s\nCurrent streak: ``%d``",
 			config.CONFIG.Emojis.Economy,
 			moneyEarnedString,
 			config.CONFIG.Economy.Name,

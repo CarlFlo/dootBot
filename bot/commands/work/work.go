@@ -249,10 +249,10 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 
 	// Update the message as well to reflect that a new tool was bought.
 
-	modifiedMsg := i.Message.Embeds[0].Description
+	patternString := fmt.Sprintf(`%s .+ \d+ tool.+`, config.CONFIG.Emojis.Tools)
 
-	pattern := regexp.MustCompile(`:tools: .+ \d+ tool.+`)
-	modifiedMsg = pattern.ReplaceAllString(modifiedMsg, generateToolTooltip(&work))
+	pattern := regexp.MustCompile(patternString)
+	modifiedMsg := pattern.ReplaceAllString(i.Message.Embeds[0].Description, generateToolTooltip(&work))
 
 	i.Message.Embeds[0].Description = modifiedMsg
 
