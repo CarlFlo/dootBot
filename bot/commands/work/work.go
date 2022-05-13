@@ -145,6 +145,10 @@ func generateToolTooltip(work *database.Work) string {
 
 	numOfBoughtTools := int(work.Tools)
 
+	if numOfBoughtTools == 0 {
+		return fmt.Sprintf("%s You have 0 tools", config.CONFIG.Emojis.Tools)
+	}
+
 	wordFormat := "tools"
 	if numOfBoughtTools == 1 {
 		wordFormat = "tool"
