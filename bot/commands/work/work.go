@@ -131,7 +131,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 func generateFooter() string {
 
-	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion\nEach tool you buy will earn you an additional %s %s when you work!",
+	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work!",
 		config.CONFIG.Work.StreakResetHours,
 		config.CONFIG.Work.StreakBonus,
 		config.CONFIG.Economy.Name,
@@ -226,7 +226,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
 
-func BuyToolInteraction(authorID string, response *string, disableButton *bool, newButtonText *string, i *discordgo.Interaction) {
+func BuyToolInteraction(authorID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
 
 	// Check if the user has enough money
 	var user database.User
@@ -257,7 +257,12 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 
 	// Calculate new cost
 	_, newPriceStr := work.CalcBuyToolPrice()
-	*newButtonText = fmt.Sprintf("Buy Tool (%s)", newPriceStr)
+
+	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+		CustomID: "BWT",
+		Disabled: false,
+		Label:    fmt.Sprintf("Buy Tool (%s)", newPriceStr),
+	})
 
 	user.Save()
 	work.Save()

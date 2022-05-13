@@ -100,9 +100,16 @@ func (f *Farm) CanWaterAt() string {
 }
 
 // Returns true if the user can harvest any of their crops
-// unifinished
 func (f *Farm) CanHarvest() bool {
-	return true
+
+	for _, plot := range f.Plots {
+		plot.QueryCropInfo()
+
+		if plot.HasFullyGrown() {
+			return true
+		}
+	}
+	return false
 }
 
 // Functions waters every single plot

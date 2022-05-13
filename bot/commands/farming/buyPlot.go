@@ -12,7 +12,7 @@ import (
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool, newButtonText *string, i *discordgo.Interaction) {
+func BuyFarmPlotInteraction(discordID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -40,6 +40,9 @@ func BuyFarmPlotInteraction(discordID string, response *string, disableButton *b
 
 	//*response = "You successfully bought another plot!"
 
-	// TODO: Update the message showing the plots
-	*newButtonText = fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice()))
+	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+		CustomID: "BFP",
+		Disabled: false,
+		Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice())),
+	})
 }

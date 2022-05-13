@@ -6,6 +6,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,8 +15,10 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	disableButton := false
-	var newButtonText string
+	bdm := &utils.ButtonDataManager{}
+
+	//disableButton := false // Edit into a struct so more buttons can be edited or changed. Needs to include this and buttontext
+	//var newButtonText string
 
 	var response string
 	var embeds []*discordgo.MessageEmbed
@@ -29,15 +32,15 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		work.BuyToolInteraction(commandIssuerID, &response, &disableButton, &newButtonText, i.Interaction)
+		work.BuyToolInteraction(commandIssuerID, &response, bdm, i.Interaction)
 	case "BFP": // BFP: Buy Farm Plot
-		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &disableButton, &newButtonText, i.Interaction)
+		farming.BuyFarmPlotInteraction(commandIssuerID, &response, bdm, i.Interaction)
 	case "FH": // FH: Farm Harvest
-		farming.HarvestInteraction(commandIssuerID, &response, &disableButton, i.Interaction)
+		farming.HarvestInteraction(commandIssuerID, &response, bdm, i.Interaction)
 	case "FW": // FW: Farm Water
-		farming.WaterInteraction(commandIssuerID, &response, &disableButton, i.Interaction)
+		farming.WaterInteraction(commandIssuerID, &response, bdm, i.Interaction)
 	case "FHELP":
-		embeds = farming.FarmHelpInteraction(commandIssuerID, &response, &disableButton)
+		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
@@ -47,7 +50,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 sendInteraction:
 
 	// Updates the button on the original message
-	if err := updateButtonComponent(s, i.Interaction, i.MessageComponentData().CustomID, disableButton, &newButtonText); err != nil {
+	if err := updateButtonComponent(s, i.Interaction, bdm); err != nil {
 		malm.Error("editMsgComponentsRemoved, error: %w", err)
 	}
 
@@ -74,18 +77,20 @@ sendInteraction:
 	}
 }
 
-func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, customID string, disableButton bool, newButtonText *string) error {
+func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *utils.ButtonDataManager) error {
 
 	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
-		if v.(*discordgo.Button).CustomID == customID {
-			v.(*discordgo.Button).Disabled = disableButton
 
-			if len(*newButtonText) != 0 {
-				v.(*discordgo.Button).Label = *newButtonText
+		for _, bData := range bdm.ButtonData {
+			if v.(*discordgo.Button).CustomID == bData.CustomID {
+				v.(*discordgo.Button).Disabled = bData.Disabled
+
+				if len(bData.Label) != 0 {
+					v.(*discordgo.Button).Label = bData.Label
+				}
 			}
-
-			break
 		}
+
 	}
 
 	// Edits the message

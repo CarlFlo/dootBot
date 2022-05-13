@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func FarmHelpInteraction(discordID string, response *string, disableButton *bool) []*discordgo.MessageEmbed {
+func FarmHelpInteraction(discordID string, response *string) []*discordgo.MessageEmbed {
 
 	embeds := []*discordgo.MessageEmbed{{
 		Title:       "Farming Help",

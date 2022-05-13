@@ -52,7 +52,6 @@ func (fp *FarmPlot) QueryCropInfo() {
 // with the planted at time and the current time
 // Call QueryCropInfo() first
 func (fp *FarmPlot) HasFullyGrown() bool {
-
 	return time.Now().After(fp.PlantedAt.Add(fp.Crop.DurationToGrow))
 }
 

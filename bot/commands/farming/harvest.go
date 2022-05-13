@@ -10,7 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string, disableButton *bool, i *discordgo.Interaction) {
+func HarvestInteraction(discordID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -50,7 +50,10 @@ func HarvestInteraction(discordID string, response *string, disableButton *bool,
 	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
-	*disableButton = true
+	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+		CustomID: "FH",
+		Disabled: true,
+	})
 }
 
 func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {

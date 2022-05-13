@@ -5,12 +5,13 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
 // Code duplication...
 
-func WaterInteraction(discordID string, response *string, disableButton *bool, i *discordgo.Interaction) {
+func WaterInteraction(discordID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -45,8 +46,17 @@ func WaterInteraction(discordID string, response *string, disableButton *bool, i
 	// Update the message
 	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
+	// TODO: Needs to check the button as well
 
-	*disableButton = true && !config.CONFIG.Debug.IgnoreWaterCooldown
+	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+		CustomID: "FW",
+		Disabled: true && !config.CONFIG.Debug.IgnoreWaterCooldown,
+	})
+
+	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+		CustomID: "FH",
+		Disabled: !farm.CanHarvest(),
+	})
 }
 
 /*
