@@ -248,7 +248,6 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 	work.Tools += 1
 
 	// Update the message as well to reflect that a new tool was bought.
-
 	patternString := fmt.Sprintf(`%s .+ \d+ tool.+`, config.CONFIG.Emojis.Tools)
 
 	pattern := regexp.MustCompile(patternString)
@@ -262,6 +261,4 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 
 	user.Save()
 	work.Save()
-
-	//*response = fmt.Sprintf("You succesfully bought an additional tool for %s %s", priceStr, config.CONFIG.Economy.Name)
 }

@@ -10,7 +10,7 @@ import (
 
 // Code duplication...
 
-func WaterInteraction(discordID string, response *string, disableButton *bool) {
+func WaterInteraction(discordID string, response *string, disableButton *bool, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -36,13 +36,15 @@ func WaterInteraction(discordID string, response *string, disableButton *bool) {
 	// Decrease the wait time for each crop on the users plots
 	farm.WaterPlots()
 
-	*response = "You watered your plots and reduced the growth time"
-
 	if len(preishedCrops) > 0 {
-		*response += fmt.Sprintf("\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
+		*response = fmt.Sprintf("You watered your plots and reduced the growth time\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
 	}
 
 	farm.Save()
+
+	// Update the message
+	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
+	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
 	*disableButton = true && !config.CONFIG.Debug.IgnoreWaterCooldown
 }

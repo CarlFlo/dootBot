@@ -66,6 +66,14 @@ func (fp *FarmPlot) Water() {
 // Returns a discord formatted string showing when the crop will be harvestable
 func (fp *FarmPlot) HarvestableAt() string {
 
-	fullyGrown := fp.PlantedAt.Add(fp.Crop.DurationToGrow).Unix()
-	return fmt.Sprintf("<t:%d:R>", fullyGrown)
+	fullyGrown := fp.PlantedAt.Add(fp.Crop.DurationToGrow)
+
+	output := fmt.Sprintf("<t:%d:R>", fullyGrown.Unix())
+
+	// time after
+	if time.Now().After(fullyGrown) {
+		output = "Now!"
+	}
+
+	return output
 }

@@ -2,7 +2,6 @@ package farming
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -20,15 +19,6 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	var farm database.Farm
 	farm.QueryUserFarmData(&user)
 
-	description := fmt.Sprintf("You currently own %d plot", farm.OwnedPlots)
-
-	// Pluralize the word "plot"
-	if farm.OwnedPlots > 1 {
-		description += "s"
-	}
-
-	// TODO: Check if any of the crops perished
-
 	// TODO: Create a farm method that creates that description or the entire message
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
@@ -36,8 +26,8 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       fmt.Sprintf("%s#%s's Farm", m.Author.Username, m.Author.Discriminator),
-			Description: description,
-			Fields:      createFieldsForPlots(&farm),
+			Description: farm.CreateEmbedDescription(),
+			Fields:      farm.CreateEmbedFields(),
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: "Crops will perish if not watered everyday!",
 			},
@@ -60,39 +50,6 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		malm.Error("Could not send message! %s", err)
 		return
 	}
-}
-
-func createFieldsForPlots(f *database.Farm) []*discordgo.MessageEmbedField {
-
-	var embed []*discordgo.MessageEmbedField
-
-	f.QueryFarmPlots()
-
-	for i, p := range f.Plots {
-
-		p.QueryCropInfo()
-
-		embed = append(embed, &discordgo.MessageEmbedField{
-			Name:   fmt.Sprintf("%d) %s %s", i+1, p.Crop.Emoji, p.Crop.Name),
-			Value:  p.HarvestableAt(),
-			Inline: true,
-		})
-	}
-
-	unusedPlots := f.OwnedPlots - uint8(len(f.Plots))
-
-	emptyPlotValue := strings.Repeat(config.CONFIG.Emojis.EmptyPlot, 5)
-
-	for i := 0; i < int(unusedPlots); i++ {
-		embed = append(embed, &discordgo.MessageEmbedField{
-			Name: fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
-			//Value:  "⠀",
-			Value:  emptyPlotValue,
-			Inline: true,
-		})
-	}
-
-	return embed
 }
 
 func createButtonComponent(user *database.User, farm *database.Farm) []discordgo.MessageComponent {

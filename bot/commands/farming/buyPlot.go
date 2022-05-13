@@ -6,12 +6,13 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/bwmarrin/discordgo"
 )
 
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool, newButtonText *string) {
+func BuyFarmPlotInteraction(discordID string, response *string, disableButton *bool, newButtonText *string, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -30,6 +31,9 @@ func BuyFarmPlotInteraction(discordID string, response *string, disableButton *b
 	user.Money -= uint64(cost)
 
 	farm.OwnedPlots++
+
+	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
+	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
 	user.Save()
 	farm.Save()

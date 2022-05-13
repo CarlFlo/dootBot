@@ -10,7 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string, disableButton *bool) {
+func HarvestInteraction(discordID string, response *string, disableButton *bool, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -45,6 +45,10 @@ func HarvestInteraction(discordID string, response *string, disableButton *bool)
 		user.Money += uint64(farm.HarvestEarnings)
 		user.Save()
 	}
+
+	// Update the message
+	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
+	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
 	*disableButton = true
 }

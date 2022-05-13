@@ -3,9 +3,11 @@ package database
 import (
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
 )
 
@@ -227,4 +229,47 @@ func (f *Farm) CalcFarmPlotPrice() int {
 		float64(config.CONFIG.Farm.FarmPlotPrice) * math.Pow(
 			config.CONFIG.Farm.FarmPlotCostMultiplier,
 			float64(f.OwnedPlots-1))))
+}
+
+func (f *Farm) CreateEmbedDescription() string {
+
+	description := fmt.Sprintf("You currently own %d plot", f.OwnedPlots)
+
+	if f.OwnedPlots > 1 {
+		description += "s"
+	}
+
+	return description
+}
+
+func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
+	var embed []*discordgo.MessageEmbedField
+
+	f.QueryFarmPlots()
+
+	for i, p := range f.Plots {
+
+		p.QueryCropInfo()
+
+		embed = append(embed, &discordgo.MessageEmbedField{
+			Name:   fmt.Sprintf("%d) %s %s", i+1, p.Crop.Emoji, p.Crop.Name),
+			Value:  p.HarvestableAt(),
+			Inline: true,
+		})
+	}
+
+	unusedPlots := f.OwnedPlots - uint8(len(f.Plots))
+
+	emptyPlotValue := strings.Repeat(config.CONFIG.Emojis.EmptyPlot, 5)
+
+	for i := 0; i < int(unusedPlots); i++ {
+		embed = append(embed, &discordgo.MessageEmbedField{
+			Name: fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
+			//Value:  "⠀",
+			Value:  emptyPlotValue,
+			Inline: true,
+		})
+	}
+
+	return embed
 }
