@@ -141,18 +141,21 @@ func generateFooter() string {
 }
 
 func generateToolTooltip(work *database.Work) string {
-	numOfBoughtTools := int(work.Tools)
-	if numOfBoughtTools > 0 {
-		wordFormat := "tool"
-		if numOfBoughtTools > 1 {
-			wordFormat = "tools"
-		}
 
-		bonus := utils.HumanReadableNumber(numOfBoughtTools * config.CONFIG.Work.ToolBonus)
-		return fmt.Sprintf(":tools: You have %d %s, giving you an additional **%s** %s", numOfBoughtTools, wordFormat, bonus, config.CONFIG.Economy.Name)
+	numOfBoughtTools := int(work.Tools)
+
+	wordFormat := "tools"
+	if numOfBoughtTools == 1 {
+		wordFormat = "tool"
 	}
 
-	return fmt.Sprintf("Buying additional tools will add an extra income of **%s** %s", utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus), config.CONFIG.Economy.Name)
+	bonus := utils.HumanReadableNumber(numOfBoughtTools * config.CONFIG.Work.ToolBonus)
+	return fmt.Sprintf("%s You have %d %s, giving you an additional **%s** %s",
+		config.CONFIG.Emojis.Tools,
+		numOfBoughtTools,
+		wordFormat,
+		bonus,
+		config.CONFIG.Economy.Name)
 }
 
 func generateWorkStreakMessage(streak uint16, addStreakMessage bool) (string, string) {
