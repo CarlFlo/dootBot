@@ -7,6 +7,7 @@ type ButtonData struct {
 	Label    string
 }
 
+// Wrapper because an array cannot be referenced, but a struct can
 type ButtonDataWrapper struct {
 	ButtonData []ButtonData
 }
