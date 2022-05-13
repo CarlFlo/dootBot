@@ -26,6 +26,10 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - Engaging the users by providing daily objectives 
 
+- Optimised. No loops are run the in the background to keep track of cooldowns ensuring the bot is (somewhat) scalable and can be restarted without issue
+
+- SQLite database
+
 ## Commands
 
 - Work - Allows the user to earn a random amount of money [6 hour cooldown]
