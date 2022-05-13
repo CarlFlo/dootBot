@@ -88,10 +88,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 					},
 				},
 				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Completing your streak will earn you an extra %d %s!\nThe streak resets after %d hours of inactivity.",
-						config.CONFIG.Work.StreakBonus,
-						config.CONFIG.Economy.Name,
-						config.CONFIG.Work.StreakResetHours),
+					Text: generateFooter(),
 				},
 			},
 		}
@@ -129,6 +126,18 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 		msg.Components = components
 	}
 
+}
+
+func generateFooter() string {
+
+	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion\nEach tool you buy will earn you an additional %s %s when you work!",
+		config.CONFIG.Work.StreakResetHours,
+		config.CONFIG.Work.StreakBonus,
+		config.CONFIG.Economy.Name,
+		utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus),
+		config.CONFIG.Economy.Name)
+
+	return output
 }
 
 func generateToolTooltip(work *database.Work) string {
