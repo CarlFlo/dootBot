@@ -27,13 +27,9 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		goto sendInteraction
 	}
 
-	/* TODO
-	Update the original farming message with the updated information on successful interaction
-	*/
-
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		work.BuyToolInteraction(commandIssuerID, &response, &disableButton, &newButtonText)
+		work.BuyToolInteraction(commandIssuerID, &response, &disableButton, &newButtonText, i.Interaction)
 	case "BFP": // BFP: Buy Farm Plot
 		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &disableButton, &newButtonText)
 	case "FH": // FH: Farm Harvest

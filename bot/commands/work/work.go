@@ -3,6 +3,7 @@ package work
 import (
 	"fmt"
 	"math/rand"
+	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -225,7 +226,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
 
-func BuyToolInteraction(authorID string, response *string, disableButton *bool, newButtonText *string) {
+func BuyToolInteraction(authorID string, response *string, disableButton *bool, newButtonText *string, i *discordgo.Interaction) {
 
 	// Check if the user has enough money
 	var user database.User
@@ -247,7 +248,13 @@ func BuyToolInteraction(authorID string, response *string, disableButton *bool, 
 	work.Tools += 1
 
 	// Update the message as well to reflect that a new tool was bought.
-	// You have n tools, giving you an additional 100*n credits
+
+	modifiedMsg := i.Message.Embeds[0].Description
+
+	pattern := regexp.MustCompile(`:tools: .+ \d+ tool.+`)
+	modifiedMsg = pattern.ReplaceAllString(modifiedMsg, generateToolTooltip(&work))
+
+	i.Message.Embeds[0].Description = modifiedMsg
 
 	// Calculate new cost
 	_, newPriceStr := work.CalcBuyToolPrice()
