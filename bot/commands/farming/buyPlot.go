@@ -12,7 +12,7 @@ import (
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
+func BuyFarmPlotInteraction(discordID string, response *string, bdm *utils.ButtonDataWrapper, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)

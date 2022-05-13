@@ -11,7 +11,7 @@ import (
 
 // Code duplication...
 
-func WaterInteraction(discordID string, response *string, bdm *utils.ButtonDataManager, i *discordgo.Interaction) {
+func WaterInteraction(discordID string, response *string, bdw *utils.ButtonDataWrapper, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -48,12 +48,12 @@ func WaterInteraction(discordID string, response *string, bdm *utils.ButtonDataM
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 	// TODO: Needs to check the button as well
 
-	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+	bdw.ButtonData = append(bdw.ButtonData, utils.ButtonData{
 		CustomID: "FW",
 		Disabled: true && !config.CONFIG.Debug.IgnoreWaterCooldown,
 	})
 
-	bdm.ButtonData = append(bdm.ButtonData, utils.ButtonData{
+	bdw.ButtonData = append(bdw.ButtonData, utils.ButtonData{
 		CustomID: "FH",
 		Disabled: !farm.CanHarvest(),
 	})

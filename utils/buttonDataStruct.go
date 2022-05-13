@@ -7,6 +7,6 @@ type ButtonData struct {
 	Label    string
 }
 
-type ButtonDataManager struct {
+type ButtonDataWrapper struct {
 	ButtonData []ButtonData
 }

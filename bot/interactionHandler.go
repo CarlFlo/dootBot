@@ -15,7 +15,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	bdm := &utils.ButtonDataManager{}
+	bdw := &utils.ButtonDataWrapper{}
 
 	var response string
 	var embeds []*discordgo.MessageEmbed
@@ -29,13 +29,13 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		work.BuyToolInteraction(commandIssuerID, &response, bdm, i.Interaction)
+		work.BuyToolInteraction(commandIssuerID, &response, bdw, i.Interaction)
 	case "BFP": // BFP: Buy Farm Plot
-		farming.BuyFarmPlotInteraction(commandIssuerID, &response, bdm, i.Interaction)
+		farming.BuyFarmPlotInteraction(commandIssuerID, &response, bdw, i.Interaction)
 	case "FH": // FH: Farm Harvest
-		farming.HarvestInteraction(commandIssuerID, &response, bdm, i.Interaction)
+		farming.HarvestInteraction(commandIssuerID, &response, bdw, i.Interaction)
 	case "FW": // FW: Farm Water
-		farming.WaterInteraction(commandIssuerID, &response, bdm, i.Interaction)
+		farming.WaterInteraction(commandIssuerID, &response, bdw, i.Interaction)
 	case "FHELP":
 		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 
@@ -47,7 +47,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 sendInteraction:
 
 	// Updates the button on the original message
-	if err := updateButtonComponent(s, i.Interaction, bdm); err != nil {
+	if err := updateButtonComponent(s, i.Interaction, bdw); err != nil {
 		malm.Error("editMsgComponentsRemoved, error: %w", err)
 	}
 
@@ -74,7 +74,7 @@ sendInteraction:
 	}
 }
 
-func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *utils.ButtonDataManager) error {
+func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *utils.ButtonDataWrapper) error {
 
 	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
 
