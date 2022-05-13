@@ -88,8 +88,9 @@ func (w *Work) HasHitMaxToolLimit() bool {
 func (w *Work) CalcBuyToolPrice() (int, string) {
 
 	multiplier := config.CONFIG.Work.ToolBasePriceMultiplier
+	basePrice := float64(config.CONFIG.Work.ToolBasePrice)
 
-	price := int(float64(config.CONFIG.Work.ToolBasePrice) * math.Pow(multiplier, float64(w.Tools)))
+	price := int(basePrice * math.Pow(multiplier, float64(w.Tools)))
 	priceString := utils.HumanReadableNumber(price)
 
 	return price, priceString

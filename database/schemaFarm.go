@@ -198,7 +198,7 @@ func (f *Farm) CropsPerishedCheck() []string {
 		}
 
 		perishedCrops = append(perishedCrops, plot.Crop.Name)
-		defer f.DeletePlot(plot) // We cannot delete it at once, because we are iterating over it
+		defer f.DeletePlot(plot) // We cannot delete it at once, because we are iterating over it the list
 	}
 
 	return perishedCrops

@@ -37,7 +37,6 @@ func HarvestInteraction(discordID string, response *string, disableButton *bool)
 	}
 
 	for _, name := range perishedCrops {
-
 		*response += fmt.Sprintf("%s %s perished\n", config.CONFIG.Emojis.PerishedCrop, name)
 	}
 
