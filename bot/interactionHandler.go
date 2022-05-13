@@ -17,9 +17,6 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	bdm := &utils.ButtonDataManager{}
 
-	//disableButton := false // Edit into a struct so more buttons can be edited or changed. Needs to include this and buttontext
-	//var newButtonText string
-
 	var response string
 	var embeds []*discordgo.MessageEmbed
 
