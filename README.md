@@ -1,5 +1,5 @@
 <h1 align="center">
-  Discord Bot Template
+  Discord Money Bot
 </h1>
 
 <p align="center">
@@ -18,15 +18,13 @@
 
 This project is made for and is intended to be a fun learning exercise.
 
-The purpose of the bot is to allow members of a Discord channel to engage with the bot and earn *money*. This bot is inspired by and is very similar to idle games for mobile devices. The user can interact with the bot to earn and spend fake money. Actions as well as rewards are locked behind a timer, some of which require the user to interact with the bot daily to receive their reward.
+The purpose of the bot is to allow members of a Discord channel to engage with the bot and earn *money*. This bot is inspired by and is very similar to idle games. The user can interact with the bot to earn and spend fake money. Actions as well as rewards are locked behind a cooldown/timer, some of which require the user to interact with the bot daily to receive their reward.
 
 ## Features
 
 - Easy to use! Uses buttons, emojis and color-coding in conjunction with updating messages to provide a clear and user-friendly experience 
 
-- Engaging the users by providing daily objectives 
-
-- Optimised. No loops are run the in the background to keep track of cooldowns ensuring the bot is (somewhat) scalable and can be restarted without issue
+- Engaging the users by providing daily tasks 
 
 - SQLite database
 
