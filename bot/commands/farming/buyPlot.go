@@ -29,6 +29,11 @@ func BuyFarmPlotInteraction(discordID string, response *string, bdm *structs.But
 		return
 	}
 
+	if farm.HasMaxAmountOfPlots() {
+		*response = fmt.Sprintf("You already have the maximum amount of farm plots!\nYou can only own %d farm plots", config.CONFIG.Farm.MaxPlots)
+		return
+	}
+
 	user.Money -= uint64(cost)
 
 	farm.OwnedPlots++

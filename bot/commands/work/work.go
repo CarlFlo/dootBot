@@ -248,6 +248,12 @@ func BuyToolInteraction(authorID string, response *string, bdw *structs.ButtonDa
 		return
 	}
 
+	if work.HasHitMaxToolLimit() {
+		*response = fmt.Sprintf("You have reached the maximum number of tools you can buy! Max %d",
+			config.CONFIG.Work.MaxTools)
+		return
+	}
+
 	user.Money -= uint64(price)
 
 	work.Tools += 1
