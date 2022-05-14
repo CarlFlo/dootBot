@@ -131,12 +131,13 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 func generateFooter() string {
 
-	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work!",
+	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work! (Max %d)",
 		config.CONFIG.Work.StreakResetHours,
 		config.CONFIG.Work.StreakBonus,
 		config.CONFIG.Economy.Name,
 		utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus),
-		config.CONFIG.Economy.Name)
+		config.CONFIG.Economy.Name,
+		config.CONFIG.Work.MaxTools)
 
 	return output
 }
@@ -264,7 +265,7 @@ func BuyToolInteraction(authorID string, response *string, bdw *utils.ButtonData
 
 	bdw.ButtonData = append(bdw.ButtonData, utils.ButtonData{
 		CustomID: "BWT",
-		Disabled: false,
+		Disabled: work.HasHitMaxToolLimit(),
 		Label:    fmt.Sprintf("Buy Tool (%s)", newPriceStr),
 	})
 

@@ -175,9 +175,9 @@ func createConfig() error {
 			ToolBonus:               45,
 			ToolBasePrice:           50,
 			ToolBasePriceMultiplier: 1.25,
-			MaxTools:                10,
+			MaxTools:                20,
 			StreakOutput:            []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
-			StreakBonus:             300,
+			StreakBonus:             350,
 			StreakResetHours:        24,
 		},
 		Daily: daily{
@@ -185,7 +185,7 @@ func createConfig() error {
 			MinMoney:         350,
 			MaxMoney:         800,
 			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
-			StreakBonus:      1000,
+			StreakBonus:      2000,
 			StreakResetHours: 24,
 		},
 		Farm: farm{
