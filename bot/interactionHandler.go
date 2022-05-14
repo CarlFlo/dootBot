@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
@@ -38,6 +39,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		farming.WaterInteraction(commandIssuerID, &response, bdw, i.Interaction)
 	case "FHELP":
 		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
+	case "RP": // RP: Refresh Profile
+		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction)
 
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)

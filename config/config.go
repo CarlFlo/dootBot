@@ -114,6 +114,7 @@ type emojis struct {
 type componentEmojiNames struct {
 	MoneyBag string `json:"moneyBag"`
 	Help     string `json:"help"`
+	Refresh  string `json:"refresh"`
 }
 
 // ReloadConfig is a wrapper function for reloading the config. For clarity
@@ -207,6 +208,7 @@ func createConfig() error {
 			ComponentEmojiNames: componentEmojiNames{
 				MoneyBag: "💰",
 				Help:     "💡", // Alt: 💡, ❔
+				Refresh:  "🔄",
 			},
 			Bank:         ":bank:",
 			Wallet:       ":dollar:",
