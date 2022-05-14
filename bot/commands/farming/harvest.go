@@ -3,6 +3,7 @@ package farming
 import (
 	"fmt"
 
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
@@ -10,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string, bdw *utils.ButtonDataWrapper, i *discordgo.Interaction) {
+func HarvestInteraction(discordID string, response *string, bdw *structs.ButtonDataWrapper, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -50,7 +51,7 @@ func HarvestInteraction(discordID string, response *string, bdw *utils.ButtonDat
 	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
-	bdw.ButtonData = append(bdw.ButtonData, utils.ButtonData{
+	bdw.ButtonData = append(bdw.ButtonData, structs.ButtonData{
 		CustomID: "FH",
 		Disabled: true,
 	})

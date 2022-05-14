@@ -29,7 +29,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			Description: farm.CreateEmbedDescription(),
 			Fields:      farm.CreateEmbedFields(),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Crops will perish if not watered everyday!",
+				Text: fmt.Sprintf("Crops will perish if not watered everyday!\nYou can own up to %d farm plots!", config.CONFIG.Farm.MaxPlots),
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),

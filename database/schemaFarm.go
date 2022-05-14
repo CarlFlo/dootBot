@@ -280,3 +280,7 @@ func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
 
 	return embed
 }
+
+func (f *Farm) HasMaxAmountOfPlots() bool {
+	return f.OwnedPlots >= config.CONFIG.Farm.MaxPlots
+}

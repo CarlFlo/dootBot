@@ -231,7 +231,7 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
 
-func BuyToolInteraction(authorID string, response *string, bdw *utils.ButtonDataWrapper, i *discordgo.Interaction) {
+func BuyToolInteraction(authorID string, response *string, bdw *structs.ButtonDataWrapper, i *discordgo.Interaction) {
 
 	// Check if the user has enough money
 	var user database.User
@@ -263,7 +263,7 @@ func BuyToolInteraction(authorID string, response *string, bdw *utils.ButtonData
 	// Calculate new cost
 	_, newPriceStr := work.CalcBuyToolPrice()
 
-	bdw.ButtonData = append(bdw.ButtonData, utils.ButtonData{
+	bdw.ButtonData = append(bdw.ButtonData, structs.ButtonData{
 		CustomID: "BWT",
 		Disabled: work.HasHitMaxToolLimit(),
 		Label:    fmt.Sprintf("Buy Tool (%s)", newPriceStr),

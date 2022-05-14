@@ -6,7 +6,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
-	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -15,7 +15,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	bdw := &utils.ButtonDataWrapper{}
+	bdw := &structs.ButtonDataWrapper{}
 
 	var response string
 	var embeds []*discordgo.MessageEmbed
@@ -74,7 +74,7 @@ sendInteraction:
 	}
 }
 
-func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *utils.ButtonDataWrapper) error {
+func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *structs.ButtonDataWrapper) error {
 
 	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
 
@@ -87,7 +87,6 @@ func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *
 				}
 			}
 		}
-
 	}
 
 	// Edits the message

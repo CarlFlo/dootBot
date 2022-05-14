@@ -57,7 +57,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 // Will only allowed messages from bound channels, if any are specified.
-// If no bound channels are specified will all channels be allowed
+// If no bound channels are specified then all channels are allowed
 // Does not handle direct messages
 func fromBoundChannel(channelID string) bool {
 
