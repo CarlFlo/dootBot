@@ -41,11 +41,11 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "FHELP":
 		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 	case "RP": // RP: Refresh Profile
-		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction)
+		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction, &btnData)
 	case "PW": // PW: Profile Work - User worked from the profile message
-		work.DoWorkInteraction(commandIssuerID, &response, &btnData)
+		work.DoWorkInteraction(commandIssuerID, &response, i.Interaction, &btnData)
 	case "PD": // PD: Profile Daily - User did their daily from the profile message
-		daily.DoDailyInteraction(commandIssuerID, &response, &btnData)
+		daily.DoDailyInteraction(commandIssuerID, &response, i.Interaction, &btnData)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return

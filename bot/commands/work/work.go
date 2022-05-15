@@ -30,17 +30,19 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 	var work database.Work
 	work.GetWorkInfo(&user)
 
+	canWork := work.CanDoWork()
+
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
 	work.StreakPreMsgAction()
 
 	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
 			{
-				Title:       createWorkMessageTitle(&work),
-				Description: createWorkMessageDescription(&user, &work),
-				Color:       createWorkMessageColor(&work),
-				Fields:      createWorkMessageFields(&work),
-				Footer:      createWorkMessageFooter(&work),
+				Title:       createWorkMessageTitle(&work, canWork),
+				Description: createWorkMessageDescription(&user, &work, canWork),
+				Color:       createWorkMessageColor(&work, canWork),
+				Fields:      createWorkMessageFields(&work, canWork),
+				Footer:      createWorkMessageFooter(&work, canWork),
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
 					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
 				},
@@ -64,9 +66,9 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 }
 
 // Returns the work title string
-func createWorkMessageTitle(work *database.Work) string {
+func createWorkMessageTitle(work *database.Work, canDoWork bool) string {
 
-	if work.CanDoWork() {
+	if canDoWork {
 		return "Pay Check"
 	}
 	return fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure)
@@ -74,13 +76,13 @@ func createWorkMessageTitle(work *database.Work) string {
 
 // generates the work description message
 // Will also give the user money if they can work
-func createWorkMessageDescription(user *database.User, work *database.Work) string {
+func createWorkMessageDescription(user *database.User, work *database.Work, canDoWork bool) string {
 
 	toolsTooltip := generateToolTooltip(work)
 
 	var description string
 
-	if work.CanDoWork() {
+	if canDoWork {
 
 		// Calculates the income
 		moneyEarned := generateWorkIncome(work)
@@ -105,16 +107,16 @@ func createWorkMessageDescription(user *database.User, work *database.Work) stri
 	return description
 }
 
-func createWorkMessageColor(work *database.Work) int {
+func createWorkMessageColor(work *database.Work, canDoWork bool) int {
 
-	if work.CanDoWork() {
+	if canDoWork {
 		return config.CONFIG.Colors.Success
 	}
 	return config.CONFIG.Colors.Failure
 }
-func createWorkMessageFields(work *database.Work) []*discordgo.MessageEmbedField {
+func createWorkMessageFields(work *database.Work, canDoWork bool) []*discordgo.MessageEmbedField {
 
-	extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, work.CanDoWork())
+	extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, canDoWork)
 
 	return []*discordgo.MessageEmbedField{
 		{
@@ -124,11 +126,11 @@ func createWorkMessageFields(work *database.Work) []*discordgo.MessageEmbedField
 	}
 }
 
-func createWorkMessageFooter(work *database.Work) *discordgo.MessageEmbedFooter {
+func createWorkMessageFooter(work *database.Work, canDoWork bool) *discordgo.MessageEmbedFooter {
 
 	footerText := fmt.Sprintf("You can work once every %d hours!", int(config.CONFIG.Work.Cooldown))
 
-	if work.CanDoWork() {
+	if canDoWork {
 		footerText = fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work! (Max %d)",
 			config.CONFIG.Work.StreakResetHours,
 			config.CONFIG.Work.StreakBonus,

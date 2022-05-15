@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
@@ -58,6 +59,33 @@ func BuyToolInteraction(authorID string, response *string, btnData *[]structs.Bu
 	work.Save()
 }
 
-func DoWorkInteraction(authorID string, response *string, btnData *[]structs.ButtonData) {
+func DoWorkInteraction(authorID string, response *string, i *discordgo.Interaction, btnData *[]structs.ButtonData) {
 
+	var user database.User
+	user.QueryUserByDiscordID(authorID)
+
+	var work database.Work
+	work.GetWorkInfo(&user)
+
+	canDoWork := work.CanDoWork()
+
+	work.StreakPreMsgAction()
+
+	*response = createWorkMessageDescription(&user, &work, canDoWork)
+
+	work.StreakPostMsgAction()
+
+	user.Save()
+	work.Save()
+
+	var daily database.Daily
+	daily.GetDailyInfo(&user)
+
+	i.Message.Embeds[0].Fields = commands.GenerateProfileFields(&user, &work, &daily)
+
+	// Updates the button
+	*btnData = append(*btnData, structs.ButtonData{
+		CustomID: "PW",
+		Disabled: true,
+	})
 }

@@ -56,23 +56,20 @@ func (w *Work) CanDoWorkAt() string {
 
 // StreakPreMsgAction - Checks the streak for the work object
 // Resets it down to 0 if the user failed their streak. i.e. Waited too long since the last work
+// If the user can work...
+// Updates the streak for the user i.e. adding one to the counters
+// and ensuring the streak is not over the max streak
+// and updating the time of the last work
 func (w *Work) StreakPreMsgAction() {
 	if time.Since(w.LastWorkedAt).Hours() > float64(config.CONFIG.Work.StreakResetHours) {
 		w.ConsecutiveStreaks = 0
 		w.Streak = 0
 	}
-}
 
-// Wrap around the streak if the streak length in the config got updated/changed
-func (w *Work) StreakPostMsgAction() {
-	w.Streak %= uint16(len(config.CONFIG.Work.StreakOutput))
-}
+	if !w.CanDoWork() {
+		return
+	}
 
-// UpdateStreakAndTime - Updates the streak for the user i.e. adding one to the counters
-// and ensuring the streak is not over the max streak
-// and updating the time of the last work
-func (w *Work) UpdateStreakAndTime() {
-	// Updates the variables
 	w.LastWorkedAt = time.Now()
 
 	w.ConsecutiveStreaks += 1
@@ -82,6 +79,13 @@ func (w *Work) UpdateStreakAndTime() {
 	if w.Streak > uint16(len(config.CONFIG.Work.StreakOutput)) {
 		w.Streak = uint16(len(config.CONFIG.Work.StreakOutput))
 	}
+}
+
+// Wrap around the streak if the streak length in the config got updated/changed
+func (w *Work) StreakPostMsgAction() {
+	// Updates the variables
+
+	w.Streak %= uint16(len(config.CONFIG.Work.StreakOutput))
 }
 
 func (w *Work) HasHitMaxToolLimit() bool {
