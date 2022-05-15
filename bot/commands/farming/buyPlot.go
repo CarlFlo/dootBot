@@ -13,7 +13,7 @@ import (
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, bdm *structs.ButtonDataWrapper, i *discordgo.Interaction) {
+func BuyFarmPlotInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -49,7 +49,7 @@ func BuyFarmPlotInteraction(discordID string, response *string, bdm *structs.But
 	// Checks if the button should now be disabled based on the new increased price
 	canAfford := user.Money > uint64(farm.CalcFarmPlotPrice())
 
-	bdm.ButtonData = append(bdm.ButtonData, structs.ButtonData{
+	*btnData = append(*btnData, structs.ButtonData{
 		CustomID: "BFP",
 		Disabled: farm.HasMaxAmountOfPlots() || !canAfford,
 		Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice())),

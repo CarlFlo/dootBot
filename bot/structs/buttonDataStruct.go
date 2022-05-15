@@ -6,8 +6,3 @@ type ButtonData struct {
 	Disabled bool
 	Label    string
 }
-
-// Wrapper because an array cannot be referenced, but a struct can
-type ButtonDataWrapper struct {
-	ButtonData []ButtonData
-}

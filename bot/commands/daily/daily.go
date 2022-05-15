@@ -149,6 +149,6 @@ func generateDailyIncome(daily *database.Daily) int {
 	return moneyEarned
 }
 
-func DoDailyInteraction(authorID string, response *string, bdw *structs.ButtonDataWrapper) {
+func DoDailyInteraction(authorID string, response *string, btnData *[]structs.ButtonData) {
 
 }

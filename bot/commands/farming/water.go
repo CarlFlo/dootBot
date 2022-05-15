@@ -11,7 +11,7 @@ import (
 
 // Code duplication...
 
-func WaterInteraction(discordID string, response *string, bdw *structs.ButtonDataWrapper, i *discordgo.Interaction) {
+func WaterInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -48,13 +48,13 @@ func WaterInteraction(discordID string, response *string, bdw *structs.ButtonDat
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
 	// Water button
-	bdw.ButtonData = append(bdw.ButtonData, structs.ButtonData{
+	*btnData = append(*btnData, structs.ButtonData{
 		CustomID: "FW",
 		Disabled: true && !config.CONFIG.Debug.IgnoreWaterCooldown,
 	})
 
 	// Harvest button
-	bdw.ButtonData = append(bdw.ButtonData, structs.ButtonData{
+	*btnData = append(*btnData, structs.ButtonData{
 		CustomID: "FH",
 		Disabled: !farm.CanHarvest(),
 	})

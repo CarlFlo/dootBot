@@ -17,7 +17,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	bdw := &structs.ButtonDataWrapper{}
+	var btnData []structs.ButtonData
 
 	var response string
 	var embeds []*discordgo.MessageEmbed
@@ -31,21 +31,21 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
-		work.BuyToolInteraction(commandIssuerID, &response, bdw, i.Interaction)
+		work.BuyToolInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "BFP": // BFP: Buy Farm Plot
-		farming.BuyFarmPlotInteraction(commandIssuerID, &response, bdw, i.Interaction)
+		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "FH": // FH: Farm Harvest
-		farming.HarvestInteraction(commandIssuerID, &response, bdw, i.Interaction)
+		farming.HarvestInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "FW": // FW: Farm Water
-		farming.WaterInteraction(commandIssuerID, &response, bdw, i.Interaction)
+		farming.WaterInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "FHELP":
 		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 	case "RP": // RP: Refresh Profile
 		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction)
 	case "PW": // PW: Profile Work - User worked from the profile message
-		work.DoWorkInteraction(commandIssuerID, &response, bdw)
+		work.DoWorkInteraction(commandIssuerID, &response, &btnData)
 	case "PD": // PD: Profile Daily - User did their daily from the profile message
-		daily.DoDailyInteraction(commandIssuerID, &response, bdw)
+		daily.DoDailyInteraction(commandIssuerID, &response, &btnData)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return
@@ -54,7 +54,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 sendInteraction:
 
 	// Updates the button on the original message
-	if err := updateButtonComponent(s, i.Interaction, bdw); err != nil {
+	if err := updateButtonComponent(s, i.Interaction, &btnData); err != nil {
 		malm.Error("editMsgComponentsRemoved, error: %w", err)
 	}
 
@@ -81,16 +81,16 @@ sendInteraction:
 	}
 }
 
-func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, bdm *structs.ButtonDataWrapper) error {
+func updateButtonComponent(s *discordgo.Session, i *discordgo.Interaction, btnData *[]structs.ButtonData) error {
 
 	for _, v := range i.Message.Components[0].(*discordgo.ActionsRow).Components {
 
-		for _, bData := range bdm.ButtonData {
-			if v.(*discordgo.Button).CustomID == bData.CustomID {
-				v.(*discordgo.Button).Disabled = bData.Disabled
+		for _, btn := range *btnData {
+			if v.(*discordgo.Button).CustomID == btn.CustomID {
+				v.(*discordgo.Button).Disabled = btn.Disabled
 
-				if len(bData.Label) != 0 {
-					v.(*discordgo.Button).Label = bData.Label
+				if len(btn.Label) != 0 {
+					v.(*discordgo.Button).Label = btn.Label
 				}
 			}
 		}

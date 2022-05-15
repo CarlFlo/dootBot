@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string, bdw *structs.ButtonDataWrapper, i *discordgo.Interaction) {
+func HarvestInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -51,7 +51,7 @@ func HarvestInteraction(discordID string, response *string, bdw *structs.ButtonD
 	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
 	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
 
-	bdw.ButtonData = append(bdw.ButtonData, structs.ButtonData{
+	*btnData = append(*btnData, structs.ButtonData{
 		CustomID: "FH",
 		Disabled: true,
 	})
