@@ -54,8 +54,7 @@ func githubVersion() (string, error) {
 		return "", err
 	}
 
-	// \d+-\d+-\d+
-
+	// regex to find version
 	pattern := regexp.MustCompile(`\d+-\d+-\d+`)
 	version := pattern.FindString(string(body))
 

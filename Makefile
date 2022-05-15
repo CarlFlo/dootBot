@@ -1,4 +1,4 @@
-fNameSrc = main.go version.go
+fNameSrc = main.go
 fNameOut = main.exe
 
 # 64 bit x86 setting

@@ -15,7 +15,7 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-// https://discordapp.com/oauth2/authorize?&client_id=643191140849549333&scope=bot&permissions=37211200
+const CurrentVersion = "2022-05-15"
 
 func init() {
 
@@ -63,3 +63,6 @@ func main() {
 	close(sc)
 	session.Close() // Stops the discord bot
 }
+
+// Invite bot
+// https://discordapp.com/oauth2/authorize?&client_id=<ID_GOES_HERE>&scope=bot&permissions=37211200

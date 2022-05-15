@@ -59,7 +59,7 @@ Run `make run | r` to just run the bot
 
 The `makefile` can also be used to build/run the bot for different operating systems such as **Windows**, **Mac**, and **Linux**
 
-It is also possible to build or run it yourself with the `go run main.go version.go` and `go build main.go version.go` command, respectively.
+It is also possible to build or run it yourself with the `go run main.go` and `go build main.go` command, respectively.
 
 ## Todo
 
