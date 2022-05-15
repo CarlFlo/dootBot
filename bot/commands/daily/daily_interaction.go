@@ -1,8 +1,11 @@
 package daily
 
 import (
+	"fmt"
+
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,12 +21,33 @@ func DoDailyInteraction(authorID string, response *string, i *discordgo.Interact
 	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
-	i.Message.Embeds[0].Fields = commands.GenerateProfileFields(&user, &work, &daily)
+	ok, earnedMoney, streakReward, streakPercentage, titleText, _ := daily.DoDaily(&user)
 
-	*response = "Not implemented yet"
+	if ok {
+		*response = fmt.Sprintf("%s!\n%sYou earned ``%s`` %s! Your new balance is ``%s`` %s!\nYou will be able to get your daily again %s\nCurrent streak: ``%d``\n\nExtra Reward Progress (%s)\n%s",
+			titleText,
+			config.CONFIG.Emojis.Economy,
+			earnedMoney,
+			config.CONFIG.Economy.Name,
+			user.PrettyPrintMoney(),
+			config.CONFIG.Economy.Name,
+			daily.CanDoDailyAt(),
+			daily.ConsecutiveStreaks,
+			streakPercentage,
+			streakReward)
+	} else {
+		*response = fmt.Sprintf("%s!\nYou can get your next daily again %s",
+			titleText,
+			daily.CanDoDailyAt())
+	}
+
+	i.Message.Embeds[0].Fields = commands.GenerateProfileFields(&user, &work, &daily)
 
 	*btnData = append(*btnData, structs.ButtonData{
 		CustomID: "PD",
 		Disabled: true,
 	})
+
+	user.Save()
+	daily.Save()
 }
