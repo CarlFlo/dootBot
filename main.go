@@ -23,6 +23,7 @@ func init() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	malm.SetLogVerboseBitmask(39) // Turns of verbose for debug and info log messages
 	malm.Debug("Running on %s", runtime.GOOS)
 
 	if err := config.LoadConfiguration(); err != nil {

@@ -278,3 +278,7 @@ func BuyToolInteraction(authorID string, response *string, bdw *structs.ButtonDa
 	user.Save()
 	work.Save()
 }
+
+func DoWorkInteraction(authorID string, response *string, bdw *structs.ButtonDataWrapper) {
+
+}

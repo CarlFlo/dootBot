@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/daily"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
@@ -41,7 +42,10 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		embeds = farming.FarmHelpInteraction(commandIssuerID, &response)
 	case "RP": // RP: Refresh Profile
 		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction)
-
+	case "PW": // PW: Profile Work - User worked from the profile message
+		work.DoWorkInteraction(commandIssuerID, &response, bdw)
+	case "PD": // PD: Profile Daily - User did their daily from the profile message
+		daily.DoDailyInteraction(commandIssuerID, &response, bdw)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return

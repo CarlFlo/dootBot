@@ -12,13 +12,22 @@ import (
 
 func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
+	var user database.User
+	user.QueryUserByDiscordID(m.Author.ID)
+
+	var work database.Work
+	work.GetWorkInfo(&user)
+
+	var daily database.Daily
+	daily.GetDailyInfo(&user)
+
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
 		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       fmt.Sprintf("%s#%s profile", m.Author.Username, m.Author.Discriminator),
 			Description: "",
-			Fields:      generateProfileFields(m.Author.ID),
+			Fields:      generateProfileFields(&user, &work, &daily),
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: "Profile footer",
 			},
@@ -28,7 +37,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 		},
 	}}
 
-	if components := createButtonComponent(); components != nil {
+	if components := createButtonComponent(&work, &daily); components != nil {
 		complexMessage.Components = components
 	}
 
@@ -39,16 +48,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	}
 }
 
-func generateProfileFields(authorID string) []*discordgo.MessageEmbedField {
-
-	var user database.User
-	user.QueryUserByDiscordID(authorID)
-
-	var work database.Work
-	work.GetWorkInfo(&user)
-
-	var daily database.Daily
-	daily.GetDailyInfo(&user)
+func generateProfileFields(user *database.User, work *database.Work, daily *database.Daily) []*discordgo.MessageEmbedField {
 
 	// The statuses on the cooldown's
 	workStatus := config.CONFIG.Emojis.Success
@@ -89,9 +89,28 @@ func generateProfileFields(authorID string) []*discordgo.MessageEmbedField {
 	return fields
 }
 
-func createButtonComponent() []discordgo.MessageComponent {
+func createButtonComponent(work *database.Work, daily *database.Daily) []discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
+
+	if daily.CanDoDaily() {
+		// Only create if the daily can be done
+		components = append(components, &discordgo.Button{
+			Label:    "Collect Daily",
+			Style:    1, // Default purple
+			Disabled: false,
+			CustomID: "PD", // 'PD' is code for 'Profile Daily'
+		})
+	}
+	if work.CanDoWork() {
+		// Only create if the work can be done
+		components = append(components, &discordgo.Button{
+			Label:    "Work",
+			Style:    1, // Default purple
+			Disabled: false,
+			CustomID: "PW", // 'PW' is code for 'Profile Work'
+		})
+	}
 
 	components = append(components, &discordgo.Button{
 		Label:    "",
@@ -112,5 +131,18 @@ func createButtonComponent() []discordgo.MessageComponent {
 
 func ProfileRefreshInteraction(authorID string, i *discordgo.Interaction) {
 
-	i.Message.Embeds[0].Fields = generateProfileFields(authorID)
+	var user database.User
+	user.QueryUserByDiscordID(authorID)
+
+	var work database.Work
+	work.GetWorkInfo(&user)
+
+	var daily database.Daily
+	daily.GetDailyInfo(&user)
+
+	i.Message.Embeds[0].Fields = generateProfileFields(&user, &work, &daily)
+	// Also update buttons
+
+	//i.Message.Components = createButtonComponent(&work, &daily) // Causes crash
+
 }
