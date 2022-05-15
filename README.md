@@ -26,13 +26,15 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - Engaging the users by providing daily tasks 
 
+- Progression!
+
 - SQLite database
 
 ## Commands
 
 - Work - Allows the user to earn a random amount of money [6 hour cooldown]
 - Daily - Gives the user a random amount of money daily [24 hour cooldown]
-- Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish.
+- Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. New crops can be unlocked by planting.
 
 ## Setup
 
