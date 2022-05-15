@@ -13,9 +13,10 @@ import (
 
 type Farm struct {
 	Model
-	Plots         []*FarmPlot
-	OwnedPlots    uint8
-	LastWateredAt time.Time // Last time the user watered the farm plots
+	Plots                   []*FarmPlot
+	OwnedPlots              uint8
+	LastWateredAt           time.Time // Last time the user watered the farm plots
+	HighestPlantedCropIndex uint8
 
 	PlotsChanged    bool `gorm:"-"` // Ignored by the database
 	HarvestEarnings int  `gorm:"-"` // If 0 then no earnings
@@ -36,6 +37,7 @@ func (Farm) TableName() string {
 
 func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
+	f.HighestPlantedCropIndex = 1
 	f.LastWateredAt = time.Now().Add(time.Hour * config.CONFIG.Farm.WaterCooldown * -1)
 	return nil
 }

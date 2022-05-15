@@ -35,6 +35,8 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
 	work.StreakPreMsgAction()
 
+	// TODO: Rework this like how Daily was reworked
+
 	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
 			{

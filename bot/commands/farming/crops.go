@@ -12,8 +12,14 @@ import (
 
 func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	var user database.User
+	user.QueryUserByDiscordID(m.Author.ID)
+
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
 	var crops []database.FarmCrop
-	database.DB.Find(&crops)
+	database.DB.Order("id asc").Limit(int(farm.HighestPlantedCropIndex)).Find(&crops)
 
 	description := fmt.Sprintf("Type ``%sfarm [p | plant] <crop>`` to plant a crop!\nAll seeds cost %s ``%s`` %s",
 		config.CONFIG.BotPrefix,
@@ -29,7 +35,7 @@ func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 			Description: description,
 			Fields:      createFieldsForCrops(&crops),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Crops will perish if not watered everyday!",
+				Text: "Crops will perish if not watered everyday!\nYou unlock new crops by planting crops on your farm.",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),

@@ -6,6 +6,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -35,20 +36,27 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	// Check if the user has a free plot
-	var farm database.Farm
-	farm.QueryUserFarmData(&user)
-	farm.QueryFarmPlots()
-
-	if !farm.HasFreePlot() {
-		s.ChannelMessageSend(m.ChannelID, "You don't have a free farm plot to plant in!")
-		return
-	}
-
 	// Parse the input plant (checks the database)
 	var crop database.FarmCrop
 	if ok := crop.GetCropByName(cropName); !ok {
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The crop '%s' is not valid!", cropName))
+		return
+	}
+
+	// Check if the user has a free plot
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
+	// Check if the user unlocked this crop
+	if crop.ID > uint(farm.HighestPlantedCropIndex) {
+		s.ChannelMessageSend(m.ChannelID, "You haven't unlocked this crop yet!\nYou have to plant all the previous crops at least once to unlock this one.")
+		return
+	}
+
+	farm.QueryFarmPlots()
+
+	if !farm.HasFreePlot() {
+		s.ChannelMessageSend(m.ChannelID, "You don't have a free farm plot to plant in!")
 		return
 	}
 
@@ -60,6 +68,12 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		Farm: farm,
 		Crop: crop,
 	})
+
+	// Increment the highestPlantedCropIndex
+	if uint(farm.HighestPlantedCropIndex) == crop.ID {
+		malm.Debug("Unlocked a new crop!")
+		farm.HighestPlantedCropIndex++
+	}
 
 	// Send message to the user
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The crop %s %s was planted!", crop.Emoji, crop.Name))
