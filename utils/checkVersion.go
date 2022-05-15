@@ -3,29 +3,29 @@ package utils
 import (
 	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
-	"github.com/CarlFlo/malm"
 )
 
 //	Return true or false if the version is up to date
 //	Return version on system
 //	Return version on github
 //	return error
-func BotVersonHandler() (bool, string, string, error) {
+func BotVersonHandler(current string) (bool, string, error) {
 
-	current := currentVersion()
 	githubVersion, err := githubVersion()
 
 	if err != nil {
-		return false, current, "", err
+		return false, "", err
 	}
 
 	upToDate := current == githubVersion
 
-	return upToDate, current, githubVersion, nil
+	return upToDate, githubVersion, nil
 }
 
+/*
 func currentVersion() string {
 
 	// read file from directory
@@ -36,6 +36,7 @@ func currentVersion() string {
 
 	return string(file)
 }
+*/
 
 // Returns the online version or the error
 func githubVersion() (string, error) {
@@ -53,5 +54,10 @@ func githubVersion() (string, error) {
 		return "", err
 	}
 
-	return string(body), nil
+	// \d+-\d+-\d+
+
+	pattern := regexp.MustCompile(`\d+-\d+-\d+`)
+	version := pattern.FindString(string(body))
+
+	return version, nil
 }

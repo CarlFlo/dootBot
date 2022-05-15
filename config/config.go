@@ -156,7 +156,7 @@ func createConfig() error {
 		BotInfo: botInfo{
 			AppID:      "",
 			Permission: 139690691648,
-			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/version",
+			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/version.go",
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.
