@@ -15,7 +15,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(1) {
 		// only ,farm plant. Missing plant name. Give some help
-		s.ChannelMessageSend(m.ChannelID, "You need to specify a plant name. Use the command ',farm [c | crops]' to see a list of available crops.")
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("You need to specify which crop to plant. Use the command '%sfarm [c | crops]' to see a list of available crops.", config.CONFIG.BotPrefix))
 		return
 	}
 
