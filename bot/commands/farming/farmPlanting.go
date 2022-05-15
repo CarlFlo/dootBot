@@ -6,7 +6,6 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
-	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -69,14 +68,16 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		Crop: crop,
 	})
 
+	message := fmt.Sprintf("The crop %s %s was planted!", crop.Emoji, crop.Name)
+
 	// Increment the highestPlantedCropIndex
 	if uint(farm.HighestPlantedCropIndex) == crop.ID {
-		malm.Debug("Unlocked a new crop!")
 		farm.HighestPlantedCropIndex++
+		message = fmt.Sprintf("%s\n``You have unlocked a new crop!``", message)
 	}
 
 	// Send message to the user
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The crop %s %s was planted!", crop.Emoji, crop.Name))
+	s.ChannelMessageSend(m.ChannelID, message)
 
 	// Update the database
 	user.Save()
