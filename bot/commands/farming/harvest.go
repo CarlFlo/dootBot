@@ -42,7 +42,7 @@ func HarvestInteraction(discordID string, response *string, btnData *[]structs.B
 	}
 
 	if farm.SuccessfulHarvest() {
-		*response += fmt.Sprintf("\nYou earned %s", utils.HumanReadableNumber(farm.HarvestEarnings))
+		*response += fmt.Sprintf("\nYou earned %s %s", utils.HumanReadableNumber(farm.HarvestEarnings), config.CONFIG.Economy.Name)
 		user.AddMoney(uint64(farm.HarvestEarnings))
 		user.Save()
 	}
@@ -101,6 +101,7 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+// TODO: Make this function output similar to how the interaction does it.
 func createFieldsForHarvest(f *database.Farm) []*discordgo.MessageEmbedField {
 
 	var embed []*discordgo.MessageEmbedField
@@ -112,7 +113,7 @@ func createFieldsForHarvest(f *database.Farm) []*discordgo.MessageEmbedField {
 	for _, e := range result {
 		embed = append(embed, &discordgo.MessageEmbedField{
 			Name:   fmt.Sprintf("%s %s", e.Emoji, e.Name),
-			Value:  fmt.Sprintf("You earned %d", e.Earning),
+			Value:  fmt.Sprintf("You earned %s %s", utils.HumanReadableNumber(e.Earning), config.CONFIG.Economy.Name),
 			Inline: true,
 		})
 	}

@@ -7,7 +7,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # There is NO WARRANTY, to the extent permitted by law.
  
 
-# Make data base, printed on Sun May 15 21:59:50 2022
+# Make data base, printed on Mon May 16 00:29:50 2022
 
 # Variables
 
@@ -59,7 +59,7 @@ PROGRAMW6432 = C:\Program Files
 # environment
 PROGRAMDATA = C:\ProgramData
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-9fbd770a-17f9-487b-9256-79a681baa594-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-9043494d-06eb-4963-8922-58b08219c39c-sock
 # environment
 VSCODE_CWD = C:\Users\carlf\go\src\github.com\CarlFlo\DiscordMoneyBot
 # environment
@@ -87,7 +87,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_15080_BODEOISCHRKJPAJZ
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_5420_HFHMMOEYKSNVTWXA
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -107,7 +107,7 @@ GOMODCACHE = C:\Users\carlf\go\pkg\mod
 # environment
 VSCODE_CODE_CACHE_PATH = C:\Users\carlf\AppData\Roaming\Code\CachedData\da15b6fd3ef856477bf6f4fb29ba1b7af717770d
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 COMMONPROGRAMFILES = C:\Program Files (x86)\Common Files
 # environment
@@ -135,7 +135,7 @@ PROGRAMFILES(X86) = C:\Program Files (x86)
 # automatic
 %D = $(patsubst %/,%,$(patsubst %\,%,$(dir $%)))
 # makefile (from 'Makefile', line 1)
-fNameSrc = main.go version.go
+fNameSrc = main.go
 # environment
 LOCALAPPDATA = C:\Users\carlf\AppData\Local
 # environment
@@ -201,7 +201,7 @@ PROCESSOR_LEVEL = 6
 # makefile (from 'Makefile', line 2)
 fNameOut = main.exe
 # environment
-VSCODE_PID = 15080
+VSCODE_PID = 5420
 # environment
 USERDOMAIN_ROAMINGPROFILE = CARLS-DATOR
 # variable set hash-table stats:
@@ -215,11 +215,10 @@ USERDOMAIN_ROAMINGPROFILE = CARLS-DATOR
 
 # C:\ProgramData\DockerDesktop\version-bin (key C:/ProgramData/DockerDesktop/version-bin, mtime 1618260376): 2 files, no impossibilities.
 # C:\Users\carlf\AppData\Local\Microsoft\WindowsApps (key C:/Users/carlf/AppData/Local/Microsoft/WindowsApps, mtime 1651315434): 30 files, no impossibilities.
-# C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR (key C:/Prog 
-ram Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1606342049): 5 files, no impossibilities.
+# C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR (key C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1606342049): 5 files, no impossibilities.
 # C:\Windows\System32\WindowsPowerShell\v1.0\ (key C:/Windows/System32/WindowsPowerShell/v1.0/, mtime 1605758043): 30 files, no impossibilities.
 # C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1647042383): 155 files, no impossibilities.
-# . (key c:/Users/carlf/go/src/github.com/CarlFlo/DiscordMoneyBot, mtime 1652644757): 21 files, no impossibilities.
+# . (key c:/Users/carlf/go/src/github.com/CarlFlo/DiscordMoneyBot, mtime 1652645677): 20 files, no impossibilities.
 # C:\Users\carlf\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/carlf/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1652216201): 4 files, no impossibilities.
 # C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\ (key C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/, mtime 1615030262): 7 files, no impossibilities.
 # C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1651503715): 5 files, no impossibilities.
@@ -240,7 +239,8 @@ ram Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1606342049): 5 files, no impo
 # C:\Windows\System32\Wbem (key C:/Windows/System32/Wbem, mtime 1647042383): 155 files, no impossibilities.
 # C:\Users\carlf\go\bin (key C:/Users/carlf/go/bin, mtime 1649781676): 26 files, no impossibilities.
 # C:\Program Files\Common Files\Oracle\Java\javapath (key C:/Program Files/Common Files/Oracle/Java/javapath, mtime 1634991930): 6 files, no impossibilities.
-# C:\Program Files\dotnet\ (key C:/Program Files/dotnet/, mtime 1630001709): 11 files, no impossibilities.
+# C:\Program Files\dotnet\ (key C:/Program Files/dotnet/, mtime 1630001709): 11 file 
+s, no impossibilities.
 # C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1605758043): 30 files, no impossibilities.
 # C:\Windows\system32 (key C:/Windows/system32, mtime 1652606059): 3020 files, no impossibilities.
 # C:\Users\carlf\AppData\Roaming\npm (key C:/Users/carlf/AppData/Roaming/npm, mtime 1625920551): 2 files, no impossibilities.
@@ -249,7 +249,7 @@ ram Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1606342049): 5 files, no impo
 # C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1636490893): 12 files, no impossibilities.
 # C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1652606059): 3020 files, no impossibilities.
 
-# 6983 files, no impossibilities in 34 directories.
+# 6982 files, no impossibilities in 34 directories.
 
 # Implicit Rules
 
@@ -318,7 +318,7 @@ linux: .64Bitx86 .linux build .default
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-15 21:59:41
+#  Last modified 2022-05-15 22:12:00
 #  File has been updated.
 #  Successfully updated.
 
@@ -373,17 +373,16 @@ docker:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 7 (6) / strings = 3624 / storage = 54200 B / avg = 14 B
+# strcache buffers: 7 (6) / strings = 3623 / storage = 54189 B / avg = 14 B
 # current buf: size = 8174 B / used = 5197 B / count = 323 / avg = 16 B
-# other used: total = 46026 B / count = 3301 / avg = 13 B
-# other 
-make.exe: *** No rule to make target 'all'.  Stop.
+# other used: total = 46015 B / count = 3300 / avg = 13 B
+# other free: total = 52 B / max = 12 B / min = 3 B / avg = 8 B
 
- free: total = 41 B / max = 12 B / min = 1 B / avg = 6 B
-
-# strcache performance: lookups = 7064 / hit rate = 48%
+# strcache performance: lookups = 7063 / hit rate = 48%
 # hash-table stats:
-# Load=3624/8192=44%, Rehash=0, Collisions=2452/7064=35%
-# Finished Make data base on Sun May 15 21:59:50 2022
+# Load=3623/8192=44%, Rehash=0, Collisions=2450/7063=35%
+# Finished Make data base on Mon May 16 00:29:50 2022
 
  
+make.exe: *** No rule to make target 'all'.  Stop.
+
