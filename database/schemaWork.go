@@ -54,13 +54,18 @@ func (w *Work) CanDoWorkAt() string {
 	return fmt.Sprintf("<t:%d:R>", nextTime)
 }
 
-// CheckStreak - Checks the streak for the work object
+// StreakPreMsgAction - Checks the streak for the work object
 // Resets it down to 0 if the user failed their streak. i.e. Waited too long since the last work
-func (w *Work) CheckStreak() {
+func (w *Work) StreakPreMsgAction() {
 	if time.Since(w.LastWorkedAt).Hours() > float64(config.CONFIG.Work.StreakResetHours) {
 		w.ConsecutiveStreaks = 0
 		w.Streak = 0
 	}
+}
+
+// Wrap around the streak if the streak length in the config got updated/changed
+func (w *Work) StreakPostMsgAction() {
+	w.Streak %= uint16(len(config.CONFIG.Work.StreakOutput))
 }
 
 // UpdateStreakAndTime - Updates the streak for the user i.e. adding one to the counters

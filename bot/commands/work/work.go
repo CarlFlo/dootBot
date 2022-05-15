@@ -3,7 +3,6 @@ package work
 import (
 	"fmt"
 	"math/rand"
-	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
@@ -32,10 +31,25 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 	work.GetWorkInfo(&user)
 
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
-	work.CheckStreak()
+	work.StreakPreMsgAction()
 
-	complexMessage := &discordgo.MessageSend{}
-	workMessageBuilder(complexMessage, m, &user, &work)
+	complexMessage := &discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Title:       createWorkMessageTitle(&work),
+				Description: createWorkMessageDescription(&user, &work),
+				Color:       createWorkMessageColor(&work),
+				Fields:      createWorkMessageFields(&work),
+				Footer:      createWorkMessageFooter(&work),
+				Thumbnail: &discordgo.MessageEmbedThumbnail{
+					URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
+				},
+			},
+		},
+	}
+	if components := createButtonComponent(&work); components != nil {
+		complexMessage.Components = components
+	}
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
@@ -43,20 +57,30 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 		return
 	}
 
-	// Wrap around the streak
-	work.Streak %= uint16(len(config.CONFIG.Work.StreakOutput))
+	work.StreakPostMsgAction()
 
 	user.Save()
 	work.Save()
 }
 
-func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, user *database.User, work *database.Work) {
+// Returns the work title string
+func createWorkMessageTitle(work *database.Work) string {
+
+	if work.CanDoWork() {
+		return "Pay Check"
+	}
+	return fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure)
+}
+
+// generates the work description message
+// Will also give the user money if they can work
+func createWorkMessageDescription(user *database.User, work *database.Work) string {
 
 	toolsTooltip := generateToolTooltip(work)
 
-	if work.CanDoWork() {
+	var description string
 
-		work.UpdateStreakAndTime()
+	if work.CanDoWork() {
 
 		// Calculates the income
 		moneyEarned := generateWorkIncome(work)
@@ -64,9 +88,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 		moneyEarnedString := utils.HumanReadableNumber(moneyEarned)
 
-		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, true)
-
-		description := fmt.Sprintf("%sYou earned ``%s`` %s! Your new balance is ``%s`` %s!\nYou will be able to work again %s\nCurrent streak: ``%d``\n\n%s",
+		description = fmt.Sprintf("%sYou earned ``%s`` %s! Your new balance is ``%s`` %s!\nYou will be able to work again %s\nCurrent streak: ``%d``\n\n%s",
 			config.CONFIG.Emojis.Economy,
 			moneyEarnedString,
 			config.CONFIG.Economy.Name,
@@ -76,70 +98,49 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 			work.ConsecutiveStreaks,
 			toolsTooltip)
 
-		msg.Embeds = []*discordgo.MessageEmbed{
-			{
-				Type:        discordgo.EmbedTypeRich,
-				Color:       config.CONFIG.Colors.Success,
-				Title:       "Pay Check",
-				Description: description,
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
-						Value: extraRewardValue,
-					},
-				},
-				Footer: &discordgo.MessageEmbedFooter{
-					Text: generateFooter(),
-				},
-			},
-		}
-
 	} else {
-
-		description := fmt.Sprintf("You can work again %s\n\n%s", work.CanDoWorkAt(), toolsTooltip)
-		extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, false)
-
-		msg.Embeds = []*discordgo.MessageEmbed{
-			{
-				Type:        discordgo.EmbedTypeRich,
-				Color:       config.CONFIG.Colors.Failure,
-				Title:       fmt.Sprintf("%s Slow down!", config.CONFIG.Emojis.Failure),
-				Description: description,
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
-						Value: extraRewardValue,
-					},
-				},
-				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("You can work once every %d hours!", int(config.CONFIG.Work.Cooldown)),
-				},
-			},
-		}
+		description = fmt.Sprintf("You can work again %s\n\n%s", work.CanDoWorkAt(), toolsTooltip)
 	}
 
-	msg.Embeds[0].Thumbnail = &discordgo.MessageEmbedThumbnail{
-		URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
-	}
-
-	// Adds the button(s)
-	if components := createButtonComponent(work); components != nil {
-		msg.Components = components
-	}
-
+	return description
 }
 
-func generateFooter() string {
+func createWorkMessageColor(work *database.Work) int {
 
-	output := fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work! (Max %d)",
-		config.CONFIG.Work.StreakResetHours,
-		config.CONFIG.Work.StreakBonus,
-		config.CONFIG.Economy.Name,
-		utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus),
-		config.CONFIG.Economy.Name,
-		config.CONFIG.Work.MaxTools)
+	if work.CanDoWork() {
+		return config.CONFIG.Colors.Success
+	}
+	return config.CONFIG.Colors.Failure
+}
+func createWorkMessageFields(work *database.Work) []*discordgo.MessageEmbedField {
 
-	return output
+	extraRewardValue, percentage := generateWorkStreakMessage(work.Streak, work.CanDoWork())
+
+	return []*discordgo.MessageEmbedField{
+		{
+			Name:  fmt.Sprintf("Extra Reward Progress (%s)", percentage),
+			Value: extraRewardValue,
+		},
+	}
+}
+
+func createWorkMessageFooter(work *database.Work) *discordgo.MessageEmbedFooter {
+
+	footerText := fmt.Sprintf("You can work once every %d hours!", int(config.CONFIG.Work.Cooldown))
+
+	if work.CanDoWork() {
+		footerText = fmt.Sprintf("The streak resets after %d hours of inactivity and will reward %d %s on completion!\nEach tool you buy will earn you an additional %s %s when you work! (Max %d)",
+			config.CONFIG.Work.StreakResetHours,
+			config.CONFIG.Work.StreakBonus,
+			config.CONFIG.Economy.Name,
+			utils.HumanReadableNumber(config.CONFIG.Work.ToolBonus),
+			config.CONFIG.Economy.Name,
+			config.CONFIG.Work.MaxTools)
+	}
+
+	return &discordgo.MessageEmbedFooter{
+		Text: footerText,
+	}
 }
 
 func generateToolTooltip(work *database.Work) string {
@@ -229,56 +230,4 @@ func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
 	}
 
 	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
-}
-
-func BuyToolInteraction(authorID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
-
-	// Check if the user has enough money
-	var user database.User
-	user.QueryUserByDiscordID(authorID)
-
-	var work database.Work
-	work.GetWorkInfo(&user)
-
-	price, _ := work.CalcBuyToolPrice()
-
-	if uint64(price) > user.Money {
-		difference := uint64(price) - user.Money
-		*response = fmt.Sprintf("You are lacking ``%d`` %s for this transaction.\nYour balance: ``%d`` %s", difference, config.CONFIG.Economy.Name, user.Money, config.CONFIG.Economy.Name)
-		return
-	}
-
-	if work.HasHitMaxToolLimit() {
-		*response = fmt.Sprintf("You have reached the maximum number of tools you can buy! Max %d",
-			config.CONFIG.Work.MaxTools)
-		return
-	}
-
-	user.DeductMoney(uint64(price))
-
-	work.Tools += 1
-
-	// Update the message as well to reflect that a new tool was bought.
-	patternString := fmt.Sprintf(`%s .+ \d+ tool.+`, config.CONFIG.Emojis.Tools)
-
-	pattern := regexp.MustCompile(patternString)
-	modifiedMsg := pattern.ReplaceAllString(i.Message.Embeds[0].Description, generateToolTooltip(&work))
-
-	i.Message.Embeds[0].Description = modifiedMsg
-
-	// Calculate new cost
-	_, newPriceStr := work.CalcBuyToolPrice()
-
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "BWT",
-		Disabled: work.HasHitMaxToolLimit(),
-		Label:    fmt.Sprintf("Buy Tool (%s)", newPriceStr),
-	})
-
-	user.Save()
-	work.Save()
-}
-
-func DoWorkInteraction(authorID string, response *string, btnData *[]structs.ButtonData) {
-
 }
