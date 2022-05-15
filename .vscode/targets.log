@@ -1,0 +1,389 @@
+make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.82.90
+# Built for i686-pc-mingw32
+# Copyright (C) 1988-2012 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+ 
+
+# Make data base, printed on Sun May 15 21:59:50 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(patsubst %\,%,$(dir $<)))
+# automatic
+?F = $(notdir $?)
+# default
+.SHELLFLAGS := -c
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
+# automatic
+@D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
+# environment
+HOMEDRIVE = C:
+# automatic
+@F = $(notdir $@)
+# automatic
+^D = $(patsubst %/,%,$(patsubst %\,%,$(dir $^)))
+# makefile
+CUR 
+DIR := c:/Users/carlf/go/src/github.com/CarlFlo/DiscordMoneyBot
+# default
+SHELL := sh.exe
+# environment
+WINDIR = C:\WINDOWS
+# environment
+VSCODE_NLS_CONFIG = {"locale":"sv","availableLanguages":{},"_languagePackSupport":true}
+# environment
+VBOX_MSI_INSTALL_PATH = C:\Program Files\Oracle\VirtualBox\
+# environment
+ONEDRIVE = C:\Users\carlf\OneDrive
+# environment
+PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+TMP = C:\Users\carlf\AppData\Local\Temp
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+PROGRAMW6432 = C:\Program Files
+# environment
+PROGRAMDATA = C:\ProgramData
+# environment
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-9fbd770a-17f9-487b-9256-79a681baa594-sock
+# environment
+VSCODE_CWD = C:\Users\carlf\go\src\github.com\CarlFlo\DiscordMoneyBot
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# environment
+PATH = C:\Program Files\Eclipse Foundation\jdk-8.0.302.8-hotspot\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\Git\cmd;C:\Program Files\dotnet\;C:\TDM-GCC-64\bin;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\carlf\Documents\ffmpeg;C:\Program Files\Intel\Intel(R) Memory and Storage Tool\;C:\Program Files\nodejs\;C:\Program Files\OpenSSL-Win64\bin;C:\Program Files\PuTTY\;C:\Program Files\Go\bin;C:\Users\carlf\AppData\Local\Microsoft\WindowsApps;C:\Users\carlf\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\carlf\.dotnet\tools;C:\Users\carlf\AppData\Roaming\npm;C:\Users\carlf\go\bin
+# environment
+COMMONPROGRAMW6432 = C:\Program Files\Common Files
+# environment
+PROCESSOR_ARCHITECTURE = x86
+# environment
+USERPROFILE = C:\Users\carlf
+# environment
+ALLUSERSPROFILE = C:\ProgramData
+# environment
+GOPATH = C:\Users\carlf\go
+# environment
+VSCODE_LOG_STACK = false
+# environment
+NUMBER_OF_PROCESSORS = 16
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver
+# automatic
+%F = $(notdir $%)
+# environment
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_15080_BODEOISCHRKJPAJZ
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+COMPUTERNAME = CARLS-DATOR
+# environment
+PROGRAMFILES = C:\Program Files (x86)
+# environment
+DRIVERDATA = C:\Windows\System32\Drivers\DriverData
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# environment
+USERNAME = carlf
+# environment
+PUBLIC = C:\Users\Public
+# environment
+GOMODCACHE = C:\Users\carlf\go\pkg\mod
+# environment
+VSCODE_CODE_CACHE_PATH = C:\Users\carlf\AppData\Roaming\Code\CachedData\da15b6fd3ef856477bf6f4fb29ba1b7af717770d
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+COMMONPROGRAMFILES = C:\Program Files (x86)\Common Files
+# environment
+LOGONSERVER = \\CARLS-DATOR
+# environment
+ONEDRIVECONSUMER = C:\Users\carlf\OneDrive
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# environment
+USERDOMAIN = CARLS-DATOR
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+JAVA_HOME = C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath
+# default
+MAKE_VERSION := 3.82.90
+# makefile
+.DEFAULT_GOAL := windows
+# environment
+PROGRAMFILES(X86) = C:\Program Files (x86)
+# automatic
+%D = $(patsubst %/,%,$(patsubst %\,%,$(dir $%)))
+# makefile (from 'Makefile', line 1)
+fNameSrc = main.go version.go
+# environment
+LOCALAPPDATA = C:\Users\carlf\AppData\Local
+# environment
+PSMODULEPATH = C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+# default
+MAKE_COMMAND := make.exe
+# environment
+PROCESSOR_ARCHITEW6432 = AMD64
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# environment
+PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 165 Stepping 5, GenuineIntel
+# environment
+OS = Windows_NT
+# environment
+VSCODE_IPC_HOOK = \\.\pipe\1b9a230af408c236d9a698118fc13742-1.67.1-main-sock
+# environment
+HOMEPATH = \Users\carlf
+# environment
+COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
+# environment
+PROMPT = $P$G
+# environment
+MFLAGS = -Rrqp
+# automatic
+*D = $(patsubst %/,%,$(patsubst %\,%,$(dir $*)))
+# environment
+SYSTEMROOT = C:\WINDOWS
+# automatic
++D = $(patsubst %/,%,$(patsubst %\,%,$(dir $+)))
+# automatic
++F = $(notdir $+)
+# environment
+APPDATA = C:\Users\carlf\AppData\Roaming
+# environment
+TEMP = C:\Users\carlf\AppData\Local\Temp
+# environment
+COMSPEC = C:\WINDOWS\system32\cmd.exe
+# default
+MAKEFILES := 
+# automatic
+<F = $(notdir $<)
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# default
+SUFFIXES := 
+# environment
+SYSTEMDRIVE = C:
+# environment
+SESSIONNAME = Console
+# environment
+PROCESSOR_REVISION = a505
+# default
+.RECIPEPREFIX := 
+# environment
+LANG = C
+# environment
+PROCESSOR_LEVEL = 6
+# makefile (from 'Makefile', line 2)
+fNameOut = main.exe
+# environment
+VSCODE_PID = 15080
+# environment
+USERDOMAIN_ROAMINGPROFILE = CARLS-DATOR
+# variable set hash-table stats:
+# Load=96/1024=9%, Rehash=0, Collisions=13/114=11%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# C:\ProgramData\DockerDesktop\version-bin (key C:/ProgramData/DockerDesktop/version-bin, mtime 1618260376): 2 files, no impossibilities.
+# C:\Users\carlf\AppData\Local\Microsoft\WindowsApps (key C:/Users/carlf/AppData/Local/Microsoft/WindowsApps, mtime 1651315434): 30 files, no impossibilities.
+# C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR (key C:/Prog 
+ram Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1606342049): 5 files, no impossibilities.
+# C:\Windows\System32\WindowsPowerShell\v1.0\ (key C:/Windows/System32/WindowsPowerShell/v1.0/, mtime 1605758043): 30 files, no impossibilities.
+# C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1647042383): 155 files, no impossibilities.
+# . (key c:/Users/carlf/go/src/github.com/CarlFlo/DiscordMoneyBot, mtime 1652644757): 21 files, no impossibilities.
+# C:\Users\carlf\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/carlf/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1652216201): 4 files, no impossibilities.
+# C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\ (key C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/, mtime 1615030262): 7 files, no impossibilities.
+# C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1651503715): 5 files, no impossibilities.
+# C:\Program Files\OpenSSL-Win64\bin (key C:/Program Files/OpenSSL-Win64/bin, mtime 1628545552): 13 files, no impossibilities.
+# C:\Users\carlf\.dotnet\tools: could not be stat'd.
+# C:\TDM-GCC-64\bin (key C:/TDM-GCC-64/bin, mtime 1614890039): 60 files, no impossibilities.
+# C:\Program Files\Docker\Docker\resources\bin (key C:/Program Files/Docker/Docker/resources/bin, mtime 1618260343): 12 files, no impossibilities.
+# C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1608032745): 8 files, no impossibilities.
+# C:\Windows\System32\OpenSSH\: could not be stat'd.
+# C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common, mtime 1605137375): 10 files, no impossibilities.
+# C:\WINDOWS (key C:/WINDOWS, mtime 1652550408): 113 files, no impossibilities.
+# C:\Program Files\nodejs\ (key C:/Program Files/nodejs/, mtime 1625920556): 11 files, no impossibilities.
+# C:\Program Files\Intel\Intel(R) Memory and Storage Tool\ (key C:/Program Files/Intel/Intel(R) Memory and Storage Tool/, mtime 1625389170): 36 files, no impossibilities.
+# C:\Windows (key C:/Windows, mtime 1652550408): 113 files, no impossibilities.
+# C:\Program Files\Go\bin (key C:/Program Files/Go/bin, mtime 1649974599): 4 files, no impossibilities.
+# C:\Program Files\Eclipse Foundation\jdk-8.0.302.8-hotspot\bin (key C:/Program Files/Eclipse Foundation/jdk-8.0.302.8-hotspot/bin, mtime 1634992864): 53 files, no impossibilities.
+# C:\Program Files\Microsoft SQL Server\130\Tools\Binn\ (key C:/Program Files/Microsoft SQL Server/130/Tools/Binn/, mtime 1615030258): 4 files, no impossibilities.
+# C:\Windows\System32\Wbem (key C:/Windows/System32/Wbem, mtime 1647042383): 155 files, no impossibilities.
+# C:\Users\carlf\go\bin (key C:/Users/carlf/go/bin, mtime 1649781676): 26 files, no impossibilities.
+# C:\Program Files\Common Files\Oracle\Java\javapath (key C:/Program Files/Common Files/Oracle/Java/javapath, mtime 1634991930): 6 files, no impossibilities.
+# C:\Program Files\dotnet\ (key C:/Program Files/dotnet/, mtime 1630001709): 11 files, no impossibilities.
+# C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1605758043): 30 files, no impossibilities.
+# C:\Windows\system32 (key C:/Windows/system32, mtime 1652606059): 3020 files, no impossibilities.
+# C:\Users\carlf\AppData\Roaming\npm (key C:/Users/carlf/AppData/Roaming/npm, mtime 1625920551): 2 files, no impossibilities.
+# C:\Users\carlf\Documents\ffmpeg (key C:/Users/carlf/Documents/ffmpeg, mtime 1623151297): 5 files, no impossibilities.
+# C:\WINDOWS\System32\OpenSSH\: could not be stat'd.
+# C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1636490893): 12 files, no impossibilities.
+# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1652606059): 3020 files, no impossibilities.
+
+# 6983 files, no impossibilities in 34 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+.mac:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 20):
+	go env -w GOOS=darwin
+	$(eval fNameOut = main.app)
+
+b: build
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+
+r: run
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.64Bitx86:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 6):
+	go env -w GOARCH=amd64
+
+mac: .64Bitx86 .mac build .default
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+windows: .default build
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.default: .64Bitx86 .windows
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+linux: .64Bitx86 .linux build .default
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-05-15 21:59:41
+#  File has been updated.
+#  Successfully updated.
+
+build: .default
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 41):
+	go build -o ./${fNameOut} ./${fNameSrc}
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+run: .default
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 47):
+	go run ./${fNameSrc}
+
+docker:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 37):
+	docker build -t discord-bot .
+
+.linux:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 15):
+	go env -w GOOS=linux
+	$(eval fNameOut = main)
+
+.windows:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 10):
+	go env -w GOOS=windows
+	$(eval fNameOut = main.exe)
+
+# files hash-table stats:
+# Load=17/1024=2%, Rehash=0, Collisions=2/44=5%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 7 (6) / strings = 3624 / storage = 54200 B / avg = 14 B
+# current buf: size = 8174 B / used = 5197 B / count = 323 / avg = 16 B
+# other used: total = 46026 B / count = 3301 / avg = 13 B
+# other 
+make.exe: *** No rule to make target 'all'.  Stop.
+
+ free: total = 41 B / max = 12 B / min = 1 B / avg = 6 B
+
+# strcache performance: lookups = 7064 / hit rate = 48%
+# hash-table stats:
+# Load=3624/8192=44%, Rehash=0, Collisions=2452/7064=35%
+# Finished Make data base on Sun May 15 21:59:50 2022
+
+ 
