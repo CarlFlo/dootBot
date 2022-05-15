@@ -43,7 +43,7 @@ func HarvestInteraction(discordID string, response *string, bdw *structs.ButtonD
 
 	if farm.SuccessfulHarvest() {
 		*response += fmt.Sprintf("\nYou earned %s", utils.HumanReadableNumber(farm.HarvestEarnings))
-		user.Money += uint64(farm.HarvestEarnings)
+		user.AddMoney(uint64(farm.HarvestEarnings))
 		user.Save()
 	}
 
@@ -74,7 +74,7 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if farm.SuccessfulHarvest() {
 		color = config.CONFIG.Colors.Success
-		user.Money += uint64(farm.HarvestEarnings)
+		user.AddMoney(uint64(farm.HarvestEarnings))
 		user.Save()
 	}
 

@@ -53,7 +53,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	// Deduct the money from the user
-	user.Money -= uint64(config.CONFIG.Farm.CropSeedPrice)
+	user.DeductMoney(uint64(config.CONFIG.Farm.CropSeedPrice))
 
 	// Create a userFarmPlots entry with the data
 	database.DB.Create(&database.FarmPlot{

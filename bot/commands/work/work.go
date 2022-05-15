@@ -60,7 +60,7 @@ func workMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate, 
 
 		// Calculates the income
 		moneyEarned := generateWorkIncome(work)
-		user.Money += uint64(moneyEarned)
+		user.AddMoney(uint64(moneyEarned))
 
 		moneyEarnedString := utils.HumanReadableNumber(moneyEarned)
 
@@ -254,7 +254,7 @@ func BuyToolInteraction(authorID string, response *string, bdw *structs.ButtonDa
 		return
 	}
 
-	user.Money -= uint64(price)
+	user.DeductMoney(uint64(price))
 
 	work.Tools += 1
 

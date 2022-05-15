@@ -47,7 +47,7 @@ func dailyMessageBuilder(msg *discordgo.MessageSend, m *discordgo.MessageCreate,
 
 		// Calculates the income
 		moneyEarned := generateDailyIncome(daily)
-		user.Money += uint64(moneyEarned)
+		user.AddMoney(uint64(moneyEarned))
 
 		moneyEarnedString := utils.HumanReadableNumber(moneyEarned)
 

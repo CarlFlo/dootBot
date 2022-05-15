@@ -34,7 +34,7 @@ func BuyFarmPlotInteraction(discordID string, response *string, bdm *structs.But
 		return
 	}
 
-	user.Money -= uint64(cost)
+	user.DeductMoney(uint64(cost))
 
 	farm.OwnedPlots++
 

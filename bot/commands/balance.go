@@ -23,7 +23,7 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	//netWorth := utils.HumanReadableNumber(user.Money + bank.Money)
 
 	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
-		&discordgo.MessageEmbed{
+		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       config.CONFIG.Colors.Neutral,
 			Title:       "Here is your financial information",
@@ -33,18 +33,16 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 				IconURL: m.Author.AvatarURL(""),
 			},
 			Fields: []*discordgo.MessageEmbedField{
-				&discordgo.MessageEmbedField{
+				{
 					Name:   fmt.Sprintf("Wallet %s", config.CONFIG.Emojis.Wallet),
 					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintMoney()),
 					Inline: true,
 				},
-				/*
-					&discordgo.MessageEmbedField{
-						Name:   fmt.Sprintf("Net Worth %s", config.CONFIG.Emojis.NetWorth),
-						Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, netWorth),
-						Inline: true,
-					},
-				*/
+				{
+					Name:   fmt.Sprintf("Lifetime earnings %s", config.CONFIG.Emojis.NetWorth),
+					Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintLifetimeEarnings()),
+					Inline: true,
+				},
 			},
 			Footer: &discordgo.MessageEmbedFooter{
 				Text: "",
