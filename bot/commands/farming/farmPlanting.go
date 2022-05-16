@@ -6,6 +6,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -83,4 +84,69 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	user.Save()
 	farm.Save()
 
+}
+
+func FarmPlantInteraction(discordID string, response *string, i *discordgo.Interaction) {
+
+	// Todo ability to disable the menu if nothing new can be planted. Else update it
+
+	cropName := i.Data.(discordgo.MessageComponentInteractionData).Values[0]
+
+	var user database.User
+	user.QueryUserByDiscordID(discordID)
+
+	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
+		*response = "You don't have enough money to plant a seed!"
+		return
+	}
+
+	var crop database.FarmCrop
+	if ok := crop.GetCropByName(cropName); !ok {
+		malm.Warn("The crop '%s' is not valid!", cropName)
+		*response = fmt.Sprintf("The crop '%s' is not valid!", cropName)
+		return
+	}
+
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
+	farm.QueryFarmPlots()
+
+	if !farm.HasFreePlot() {
+		*response = "You don't have a free farm plot to plant in!"
+		return
+	}
+
+	user.DeductMoney(uint64(config.CONFIG.Farm.CropSeedPrice))
+
+	fp := &database.FarmPlot{
+		Farm: farm,
+		Crop: crop,
+	}
+
+	// Create a userFarmPlots entry with the data
+	database.DB.Create(fp)
+
+	//farm.Plots = append(farm.Plots, fp)
+
+	// Increment the highestPlantedCropIndex
+	if uint(farm.HighestPlantedCropIndex) == crop.ID {
+		farm.HighestPlantedCropIndex++
+		*response = "``You have unlocked a new crop!``"
+	}
+
+	// Update the message
+	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
+	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
+
+	// Update menu
+	/*
+		if !farm.HasFreePlot() {
+			// Disable button
+			malm.Debug("Disabling button")
+		}
+	*/
+
+	user.Save()
+	farm.Save()
 }

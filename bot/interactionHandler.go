@@ -34,6 +34,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		work.BuyToolInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "BFP": // BFP: Buy Farm Plot
 		farming.BuyFarmPlotInteraction(commandIssuerID, &response, &btnData, i.Interaction)
+	case "FPC": // FPC: Farm Plant Crop - Plants a crop from the farm message using the menu
+		farming.FarmPlantInteraction(commandIssuerID, &response, i.Interaction)
 	case "FH": // FH: Farm Harvest
 		farming.HarvestInteraction(commandIssuerID, &response, &btnData, i.Interaction)
 	case "FW": // FW: Farm Water

@@ -121,10 +121,12 @@ func createPlantCropMenu(user *database.User, farm *database.Farm) *discordgo.Se
 	// TODO: Needs to be checked on interaction as well
 	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
 		return nil
+	} else if !farm.HasFreePlot() {
+		return nil
 	}
 
 	output := &discordgo.SelectMenu{
-		CustomID:    "PC", // 'PC' is code for 'Plant Crop'
+		CustomID:    "FPC", // 'FPC' is code for 'Farm Plant Crop'
 		Placeholder: fmt.Sprintf("Select a crop to plant (Cost %s %s)", utils.HumanReadableNumber(config.CONFIG.Farm.CropSeedPrice), config.CONFIG.Economy.Name),
 		MaxValues:   1,
 		Options:     createCropOptions(farm),
@@ -137,12 +139,12 @@ func createCropOptions(farm *database.Farm) []discordgo.SelectMenuOption {
 	options := []discordgo.SelectMenuOption{}
 
 	var crops []database.FarmCrop
-	database.DB.Order("id asc").Limit(int(farm.HighestPlantedCropIndex)).Find(&crops)
+	database.DB.Where("id <= ?", farm.HighestPlantedCropIndex).Order("id desc").Limit(int(farm.HighestPlantedCropIndex)).Find(&crops)
 
 	for _, crop := range crops {
 
 		options = append(options, discordgo.SelectMenuOption{
-			Label: fmt.Sprintf("%s (%s %s)", crop.Name, utils.HumanReadableNumber(crop.HarvestReward), config.CONFIG.Economy.Name),
+			Label: fmt.Sprintf("%s | %s | %s %s", crop.Name, crop.GetDuration(), utils.HumanReadableNumber(crop.HarvestReward), config.CONFIG.Economy.Name),
 			Value: crop.Name,
 			Emoji: discordgo.ComponentEmoji{
 				Name: crop.Emoji,
