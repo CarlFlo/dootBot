@@ -125,7 +125,7 @@ func createPlantCropMenu(user *database.User, farm *database.Farm) *discordgo.Se
 
 	output := &discordgo.SelectMenu{
 		CustomID:    "PC", // 'PC' is code for 'Plant Crop'
-		Placeholder: "Select a crop to plant",
+		Placeholder: fmt.Sprintf("Select a crop to plant (Cost %s %s)", utils.HumanReadableNumber(config.CONFIG.Farm.CropSeedPrice), config.CONFIG.Economy.Name),
 		MaxValues:   1,
 		Options:     createCropOptions(farm),
 	}
@@ -142,7 +142,7 @@ func createCropOptions(farm *database.Farm) []discordgo.SelectMenuOption {
 	for _, crop := range crops {
 
 		options = append(options, discordgo.SelectMenuOption{
-			Label: crop.Name,
+			Label: fmt.Sprintf("%s (%s %s)", crop.Name, utils.HumanReadableNumber(crop.HarvestReward), config.CONFIG.Economy.Name),
 			Value: crop.Name,
 			Emoji: discordgo.ComponentEmoji{
 				Name: crop.Emoji,
