@@ -82,7 +82,7 @@ func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 		{
 			Type:        discordgo.EmbedTypeRich,
 			Color:       color,
-			Title:       fmt.Sprintf("%s#%s's harvest", m.Author.Username, m.Author.Discriminator),
+			Title:       fmt.Sprintf("%s#%s's Harvest", m.Author.Username, m.Author.Discriminator),
 			Description: "",
 			Fields:      fields,
 			Footer: &discordgo.MessageEmbedFooter{

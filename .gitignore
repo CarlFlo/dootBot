@@ -2,3 +2,4 @@
 *.json
 todo.md
 *.db
+*.log
