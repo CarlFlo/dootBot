@@ -54,17 +54,18 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func createButtonComponent(user *database.User, farm *database.Farm) []discordgo.MessageComponent {
 
-	components := []discordgo.MessageComponent{}
+	output := []discordgo.MessageComponent{}
+	btnComponents := []discordgo.MessageComponent{}
 
 	farm.QueryFarmPlots()
 
 	// Harvest and water buttons
-	components = append(components, &discordgo.Button{
+	btnComponents = append(btnComponents, &discordgo.Button{
 		Label:    "Harvest",
 		Disabled: !(farm.CanHarvest() && farm.HasPlantedPlots()), // !farm.CanHarvest()
 		CustomID: "FH",                                           // 'FH' is code for 'Farm Harvest'
 	})
-	components = append(components, &discordgo.Button{
+	btnComponents = append(btnComponents, &discordgo.Button{
 		Label:    "Water",
 		Disabled: !(farm.CanWater() && farm.HasPlantedPlots()), // Disable if nothing is planted
 		CustomID: "FW",                                         // 'FW' is code for 'Farm Water'
@@ -78,7 +79,7 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 
 	// Add limit to the number of plots a user can buy
 
-	components = append(components, &discordgo.Button{
+	btnComponents = append(btnComponents, &discordgo.Button{
 		Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(plotPrice)),
 		Style:    3, // Green color style
 		Disabled: !canAffordPlot,
@@ -88,7 +89,7 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 		CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
 	})
 
-	components = append(components, &discordgo.Button{
+	btnComponents = append(btnComponents, &discordgo.Button{
 		Label:    "Help",
 		Style:    2, // Gray color style
 		Disabled: false,
@@ -98,9 +99,56 @@ func createButtonComponent(user *database.User, farm *database.Farm) []discordgo
 		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information regarding farming
 	})
 
-	if len(components) == 0 {
+	output = append(output, discordgo.ActionsRow{
+		Components: btnComponents,
+	})
+
+	// Ability to select plantable crop from list. Only if it makes sense to add it
+	if cropMenu := createPlantCropMenu(user, farm); cropMenu != nil {
+
+		cropComponents := []discordgo.MessageComponent{cropMenu}
+		output = append(output, discordgo.ActionsRow{
+			Components: cropComponents,
+		})
+	}
+
+	return output
+}
+
+func createPlantCropMenu(user *database.User, farm *database.Farm) *discordgo.SelectMenu {
+
+	// User can't afford to plant so no need to create the menu
+	// TODO: Needs to be checked on interaction as well
+	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
 		return nil
 	}
 
-	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
+	output := &discordgo.SelectMenu{
+		CustomID:    "PC", // 'PC' is code for 'Plant Crop'
+		Placeholder: "Select a crop to plant",
+		MaxValues:   1,
+		Options:     createCropOptions(farm),
+	}
+	return output
+}
+
+func createCropOptions(farm *database.Farm) []discordgo.SelectMenuOption {
+
+	options := []discordgo.SelectMenuOption{}
+
+	var crops []database.FarmCrop
+	database.DB.Order("id asc").Limit(int(farm.HighestPlantedCropIndex)).Find(&crops)
+
+	for _, crop := range crops {
+
+		options = append(options, discordgo.SelectMenuOption{
+			Label: crop.Name,
+			Value: crop.Name,
+			Emoji: discordgo.ComponentEmoji{
+				Name: crop.Emoji,
+			},
+		})
+	}
+
+	return options
 }

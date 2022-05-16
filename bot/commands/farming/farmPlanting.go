@@ -30,7 +30,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	var user database.User
 	user.QueryUserByDiscordID(m.Author.ID)
 
-	if uint64(config.CONFIG.Farm.CropSeedPrice) > user.Money {
+	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
 		s.ChannelMessageSend(m.ChannelID, "You don't have enough money to plant a seed!")
 		return
 	}

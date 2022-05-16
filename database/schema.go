@@ -60,3 +60,7 @@ func (u *User) AddMoney(amount uint64) {
 func (u *User) DeductMoney(amount uint64) {
 	u.Money -= amount
 }
+
+func (u *User) CanAfford(number uint64) bool {
+	return u.Money >= number
+}
