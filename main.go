@@ -15,7 +15,7 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-const CurrentVersion = "2022-05-15"
+const CurrentVersion = "2022-05-21"
 
 func init() {
 
