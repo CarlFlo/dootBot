@@ -23,7 +23,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	if interactionValidateInteractor(i, commandIssuerID) {
 		response = "You cannot interact with this message!"
-		goto sendInteractionResponse
+		interactionResponse(s, i, &response, &responseEmbed)
+		return
 	}
 
 	switch i.MessageComponentData().CustomID {
@@ -68,14 +69,16 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-sendInteractionResponse:
+	interactionResponse(s, i, &response, &responseEmbed)
+}
 
+func interactionResponse(s *discordgo.Session, i *discordgo.InteractionCreate, response *string, responseEmbed *[]*discordgo.MessageEmbed) {
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: response,
+			Content: *response,
 			Flags:   1 << 6, // Makes it so only the 'clicker' can see the message
-			Embeds:  responseEmbed,
+			Embeds:  *responseEmbed,
 		},
 	}); err != nil {
 		malm.Error("Could not respond to the interaction! %s", err)
