@@ -267,6 +267,11 @@ func (f *Farm) overviewCreateButtons(msgCompondents *[]discordgo.MessageComponen
 	})
 }
 
+func (f *Farm) HasUserUnlocked(fc *FarmCrop) bool {
+
+	return fc.ID <= uint(f.HighestPlantedCropIndex)
+}
+
 // Rember to run GetFarmPlots() before running this function
 func (f *Farm) GetUnusedPlots() int {
 	return int(f.OwnedPlots) - len(f.Plots)

@@ -47,8 +47,6 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func FarmPlantInteraction(discordID string, response *string, i *discordgo.Interaction, s *discordgo.Session, me *discordgo.MessageEdit) {
 
-	// Todo ability to disable the menu if nothing new can be planted. Else update it
-
 	cropName := i.Data.(discordgo.MessageComponentInteractionData).Values[0]
 
 	var user database.User
@@ -81,6 +79,12 @@ func farmPlantShared(user *database.User, farm *database.Farm, cropName string, 
 	var crop database.FarmCrop
 	if ok := crop.GetCropByName(cropName); !ok {
 		*response = fmt.Sprintf("The crop '%s' is not valid!", cropName)
+		return
+	}
+
+	// Check if the user have unlocked the crop
+	if !farm.HasUserUnlocked(&crop) {
+		*response = "You have not unlocked this crop!"
 		return
 	}
 
