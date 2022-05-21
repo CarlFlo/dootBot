@@ -3,17 +3,16 @@ package farming
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
-	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
 // printFarm button component is turned off for now
 // Implement limit on how many plots a user can own
 
-func BuyFarmPlotInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
+func BuyFarmPlotInteraction(discordID string, response *string, s *discordgo.Session, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -38,20 +37,26 @@ func BuyFarmPlotInteraction(discordID string, response *string, btnData *[]struc
 
 	farm.OwnedPlots++
 
-	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
-	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
+	discordUser, err := s.User(discordID)
+	if err != nil {
+		malm.Error("Error getting user: %s", err)
+	}
+
+	farm.UpdateInteractionOverview(discordUser, me)
 
 	user.Save()
 	farm.Save()
 
 	//*response = "You successfully bought another plot!"
 
-	// Checks if the button should now be disabled based on the new increased price
-	canAfford := user.Money > uint64(farm.CalcFarmPlotPrice())
+	/*
+		// Checks if the button should now be disabled based on the new increased price
+		canAfford := user.Money > uint64(farm.CalcFarmPlotPrice())
 
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "BFP",
-		Disabled: farm.HasMaxAmountOfPlots() || !canAfford,
-		Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice())),
-	})
+		*btnData = append(*btnData, structs.ButtonData{
+			CustomID: "BFP",
+			Disabled: farm.HasMaxAmountOfPlots() || !canAfford,
+			Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice())),
+		})
+	*/
 }

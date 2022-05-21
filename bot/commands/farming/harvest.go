@@ -3,7 +3,6 @@ package farming
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
@@ -11,7 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HarvestInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
+func HarvestInteraction(discordID string, response *string, s *discordgo.Session, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
@@ -47,14 +46,14 @@ func HarvestInteraction(discordID string, response *string, btnData *[]structs.B
 		user.Save()
 	}
 
-	// Update the message
-	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
-	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
+	discordUser, err := s.User(discordID)
+	if err != nil {
+		malm.Error("Error getting user: %s", err)
+	}
 
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "FH",
-		Disabled: true,
-	})
+	// Update the message
+	farm.UpdateInteractionOverview(discordUser, me)
+
 }
 
 func farmHarvestCrops(s *discordgo.Session, m *discordgo.MessageCreate) {

@@ -15,6 +15,7 @@ type FarmPlot struct {
 	CropID    int
 	Crop      FarmCrop  `gorm:"references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // The planted crop
 	PlantedAt time.Time // When the user planted the crop
+	Perished  bool      // Perished crops wont yeild any money
 }
 
 func (FarmPlot) TableName() string {
@@ -43,6 +44,11 @@ func (fp *FarmPlot) DeleteFromDB() {
 	DB.Delete(&fp)
 }
 
+// Will mark the crop as perished and save it to the database
+func (fp *FarmPlot) Perish() {
+	fp.Perished = true
+}
+
 func (fp *FarmPlot) QueryCropInfo() {
 
 	DB.Raw("SELECT * FROM farmCrops WHERE farmCrops.ID = ?", fp.CropID).First(&fp.Crop)
@@ -55,6 +61,10 @@ func (fp *FarmPlot) HasFullyGrown() bool {
 	return time.Now().After(fp.PlantedAt.Add(fp.Crop.DurationToGrow))
 }
 
+func (fp *FarmPlot) HasPerished() bool {
+	return fp.Perished
+}
+
 // Wateres the plot by updating the PlantedAt time
 func (fp *FarmPlot) Water() {
 
@@ -65,14 +75,16 @@ func (fp *FarmPlot) Water() {
 // Returns a discord formatted string showing when the crop will be harvestable
 func (fp *FarmPlot) HarvestableAt() string {
 
-	fullyGrown := fp.PlantedAt.Add(fp.Crop.DurationToGrow)
+	if fp.Perished {
+		return "``Plant has perished``"
+	}
 
-	output := fmt.Sprintf("<t:%d:R>", fullyGrown.Unix())
+	fullyGrown := fp.PlantedAt.Add(fp.Crop.DurationToGrow)
 
 	// time after
 	if time.Now().After(fullyGrown) {
-		output = "Now!"
+		return "Now!"
 	}
 
-	return output
+	return fmt.Sprintf("<t:%d:R>", fullyGrown.Unix())
 }

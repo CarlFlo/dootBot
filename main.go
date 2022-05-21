@@ -40,10 +40,10 @@ func init() {
 		malm.Error("%s", err)
 	}
 
-	if !upToDate {
-		malm.Info("New version available! New version: '%s'; Your version: '%s'", githubVersion, CurrentVersion)
-	} else {
+	if upToDate {
 		malm.Debug("Version %s", CurrentVersion)
+	} else {
+		malm.Info("New version available! New version: '%s'; Your version: '%s'", githubVersion, CurrentVersion)
 	}
 }
 

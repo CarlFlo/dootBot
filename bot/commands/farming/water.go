@@ -3,21 +3,51 @@ package farming
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
-// Code duplication...
+func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-func WaterInteraction(discordID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
+	var user database.User
+	user.QueryUserByDiscordID(m.Author.ID)
+
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
+	var response string
+
+	waterShared(&farm, &response, true)
+
+	s.ChannelMessageSend(m.ChannelID, response)
+
+	farm.Save()
+}
+
+func WaterInteraction(discordID string, response *string, s *discordgo.Session, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
 
 	var farm database.Farm
 	farm.QueryUserFarmData(&user)
+
+	waterShared(&farm, response, false)
+
+	farm.Save()
+
+	discordUser, err := s.User(discordID)
+	if err != nil {
+		malm.Error("Error getting user: %s", err)
+	}
+
+	// Update the message
+	farm.UpdateInteractionOverview(discordUser, me)
+}
+
+func waterShared(farm *database.Farm, response *string, printSuccess bool) {
 
 	// Check if user can water their plot
 	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
@@ -31,72 +61,17 @@ func WaterInteraction(discordID string, response *string, btnData *[]structs.But
 		return
 	}
 
-	// Check for perished crops
-	preishedCrops := farm.CropsPerishedCheck()
+	perished := farm.Peek()
 
 	// Decrease the wait time for each crop on the users plots
 	farm.WaterPlots()
 
-	if len(preishedCrops) > 0 {
-		*response = fmt.Sprintf("You watered your plots and reduced the growth time\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
+	if printSuccess {
+		*response = "You watered your plots and reduced the growth time"
 	}
 
-	farm.Save()
-
-	// Update the message
-	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
-	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
-
-	// Water button
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "FW",
-		Disabled: true && !config.CONFIG.Debug.IgnoreWaterCooldown,
-	})
-
-	// Harvest button
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "FH",
-		Disabled: !farm.CanHarvest(),
-	})
-}
-
-/*
-	The correct water reduce amount is not applied to the database when watering
-*/
-func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	var user database.User
-	user.QueryUserByDiscordID(m.Author.ID)
-
-	var farm database.Farm
-	farm.QueryUserFarmData(&user)
-
-	// Check if user can water their plot
-	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
-		msg := fmt.Sprintf("You can't water your farm right now! You can water again %s", farm.CanWaterAt())
-		s.ChannelMessageSend(m.ChannelID, msg)
-		return
+	if perished {
+		*response += "\nHowever, some crops perished!\nRemember to water your crops daily!"
 	}
 
-	farm.QueryFarmPlots()
-	if len(farm.Plots) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "You don't have any plots to water, plant a crop first!")
-		return
-	}
-
-	// Check for perished crops
-	preishedCrops := farm.CropsPerishedCheck()
-
-	// Decrease the wait time for each crop on the users plots
-	farm.WaterPlots()
-
-	message := "You watered your plots and reduced the growth time"
-
-	if len(preishedCrops) > 0 {
-		message += fmt.Sprintf("\nHowever, the following crops perished: %v!\nRemember to water your crops daily!", preishedCrops)
-	}
-
-	s.ChannelMessageSend(m.ChannelID, message)
-
-	farm.Save()
 }

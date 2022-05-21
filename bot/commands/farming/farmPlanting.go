@@ -10,8 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Make prettier to match the style of the other messages
-
+// Runs when the farm plant <crop> is run
 func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if input.NumberOfArgsAre(1) {
@@ -31,54 +30,14 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	var user database.User
 	user.QueryUserByDiscordID(m.Author.ID)
 
-	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
-		s.ChannelMessageSend(m.ChannelID, "You don't have enough money to plant a seed!")
-		return
-	}
-
-	// Parse the input plant (checks the database)
-	var crop database.FarmCrop
-	if ok := crop.GetCropByName(cropName); !ok {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The crop '%s' is not valid!", cropName))
-		return
-	}
-
-	// Check if the user has a free plot
 	var farm database.Farm
 	farm.QueryUserFarmData(&user)
 
-	// Check if the user unlocked this crop
-	if crop.ID > uint(farm.HighestPlantedCropIndex) {
-		s.ChannelMessageSend(m.ChannelID, "You haven't unlocked this crop yet!\nYou have to plant all the previous crops at least once to unlock this one.")
-		return
-	}
-
-	farm.QueryFarmPlots()
-
-	if !farm.HasFreePlot() {
-		s.ChannelMessageSend(m.ChannelID, "You don't have a free farm plot to plant in!")
-		return
-	}
-
-	// Deduct the money from the user
-	user.DeductMoney(uint64(config.CONFIG.Farm.CropSeedPrice))
-
-	// Create a userFarmPlots entry with the data
-	database.DB.Create(&database.FarmPlot{
-		Farm: farm,
-		Crop: crop,
-	})
-
-	message := fmt.Sprintf("The crop %s %s was planted!", crop.Emoji, crop.Name)
-
-	// Increment the highestPlantedCropIndex
-	if uint(farm.HighestPlantedCropIndex) == crop.ID {
-		farm.HighestPlantedCropIndex++
-		message = fmt.Sprintf("%s\n``You have unlocked a new crop!``", message)
-	}
+	var response string
+	farmPlantShared(&user, &farm, cropName, &response, true)
 
 	// Send message to the user
-	s.ChannelMessageSend(m.ChannelID, message)
+	s.ChannelMessageSend(m.ChannelID, response)
 
 	// Update the database
 	user.Save()
@@ -86,7 +45,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 }
 
-func FarmPlantInteraction(discordID string, response *string, i *discordgo.Interaction) {
+func FarmPlantInteraction(discordID string, response *string, i *discordgo.Interaction, s *discordgo.Session, me *discordgo.MessageEdit) {
 
 	// Todo ability to disable the menu if nothing new can be planted. Else update it
 
@@ -95,6 +54,25 @@ func FarmPlantInteraction(discordID string, response *string, i *discordgo.Inter
 	var user database.User
 	user.QueryUserByDiscordID(discordID)
 
+	var farm database.Farm
+	farm.QueryUserFarmData(&user)
+
+	farmPlantShared(&user, &farm, cropName, response, false)
+
+	discordUser, err := s.User(discordID)
+	if err != nil {
+		malm.Error("Error getting user: %s", err)
+	}
+
+	// Update the message
+	farm.UpdateInteractionOverview(discordUser, me)
+
+	user.Save()
+	farm.Save()
+}
+
+func farmPlantShared(user *database.User, farm *database.Farm, cropName string, response *string, outputCrop bool) {
+
 	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
 		*response = "You don't have enough money to plant a seed!"
 		return
@@ -102,15 +80,9 @@ func FarmPlantInteraction(discordID string, response *string, i *discordgo.Inter
 
 	var crop database.FarmCrop
 	if ok := crop.GetCropByName(cropName); !ok {
-		malm.Warn("The crop '%s' is not valid!", cropName)
 		*response = fmt.Sprintf("The crop '%s' is not valid!", cropName)
 		return
 	}
-
-	var farm database.Farm
-	farm.QueryUserFarmData(&user)
-
-	farm.QueryFarmPlots()
 
 	if !farm.HasFreePlot() {
 		*response = "You don't have a free farm plot to plant in!"
@@ -120,33 +92,25 @@ func FarmPlantInteraction(discordID string, response *string, i *discordgo.Inter
 	user.DeductMoney(uint64(config.CONFIG.Farm.CropSeedPrice))
 
 	fp := &database.FarmPlot{
-		Farm: farm,
+		Farm: *farm,
 		Crop: crop,
 	}
 
 	// Create a userFarmPlots entry with the data
 	database.DB.Create(fp)
 
-	//farm.Plots = append(farm.Plots, fp)
-
-	// Increment the highestPlantedCropIndex
-	if uint(farm.HighestPlantedCropIndex) == crop.ID {
-		farm.HighestPlantedCropIndex++
-		*response = "``You have unlocked a new crop!``"
+	// This is to ensure that the crop wont instantly perish once planted if they user haven't watered in a while
+	if farm.MissedWaterDeadline() {
+		farm.ResetLastWatered()
 	}
 
-	// Update the message
-	i.Message.Embeds[0].Description = farm.CreateEmbedDescription()
-	i.Message.Embeds[0].Fields = farm.CreateEmbedFields()
+	if outputCrop {
+		*response = fmt.Sprintf("The crop %s %s was planted!", crop.Emoji, crop.Name)
+	}
 
-	// Update menu
-	/*
-		if !farm.HasFreePlot() {
-			// Disable button
-			malm.Debug("Disabling button")
-		}
-	*/
+	if uint(farm.HighestPlantedCropIndex) == crop.ID {
+		farm.HighestPlantedCropIndex++
+		*response += "\n``You have unlocked a new crop!``"
+	}
 
-	user.Save()
-	farm.Save()
 }
