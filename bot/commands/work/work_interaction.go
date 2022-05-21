@@ -5,13 +5,12 @@ import (
 	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
-	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/bwmarrin/discordgo"
 )
 
-func BuyToolInteraction(authorID string, response *string, btnData *[]structs.ButtonData, i *discordgo.Interaction) {
+func BuyToolInteraction(authorID string, response *string, i *discordgo.Interaction, me *discordgo.MessageEdit) {
 
 	// Check if the user has enough money
 	var user database.User
@@ -29,8 +28,7 @@ func BuyToolInteraction(authorID string, response *string, btnData *[]structs.Bu
 	}
 
 	if work.HasHitMaxToolLimit() {
-		*response = fmt.Sprintf("You have reached the maximum number of tools you can buy! Max %d",
-			config.CONFIG.Work.MaxTools)
+		*response = fmt.Sprintf("You have reached the maximum number of tools you can buy! Max %d", config.CONFIG.Work.MaxTools)
 		return
 	}
 
@@ -44,22 +42,25 @@ func BuyToolInteraction(authorID string, response *string, btnData *[]structs.Bu
 	pattern := regexp.MustCompile(patternString)
 	modifiedMsg := pattern.ReplaceAllString(i.Message.Embeds[0].Description, generateToolTooltip(&work))
 
-	i.Message.Embeds[0].Description = modifiedMsg
-
-	// Calculate new cost
-	_, newPriceStr := work.CalcBuyToolPrice()
-
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "BWT",
-		Disabled: work.HasHitMaxToolLimit(),
-		Label:    fmt.Sprintf("Buy Tool (%s)", newPriceStr),
+	me.Embeds = append(me.Embeds, &discordgo.MessageEmbed{
+		Title:       i.Message.Embeds[0].Title,
+		Description: modifiedMsg,
+		Color:       i.Message.Embeds[0].Color,
+		Fields:      i.Message.Embeds[0].Fields,
+		Footer:      i.Message.Embeds[0].Footer,
+		Thumbnail:   i.Message.Embeds[0].Thumbnail,
 	})
+
+	if components := work.CreateMessageComponents(); components != nil {
+		me.Components = components
+	}
 
 	user.Save()
 	work.Save()
 }
 
-func DoWorkInteraction(authorID string, response *string, i *discordgo.Interaction, btnData *[]structs.ButtonData) {
+// From the profile message
+func DoWorkInteraction(authorID string, response *string, author *discordgo.User, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(authorID)
@@ -81,11 +82,5 @@ func DoWorkInteraction(authorID string, response *string, i *discordgo.Interacti
 	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
-	i.Message.Embeds[0].Fields = commands.GenerateProfileFields(&user, &work, &daily)
-
-	// Updates the button
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "PW",
-		Disabled: true,
-	})
+	commands.ProfileUpdateMessageEdit(&user, &work, &daily, author, me)
 }

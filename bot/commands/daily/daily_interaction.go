@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands"
-	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/bwmarrin/discordgo"
 )
 
-func DoDailyInteraction(authorID string, response *string, i *discordgo.Interaction, btnData *[]structs.ButtonData) {
+func DoDailyInteraction(authorID string, response *string, author *discordgo.User, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(authorID)
@@ -41,12 +40,7 @@ func DoDailyInteraction(authorID string, response *string, i *discordgo.Interact
 			daily.CanDoDailyAt())
 	}
 
-	i.Message.Embeds[0].Fields = commands.GenerateProfileFields(&user, &work, &daily)
-
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "PD",
-		Disabled: true,
-	})
+	commands.ProfileUpdateMessageEdit(&user, &work, &daily, author, me)
 
 	user.Save()
 	daily.Save()

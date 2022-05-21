@@ -7,6 +7,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
 )
 
@@ -103,4 +104,31 @@ func (w *Work) CalcBuyToolPrice() (int, string) {
 	priceString := utils.HumanReadableNumber(price)
 
 	return price, priceString
+}
+
+func (w *Work) CreateMessageComponents() []discordgo.MessageComponent {
+
+	components := []discordgo.MessageComponent{}
+
+	_, priceString := w.CalcBuyToolPrice()
+
+	if !w.HasHitMaxToolLimit() {
+
+		// Adds each tool present in the config file
+		components = append(components, &discordgo.Button{
+			Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
+			Style:    3, // Green color style
+			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
+			},
+			CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'
+		})
+	}
+
+	if len(components) == 0 {
+		return nil
+	}
+
+	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }

@@ -46,17 +46,4 @@ func BuyFarmPlotInteraction(discordID string, response *string, s *discordgo.Ses
 
 	user.Save()
 	farm.Save()
-
-	//*response = "You successfully bought another plot!"
-
-	/*
-		// Checks if the button should now be disabled based on the new increased price
-		canAfford := user.Money > uint64(farm.CalcFarmPlotPrice())
-
-		*btnData = append(*btnData, structs.ButtonData{
-			CustomID: "BFP",
-			Disabled: farm.HasMaxAmountOfPlots() || !canAfford,
-			Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(farm.CalcFarmPlotPrice())),
-		})
-	*/
 }

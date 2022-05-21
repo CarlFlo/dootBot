@@ -8,19 +8,16 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func FarmHelpInteraction(discordID string, response *string) []*discordgo.MessageEmbed {
+func FarmHelpInteractionEmbedCreate(embeds *[]*discordgo.MessageEmbed) {
 
-	embeds := []*discordgo.MessageEmbed{{
+	*embeds = append(*embeds, &discordgo.MessageEmbed{
 		Title:       "Farming Help",
 		Description: "These are the commands you can use with the farming system:",
 		Fields:      createHelpFields(),
 		Footer: &discordgo.MessageEmbedFooter{
 			Text: fmt.Sprintf("Use the command '%sfarm' and then the interaction buttons for assistance", config.CONFIG.BotPrefix),
 		},
-	},
-	}
-
-	return embeds
+	})
 }
 
 func createHelpFields() []*discordgo.MessageEmbedField {

@@ -14,12 +14,7 @@ import (
 )
 
 /* TODO
-Make this and Daily functions into a wrapper
-where you pass in the database object as pointers
-if everything went ok then the returned error is nil
-therefore we save the database object.
-
-Which will look cleaner and be easier to understand
+Make most of these methods into struct methods
 */
 
 func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -35,7 +30,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 	// Reset streak if user hasn't worked in a specified amount of time (set in config)
 	work.StreakPreMsgAction()
 
-	// TODO: Rework this like how Daily was reworked
+	// TODO: Change to how farm was reworked
 
 	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
@@ -51,7 +46,7 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 			},
 		},
 	}
-	if components := createButtonComponent(&work); components != nil {
+	if components := work.CreateMessageComponents(); components != nil {
 		complexMessage.Components = components
 	}
 
@@ -207,31 +202,4 @@ func generateWorkIncome(work *database.Work) int {
 	moneyEarned += int(work.Tools) * config.CONFIG.Work.ToolBonus
 
 	return moneyEarned
-}
-
-func createButtonComponent(work *database.Work) []discordgo.MessageComponent {
-
-	components := []discordgo.MessageComponent{}
-
-	_, priceString := work.CalcBuyToolPrice()
-
-	if !work.HasHitMaxToolLimit() {
-
-		// Adds each tool present in the config file
-		components = append(components, &discordgo.Button{
-			Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
-			Style:    3, // Green color style
-			Disabled: false,
-			Emoji: discordgo.ComponentEmoji{
-				Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
-			},
-			CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'
-		})
-	}
-
-	if len(components) == 0 {
-		return nil
-	}
-
-	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }

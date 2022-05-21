@@ -1,10 +1,7 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
-	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -21,23 +18,11 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
-	complexMessage := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{
-		{
-			Type:        discordgo.EmbedTypeRich,
-			Color:       config.CONFIG.Colors.Neutral,
-			Title:       fmt.Sprintf("%s#%s profile", m.Author.Username, m.Author.Discriminator),
-			Description: "",
-			Fields:      GenerateProfileFields(&user, &work, &daily),
-			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Profile footer",
-			},
-			Thumbnail: &discordgo.MessageEmbedThumbnail{
-				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
-			},
-		},
-	}}
+	complexMessage := &discordgo.MessageSend{}
 
-	if components := createButtonComponent(&work, &daily); components != nil {
+	user.CreateProfileEmbeds(m.Author, &work, &daily, &complexMessage.Embeds)
+
+	if components := user.CreateProfileComponents(&work, &daily); components != nil {
 		complexMessage.Components = components
 	}
 
@@ -48,85 +33,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	}
 }
 
-func GenerateProfileFields(user *database.User, work *database.Work, daily *database.Daily) []*discordgo.MessageEmbedField {
-
-	// The statuses on the cooldown's
-	workStatus := config.CONFIG.Emojis.Success
-	if !work.CanDoWork() {
-		workStatus = fmt.Sprintf("%s Available %s", config.CONFIG.Emojis.Failure, work.CanDoWorkAt())
-	}
-
-	dailyStatus := config.CONFIG.Emojis.Success
-	if !daily.CanDoDaily() {
-		dailyStatus = fmt.Sprintf("%s Available %s", config.CONFIG.Emojis.Failure, daily.CanDoDailyAt())
-	}
-
-	fields := []*discordgo.MessageEmbedField{
-		{
-			Name:   fmt.Sprintf("Wallet %s", config.CONFIG.Emojis.Wallet),
-			Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, user.PrettyPrintMoney()),
-			Inline: true,
-		},
-		/*
-			{
-				Name:   fmt.Sprintf("Net Worth %s", config.CONFIG.Emojis.NetWorth),
-				Value:  fmt.Sprintf("%s %s", config.CONFIG.Emojis.Economy, netWorth),
-				Inline: true,
-			},
-		*/
-		{
-			Name:   "Daily",
-			Value:  dailyStatus,
-			Inline: true,
-		},
-		{
-			Name:   "Work",
-			Value:  workStatus,
-			Inline: true,
-		},
-	}
-
-	return fields
-}
-
-func createButtonComponent(work *database.Work, daily *database.Daily) []discordgo.MessageComponent {
-
-	components := []discordgo.MessageComponent{}
-
-	// Only create if the daily can be done
-	components = append(components, &discordgo.Button{
-		Label:    "Collect Daily",
-		Style:    1, // Default purple
-		Disabled: false,
-		CustomID: "PD", // 'PD' is code for 'Profile Daily'
-	})
-
-	// Only create if the work can be done
-	components = append(components, &discordgo.Button{
-		Label:    "Work",
-		Style:    1, // Default purple
-		Disabled: false,
-		CustomID: "PW", // 'PW' is code for 'Profile Work'
-	})
-
-	components = append(components, &discordgo.Button{
-		Label:    "",
-		Style:    1, // Default purple
-		Disabled: false,
-		Emoji: discordgo.ComponentEmoji{
-			Name: config.CONFIG.Emojis.ComponentEmojiNames.Refresh,
-		},
-		CustomID: "RP", // 'RP' is code for 'Refresh Profile'
-	})
-
-	if len(components) == 0 {
-		return nil
-	}
-
-	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
-}
-
-func ProfileRefreshInteraction(authorID string, i *discordgo.Interaction, btnData *[]structs.ButtonData) {
+func ProfileRefreshInteraction(authorID string, author *discordgo.User, me *discordgo.MessageEdit) {
 
 	var user database.User
 	user.QueryUserByDiscordID(authorID)
@@ -137,17 +44,13 @@ func ProfileRefreshInteraction(authorID string, i *discordgo.Interaction, btnDat
 	var daily database.Daily
 	daily.GetDailyInfo(&user)
 
-	i.Message.Embeds[0].Fields = GenerateProfileFields(&user, &work, &daily)
-	// Also update buttons
+	ProfileUpdateMessageEdit(&user, &work, &daily, author, me)
+}
 
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "PW", // Work button
-		Disabled: !work.CanDoWork(),
-	})
+func ProfileUpdateMessageEdit(user *database.User, work *database.Work, daily *database.Daily, author *discordgo.User, me *discordgo.MessageEdit) {
+	user.CreateProfileEmbeds(author, work, daily, &me.Embeds)
 
-	*btnData = append(*btnData, structs.ButtonData{
-		CustomID: "PD", // Daily button
-		Disabled: !daily.CanDoDaily(),
-	})
-
+	if components := user.CreateProfileComponents(work, daily); components != nil {
+		me.Components = components
+	}
 }
