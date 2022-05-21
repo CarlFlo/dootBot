@@ -21,7 +21,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	commandIssuerID := strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
 
-	if i.User != nil && i.User.ID != commandIssuerID || i.Member != nil && i.Member.User.ID != commandIssuerID {
+	if interactionValidateInteractor(i, commandIssuerID) {
 		response = "You cannot interact with this message!"
 		goto sendInteractionResponse
 	}
@@ -80,4 +80,9 @@ sendInteractionResponse:
 	}); err != nil {
 		malm.Error("Could not respond to the interaction! %s", err)
 	}
+}
+
+// Returns true if the message interaction is from the same user that promted the bot to created the original message
+func interactionValidateInteractor(i *discordgo.InteractionCreate, commandIssuerID string) bool {
+	return i.User != nil && i.User.ID != commandIssuerID || i.Member != nil && i.Member.User.ID != commandIssuerID
 }
