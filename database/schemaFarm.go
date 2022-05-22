@@ -164,7 +164,7 @@ func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUse
 		Description: f.CreateEmbedDescription(),
 		Fields:      f.CreateEmbedFields(),
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Crops will perish if not watered everyday!\nYou can own up to %d farm plots!", config.CONFIG.Farm.MaxPlots),
+			Text: fmt.Sprintf("Crops will perish if not watered every day!\nYou can own up to %d farm plots!", config.CONFIG.Farm.MaxPlots),
 		},
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: fmt.Sprintf("%s#%s", discordUser.AvatarURL("256"), discordUser.ID),

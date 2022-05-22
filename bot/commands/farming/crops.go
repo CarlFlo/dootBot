@@ -35,7 +35,7 @@ func farmCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 			Description: description,
 			Fields:      createFieldsForCrops(&crops),
 			Footer: &discordgo.MessageEmbedFooter{
-				Text: "Crops will perish if not watered everyday!\nYou unlock new crops by planting your newest crops on your farm.",
+				Text: "Crops will perish if not watered every day!\nYou unlock new crops by planting your newest crops on your farm.",
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: fmt.Sprintf("%s#%s", m.Author.AvatarURL("256"), m.Author.ID),
