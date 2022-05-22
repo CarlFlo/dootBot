@@ -18,6 +18,8 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	complexMessage := &discordgo.MessageSend{}
 	farm.CreateFarmOverview(complexMessage, m, &user)
 
+	//TODO: Add a refresh button to refresh the buttons
+
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
 		malm.Error("Could not send message! %s", err)
