@@ -51,9 +51,12 @@ func BuyToolInteraction(authorID string, response *string, i *discordgo.Interact
 		Thumbnail:   i.Message.Embeds[0].Thumbnail,
 	})
 
-	if components := work.CreateMessageComponents(); components != nil {
-		me.Components = components
-	}
+	me.Components = work.CreateMessageComponents()
+	/*
+		if components := work.CreateMessageComponents(); components != nil {
+			me.Components = components
+		}
+	*/
 
 	user.Save()
 	work.Save()

@@ -45,11 +45,14 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 				},
 			},
 		},
-	}
-	if components := work.CreateMessageComponents(); components != nil {
-		complexMessage.Components = components
+		Components: work.CreateMessageComponents(),
 	}
 
+	/*
+		if components := work.CreateMessageComponents(); components != nil {
+			complexMessage.Components = components
+		}
+	*/
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
 		malm.Error("Could not send message! (Data not saved) %s", err)
