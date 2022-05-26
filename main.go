@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/music"
 	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/database"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
@@ -33,6 +34,8 @@ func init() {
 	if err := database.SetupDatabase(); err != nil {
 		malm.Fatal("Database initialization error: %s", err)
 	}
+
+	go music.InitializeMusic()
 
 	// Handles checking if there is an update available for the bot
 	upToDate, githubVersion, err := utils.BotVersonHandler(CurrentVersion)

@@ -1,12 +1,18 @@
 package music
 
 import (
+	"fmt"
+	"net/url"
+	"sync"
+
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
 // GuildID is the key
-var instances = map[string]*voiceInstance{}
+var instances = map[string]*VoiceInstance{}
 
 /*
 	Play songs in a voice channel
@@ -22,20 +28,130 @@ var instances = map[string]*voiceInstance{}
 	To save storage, in DB
 */
 
-func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+var (
+	musicMutex sync.Mutex
+	songSignal chan *VoiceInstance
+)
 
-	if input.NumberOfArgsAreAtleast(1) {
-		// Nothing to play
+func InitializeMusic() {
+
+	malm.Info("Music initialized")
+
+	for vi := range songSignal {
+		malm.Info("Playing music")
+		go vi.PlayQueue()
+	}
+}
+
+func JoinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
+
+	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
+	if len(voiceChannelID) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "You are not in a voice channel") // Temporary
+		return nil
+	}
+
+	if vi == nil {
+		// Instance alreay initialized
+		musicMutex.Lock()
+		vi = &VoiceInstance{}
+		guildID := utils.GetGuild(s, m)
+		instances[guildID] = vi
+		vi.GuildID = guildID
+		vi.Session = s
+		musicMutex.Unlock()
+	}
+
+	var err error
+	vi.Voice, err = s.ChannelVoiceJoin(vi.GuildID, voiceChannelID, false, true)
+
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, "Failed to join voice channel")
+		vi.Stop()
+		return nil
+	}
+
+	err = vi.Voice.Speaking(false)
+	if err != nil {
+		malm.Error("%s", err)
+		return nil
+	}
+
+	malm.Debug("Joined voice channel and is good to go!")
+
+	return vi
+}
+
+func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	if vi == nil {
+		// Not in a voice channel
 		return
 	}
 
-	//guildID := utils.GetGuild(s, m)
-	//instance := voiceInstances[guildID]
+	vi.Disconnect()
 
+	musicMutex.Lock()
+	delete(instances, vi.GuildID)
+	musicMutex.Unlock()
 }
 
-func ResumeMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+// Same as resume
+func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
+	guildID := utils.GetGuild(s, m)
+	vi := instances[guildID]
+	if vi == nil {
+		// Not initialized
+		vi = JoinVoice(vi, s, m)
+		if vi == nil {
+			malm.Error("Failed to join voice channel")
+		}
+	}
+
+	// Check if the user is in the voice channel before playing
+	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
+	if vi.Voice.ChannelID != voiceChannelID {
+		s.ChannelMessageSend(m.ChannelID, "You are not in the same voice channel as the bot")
+		return
+	}
+
+	if input.NumberOfArgsAre(0) {
+		// User want to resume a song
+		return
+	}
+
+	// If input is a youtube link
+
+	parsedURL, err := url.Parse(input.GetArgs()[0])
+	if err != nil {
+		malm.Error("%s", err)
+		s.ChannelMessageSend(m.ChannelID, "Something went wrong when parsing the Youtube url")
+		return
+	}
+
+	query := parsedURL.Query()
+	videoId := query.Get("v")
+
+	// exit status 1 when running youtube-dl
+	song, err := youtubeDL(m, videoId)
+
+	if err != nil {
+		malm.Error("%s", err)
+		s.ChannelMessageSend(m.ChannelID, "Something went wrong when getting the song")
+		return
+	}
+
+	// Add the song to the queue
+	vi.AddToQueue(song)
+
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song %s to the queue", m.Author.Username, song.Title))
+
+	malm.Info("Playing the song")
+
+	songSignal <- vi
+
+	// Download the video using youtube-dl
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {

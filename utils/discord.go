@@ -22,3 +22,16 @@ func GetGuild(s *discordgo.Session, m *discordgo.MessageCreate) string {
 	}
 	return channel.GuildID
 }
+
+// FindVoiceChannel finds the voice channel containing a specific user by their discord ID
+func FindVoiceChannel(s *discordgo.Session, userID string) string {
+
+	for _, g := range s.State.Guilds {
+		for _, v := range g.VoiceStates {
+			if v.UserID == userID {
+				return v.ChannelID
+			}
+		}
+	}
+	return ""
+}
