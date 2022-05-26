@@ -26,10 +26,12 @@ type VoiceInstance struct {
 }
 
 type Song struct {
-	ChannelID  string
-	User       string // Who requested the song
-	Title      string
-	YoutubeURL string
+	ChannelID   string
+	User        string // Who requested the song
+	Thumbnail   string
+	ChannelName string
+	Title       string
+	YoutubeURL  string
 }
 
 func (vi *VoiceInstance) playingStarted() {

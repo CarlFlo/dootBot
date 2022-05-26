@@ -3,9 +3,12 @@ package music
 import (
 	"fmt"
 	"net/url"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -29,11 +32,22 @@ var instances = map[string]*VoiceInstance{}
 */
 
 var (
-	musicMutex sync.Mutex
-	songSignal chan *VoiceInstance
+	musicMutex           sync.Mutex
+	songSignal           chan *VoiceInstance
+	youtubeAPIKeyPresent bool
+)
+
+const (
+	youtubePattern string = `(youtube\.com\/watch\?v=)`
 )
 
 func InitializeMusic() {
+
+	if len(config.CONFIG.Music.YoutubeAPIKey) == 0 {
+		malm.Info("Music disabled. No Youtube API key provided in config")
+		youtubeAPIKeyPresent = false
+		return
+	}
 
 	songSignal = make(chan *VoiceInstance)
 
@@ -42,10 +56,12 @@ func InitializeMusic() {
 			go vi.PlayQueue()
 		}
 	}()
+
 	malm.Info("Music initialized")
+	youtubeAPIKeyPresent = true
 }
 
-func JoinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
+func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
 
 	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
 	if len(voiceChannelID) == 0 {
@@ -96,16 +112,18 @@ func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCre
 	musicMutex.Unlock()
 }
 
-// TODO: Problem: the input is by default set to lowercase breaking the youtube URL's
-
 // Same as resume
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+
+	if !isMusicEnabled(s, m) {
+		return
+	}
 
 	guildID := utils.GetGuild(s, m)
 	vi := instances[guildID]
 	if vi == nil {
 		// Not initialized
-		vi = JoinVoice(vi, s, m)
+		vi = joinVoice(vi, s, m)
 		if vi == nil {
 			malm.Error("Failed to join voice channel")
 			return
@@ -126,17 +144,13 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// If input is a youtube link
 
-	parsedURL, err := url.Parse(input.GetArgs()[0])
+	song, err := parseMusicInput(m, strings.Join(input.GetArgs(), " "))
 	if err != nil {
 		malm.Error("%s", err)
-		s.ChannelMessageSend(m.ChannelID, "Something went wrong when parsing the Youtube url")
 		return
 	}
 
-	query := parsedURL.Query()
-	videoId := query.Get("v")
-
-	song, err := youtubeDL(m, videoId)
+	// This function is very slow. Takes up to 2 seconds
 
 	if err != nil {
 		malm.Error("%s", err)
@@ -152,10 +166,55 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	songSignal <- vi
 }
 
+func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
+
+	// youtubeBaseURL
+	// youtubePattern
+
+	var videoId string
+
+	pattern := regexp.MustCompile(youtubePattern)
+	if pattern.MatchString(input) {
+		// Youtube link
+
+		parsedURL, err := url.Parse(input)
+		if err != nil {
+			return Song{}, err
+		}
+
+		query := parsedURL.Query()
+		videoId = query.Get("v")
+
+		title, thumbnail, channelName, err := youtubeFindByVideoID(videoId)
+
+		if err != nil {
+			return Song{}, err
+		}
+
+		fmt.Printf("%s %s %s\n", title, thumbnail, channelName)
+
+	} else {
+		// Presumably a song name
+
+	}
+	song, err := youtubeDL(m, videoId)
+	if err != nil {
+		return Song{}, err
+	}
+
+	return song, nil
+}
+
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !isMusicEnabled(s, m) {
+		return
+	}
 
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !isMusicEnabled(s, m) {
+		return
+	}
 
 }
