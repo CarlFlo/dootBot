@@ -24,7 +24,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	cropName := input.GetArgs()[1]
+	cropName := input.GetArgsLowercase()[1]
 
 	// Check if the user has enough money to buy seeds
 	var user database.User

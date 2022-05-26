@@ -108,6 +108,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		vi = JoinVoice(vi, s, m)
 		if vi == nil {
 			malm.Error("Failed to join voice channel")
+			return
 		}
 	}
 
