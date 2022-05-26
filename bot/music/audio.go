@@ -47,7 +47,7 @@ func (vi *VoiceInstance) playingStopped() {
 func (vi *VoiceInstance) PlayQueue() {
 
 	for {
-
+		malm.Debug("Starting a song")
 		vi.playingStarted()
 
 		if err := vi.Voice.Speaking(true); err != nil {
@@ -56,6 +56,7 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 
 		err := vi.StreamAudio()
+		malm.Debug("Stream audio post")
 
 		if err != nil {
 			malm.Error("%s", err)

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"time"
-
-	"github.com/CarlFlo/malm"
 )
 
 // Redo this so this isnt required https://www.youtube.com/watch?v=y_eIBmt3JdY
@@ -21,6 +19,7 @@ type configStruct struct {
 	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
+	Music               music             `json:"music"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
 	Debug               debug             `json:"debug"`
@@ -36,6 +35,10 @@ type botInfo struct {
 	AppID      string `json:"appID"`
 	Permission uint64 `json:"permission"`
 	VersionURL string `json:"versionURL"`
+}
+
+type music struct {
+	YoutubeAPIKey string `json:"youtubeAPIKey"`
 }
 
 type messageProcessing struct {
@@ -135,10 +138,6 @@ func readConfig() error {
 		return err
 	}
 
-	if CONFIG.DispConfOnStart {
-		malm.Debug("Config:\n%s", string(file))
-	}
-
 	return nil
 }
 
@@ -150,13 +149,15 @@ func createConfig() error {
 		Token:               "",
 		BotPrefix:           ",",
 		OwnerID:             "",
-		DispConfOnStart:     false,
 		BoundChannels:       []string{},
 		AllowDirectMessages: true,
 		BotInfo: botInfo{
 			AppID:      "",
 			Permission: 139690691648,
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
+		},
+		Music: music{
+			YoutubeAPIKey: "",
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.

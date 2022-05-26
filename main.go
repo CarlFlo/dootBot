@@ -35,7 +35,7 @@ func init() {
 		malm.Fatal("Database initialization error: %s", err)
 	}
 
-	go music.InitializeMusic()
+	music.InitializeMusic()
 
 	// Handles checking if there is an update available for the bot
 	upToDate, githubVersion, err := utils.BotVersonHandler(CurrentVersion)

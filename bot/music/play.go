@@ -35,12 +35,14 @@ var (
 
 func InitializeMusic() {
 
-	malm.Info("Music initialized")
+	songSignal = make(chan *VoiceInstance)
 
-	for vi := range songSignal {
-		malm.Info("Playing music")
-		go vi.PlayQueue()
-	}
+	go func() {
+		for vi := range songSignal {
+			go vi.PlayQueue()
+		}
+	}()
+	malm.Info("Music initialized")
 }
 
 func JoinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
@@ -76,8 +78,6 @@ func JoinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 		malm.Error("%s", err)
 		return nil
 	}
-
-	malm.Debug("Joined voice channel and is good to go!")
 
 	return vi
 }
@@ -149,11 +149,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
 
-	malm.Info("Playing the song")
-
 	songSignal <- vi
-
-	// Download the video using youtube-dl
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
