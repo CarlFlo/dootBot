@@ -9,6 +9,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/mine"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/commands/work"
+	"github.com/CarlFlo/DiscordMoneyBot/bot/music"
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
 	"github.com/CarlFlo/malm"
 
@@ -100,6 +101,11 @@ func mapValidCommands() {
 
 	validCommands["mine"] = command{
 		function:           mine.Dwarvenkeep,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["play"] = command{
+		function:           music.PlayMusic,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 

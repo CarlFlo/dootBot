@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -10,6 +11,14 @@ func SendDirectMessage(s *discordgo.Session, m *discordgo.MessageCreate, content
 	if err != nil {
 		return nil, err
 	}
-
 	return s.ChannelMessageSend(ch.ID, content)
+}
+
+// GetGuild returns the guild ID from a channel ID
+func GetGuild(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	channel, err := s.Channel(m.ChannelID)
+	if err != nil {
+		malm.Warn("Failed to get channel: %s", err)
+	}
+	return channel.GuildID
 }
