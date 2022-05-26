@@ -96,6 +96,8 @@ func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCre
 	musicMutex.Unlock()
 }
 
+// TODO: Problem: the input is by default set to lowercase breaking the youtube URL's
+
 // Same as resume
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
@@ -133,7 +135,6 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	query := parsedURL.Query()
 	videoId := query.Get("v")
 
-	// exit status 1 when running youtube-dl
 	song, err := youtubeDL(m, videoId)
 
 	if err != nil {
@@ -145,7 +146,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song %s to the queue", m.Author.Username, song.Title))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
 
 	malm.Info("Playing the song")
 
