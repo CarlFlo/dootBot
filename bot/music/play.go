@@ -28,12 +28,6 @@ var instances = map[string]*VoiceInstance{}
 	To save storage, in DB
 */
 
-/*
-TODO:
-	play with a link is broken
-	skip does not play the next song
-*/
-
 var (
 	musicMutex           sync.Mutex
 	songSignal           chan *VoiceInstance
@@ -134,7 +128,6 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if vi == nil {
 		// Nothing is playing
-		malm.Debug("Stop command was run, but nothing is playing")
 		return
 	}
 
@@ -151,7 +144,6 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if vi == nil {
 		// Nothing is playing
-		malm.Debug("Skip command was run, but bot is not playing music")
 		return
 	}
 
@@ -173,7 +165,6 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 
 	if vi == nil {
 		// Nothing is playing
-		malm.Debug("Skip command was run, but bot is not playing music")
 		return
 	}
 
@@ -193,7 +184,6 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 
 	if vi == nil {
 		// Nothing is playing
-		malm.Debug("Pause command was run, but bot is not playing music")
 		return
 	}
 
