@@ -104,8 +104,24 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
+	// Music
 	validCommands["play"] = command{
 		function:           music.PlayMusic,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["stop"] = command{
+		function:           music.StopMusic,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["skip"] = command{ // Same as next
+		function:           music.SkipMusic,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["next"] = command{ // Same as skip
+		function:           music.SkipMusic,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 

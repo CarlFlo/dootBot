@@ -59,7 +59,6 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 
 		err := vi.StreamAudio()
-		malm.Debug("Stream audio post")
 
 		if err != nil {
 			malm.Error("%s", err)
@@ -100,7 +99,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 		return err
 	}
 
-	// This function is slow. Can take up to 2 seconds
+	// Be aware. This function is slow. Can take up to 2 seconds
 	err = execYoutubeDL(&song)
 	if err != nil {
 		return err

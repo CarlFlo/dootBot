@@ -2,13 +2,10 @@ package music
 
 import (
 	"fmt"
-	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 
 	"github.com/CarlFlo/DiscordMoneyBot/bot/structs"
-	"github.com/CarlFlo/DiscordMoneyBot/config"
 	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -39,12 +36,14 @@ var (
 
 const (
 	youtubePattern string = `(youtube\.com\/watch\?v=)`
+	urlPattern     string = `[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 )
 
+// InitializeMusic initializes the music goroutine and channel signal
 func InitializeMusic() {
 
-	if len(config.CONFIG.Music.YoutubeAPIKey) == 0 {
-		malm.Info("Music disabled. No Youtube API key provided in config")
+	if err := utils.ValidateYoutubeAPIKey(); err != nil {
+		malm.Info("Music disabled. %s", err.Error())
 		youtubeAPIKeyPresent = false
 		return
 	}
@@ -59,57 +58,6 @@ func InitializeMusic() {
 
 	malm.Info("Music initialized")
 	youtubeAPIKeyPresent = true
-}
-
-func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
-
-	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
-	if len(voiceChannelID) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "You are not in a voice channel") // Temporary
-		return nil
-	}
-
-	if vi == nil {
-		// Instance alreay initialized
-		musicMutex.Lock()
-		vi = &VoiceInstance{}
-		guildID := utils.GetGuild(s, m)
-		instances[guildID] = vi
-		vi.GuildID = guildID
-		vi.Session = s
-		musicMutex.Unlock()
-	}
-
-	var err error
-	vi.Voice, err = s.ChannelVoiceJoin(vi.GuildID, voiceChannelID, false, true)
-
-	if err != nil {
-		s.ChannelMessageSend(m.ChannelID, "Failed to join voice channel")
-		vi.Stop()
-		return nil
-	}
-
-	err = vi.Voice.Speaking(false)
-	if err != nil {
-		malm.Error("%s", err)
-		return nil
-	}
-
-	return vi
-}
-
-func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	if vi == nil {
-		// Not in a voice channel
-		return
-	}
-
-	vi.Disconnect()
-
-	musicMutex.Lock()
-	delete(instances, vi.GuildID)
-	musicMutex.Unlock()
 }
 
 // Same as resume
@@ -159,51 +107,6 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
 
 	songSignal <- vi
-}
-
-func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
-
-	var title, thumbnail, channelName, videoID string
-	var err error
-
-	pattern := regexp.MustCompile(youtubePattern)
-	if pattern.MatchString(input) {
-		// Youtube link
-
-		parsedURL, err := url.Parse(input)
-		if err != nil {
-			return err
-		}
-
-		query := parsedURL.Query()
-		videoID = query.Get("v")
-
-		title, thumbnail, channelName, err = youtubeFindByVideoID(videoID)
-		if err != nil {
-			return err
-		}
-
-		//malm.Info("%s %s %s\n", title, thumbnail, channelName)
-
-	} else {
-		// Presumably a song name
-		title, thumbnail, channelName, videoID, err = youtubeSearch(input)
-		if err != nil {
-			return err
-		}
-
-		//malm.Info("%s %s %s %s\n", title, thumbnail, channelName, videoID)
-	}
-
-	// Update the song object
-	song.ChannelID = m.ChannelID
-	song.User = m.Author.ID
-	song.Title = title
-	song.Thumbnail = thumbnail
-	song.ChannelName = channelName
-	song.YoutubeURL = videoID
-
-	return nil
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {

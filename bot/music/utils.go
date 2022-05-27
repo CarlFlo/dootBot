@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/config"
+	"github.com/CarlFlo/DiscordMoneyBot/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -119,8 +121,110 @@ func isMusicEnabled(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 
 	if !youtubeAPIKeyPresent {
 		s.ChannelMessageSend(m.ChannelID, "Music is currently disabled.")
-		malm.Info("[Music] No Youtube API key provided in config")
 	}
 
 	return youtubeAPIKeyPresent
+}
+
+func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
+
+	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
+	if len(voiceChannelID) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "You are not in a voice channel") // Temporary
+		return nil
+	}
+
+	if vi == nil {
+		// Instance alreay initialized
+		musicMutex.Lock()
+		vi = &VoiceInstance{}
+		guildID := utils.GetGuild(s, m)
+		instances[guildID] = vi
+		vi.GuildID = guildID
+		vi.Session = s
+		musicMutex.Unlock()
+	}
+
+	var err error
+	vi.Voice, err = s.ChannelVoiceJoin(vi.GuildID, voiceChannelID, false, true)
+
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, "Failed to join voice channel")
+		vi.Stop()
+		return nil
+	}
+
+	err = vi.Voice.Speaking(false)
+	if err != nil {
+		malm.Error("%s", err)
+		return nil
+	}
+
+	return vi
+}
+
+func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
+
+	if vi == nil {
+		// Not in a voice channel
+		return
+	}
+
+	vi.Disconnect()
+
+	musicMutex.Lock()
+	delete(instances, vi.GuildID)
+	musicMutex.Unlock()
+}
+
+func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
+
+	var title, thumbnail, channelName, videoID string
+	var err error
+
+	ytRegex := regexp.MustCompile(youtubePattern)
+	urlRegex := regexp.MustCompile(urlPattern)
+
+	if ytRegex.MatchString(input) {
+		// Youtube link
+
+		parsedURL, err := url.Parse(input)
+		if err != nil {
+			return err
+		}
+
+		query := parsedURL.Query()
+		videoID = query.Get("v")
+
+		title, thumbnail, channelName, err = youtubeFindByVideoID(videoID)
+		if err != nil {
+			return err
+		}
+
+	} else if urlRegex.MatchString(input) {
+		// URL from another source than Youtube
+		parsedURL, err := url.Parse(input)
+		if err != nil {
+			return err
+		}
+
+		malm.Debug("%s", parsedURL.Host)
+		return errors.New("non youtube URL detected")
+	} else {
+		// Presumably a song name
+		title, thumbnail, channelName, videoID, err = youtubeSearch(input)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Update the song object
+	song.ChannelID = m.ChannelID
+	song.User = m.Author.ID
+	song.Title = title
+	song.Thumbnail = thumbnail
+	song.ChannelName = channelName
+	song.YoutubeURL = videoID
+
+	return nil
 }
