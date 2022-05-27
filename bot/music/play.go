@@ -96,9 +96,9 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(0) {
 		// User want to resume a song
-		if vi.Paused {
-			vi.Paused = false
-			vi.stream.SetPaused(vi.Paused)
+		if vi.paused {
+			vi.paused = false
+			vi.stream.SetPaused(vi.paused)
 		}
 		return
 	}
@@ -197,6 +197,6 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
-	vi.Paused = !vi.Paused
-	vi.stream.SetPaused(vi.Paused)
+	vi.paused = !vi.paused
+	vi.stream.SetPaused(vi.paused)
 }

@@ -17,10 +17,10 @@ type VoiceInstance struct {
 	encoder    *dca.EncodeSession
 	stream     *dca.StreamingSession
 	queueMutex sync.Mutex
-	Queue      []Song // First song in the queue is the current song
+	queue      []Song // First song in the queue is the current song
 	GuildID    string
 	playing    bool
-	Paused     bool
+	paused     bool
 	stop       bool // Means clearing the queue
 	done       chan error
 }
@@ -37,7 +37,7 @@ type Song struct {
 
 func (vi *VoiceInstance) playingStarted() {
 	vi.playing = true
-	vi.Paused = false
+	vi.paused = false
 }
 func (vi *VoiceInstance) playingStopped() {
 	vi.stop = false
@@ -48,7 +48,6 @@ func (vi *VoiceInstance) playingStopped() {
 func (vi *VoiceInstance) PlayQueue() {
 
 	for {
-		malm.Debug("Playing queue")
 		vi.playingStarted()
 
 		if err := vi.Voice.Speaking(true); err != nil {
@@ -65,7 +64,6 @@ func (vi *VoiceInstance) PlayQueue() {
 
 		if vi.stop {
 			vi.ClearQueue()
-			malm.Info("Told to stop")
 			return
 		}
 		vi.RemoveFirstInQueue()
@@ -79,10 +77,8 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 
 		if vi.QueueIsEmpty() {
-			malm.Info("Queue is empty")
 			return
 		}
-		malm.Debug("End of for loop")
 	}
 }
 
@@ -113,15 +109,14 @@ func (vi *VoiceInstance) StreamAudio() error {
 	vi.done = make(chan error)
 	vi.stream = dca.NewStream(vi.encoder, vi.Voice, vi.done)
 
+	// Ignore this problem. Using a range here does not work properly for this purpose
 	for {
 		select {
 		case err := <-vi.done:
-			malm.Info("Streaming done")
 			if err != nil && err != io.EOF {
 				return err
 			}
 			vi.encoder.Cleanup()
-			malm.Info("returning from stream")
 			return nil
 		}
 	}
@@ -130,13 +125,13 @@ func (vi *VoiceInstance) StreamAudio() error {
 func (vi *VoiceInstance) AddToQueue(s Song) {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
-	vi.Queue = append(vi.Queue, s)
+	vi.queue = append(vi.queue, s)
 }
 
 func (vi *VoiceInstance) ClearQueue() {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
-	vi.Queue = []Song{}
+	vi.queue = []Song{}
 }
 
 func (vi *VoiceInstance) RemoveFirstInQueue() {
@@ -144,25 +139,25 @@ func (vi *VoiceInstance) RemoveFirstInQueue() {
 	defer vi.queueMutex.Unlock()
 
 	// Only one entry in the queue, so clear it
-	if len(vi.Queue) == 1 {
-		vi.Queue = []Song{}
+	if len(vi.queue) == 1 {
+		vi.queue = []Song{}
 		return
 	}
-	vi.Queue = vi.Queue[1:]
+	vi.queue = vi.queue[1:]
 }
 
 func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
-	if len(vi.Queue) == 0 {
+	if len(vi.queue) == 0 {
 
 		return Song{}, errors.New("the queue is empty")
 	}
-	return vi.Queue[0], nil
+	return vi.queue[0], nil
 }
 
 func (vi *VoiceInstance) QueueIsEmpty() bool {
-	return len(vi.Queue) == 0
+	return len(vi.queue) == 0
 }
 
 // Disconnect dissconnects the bot from the voice connection
