@@ -143,12 +143,10 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	song, err := parseMusicInput(m, strings.Join(input.GetArgs(), " "))
-	if err != nil {
-		malm.Error("%s", err)
-		return
-	}
+	var song Song
+	inputText := strings.Join(input.GetArgs(), " ")
 
+	err := parseMusicInput(m, inputText, &song)
 	if err != nil {
 		malm.Error("%s", err)
 		s.ChannelMessageSend(m.ChannelID, "Something went wrong when getting the song")
@@ -163,7 +161,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	songSignal <- vi
 }
 
-func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
+func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
 
 	var title, thumbnail, channelName, videoID string
 	var err error
@@ -174,36 +172,38 @@ func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
 
 		parsedURL, err := url.Parse(input)
 		if err != nil {
-			return Song{}, err
+			return err
 		}
 
 		query := parsedURL.Query()
 		videoID = query.Get("v")
 
-		title, thumbnail, channelName, err := youtubeFindByVideoID(videoID)
+		title, thumbnail, channelName, err = youtubeFindByVideoID(videoID)
 		if err != nil {
-			return Song{}, err
+			return err
 		}
 
-		fmt.Printf("%s %s %s\n", title, thumbnail, channelName)
+		//malm.Info("%s %s %s\n", title, thumbnail, channelName)
 
 	} else {
 		// Presumably a song name
 		title, thumbnail, channelName, videoID, err = youtubeSearch(input)
 		if err != nil {
-			return Song{}, err
+			return err
 		}
 
-		fmt.Printf("%s %s %s %s\n", title, thumbnail, channelName, videoID)
+		//malm.Info("%s %s %s %s\n", title, thumbnail, channelName, videoID)
 	}
 
-	// This function is very slow. Takes up to 2 seconds
-	song, err := youtubeDL(m, videoID)
-	if err != nil {
-		return Song{}, err
-	}
+	// Update the song object
+	song.ChannelID = m.ChannelID
+	song.User = m.Author.ID
+	song.Title = title
+	song.Thumbnail = thumbnail
+	song.ChannelName = channelName
+	song.YoutubeURL = videoID
 
-	return song, nil
+	return nil
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"os/exec"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 type videoResponse struct {
@@ -17,32 +15,25 @@ type videoResponse struct {
 
 // youtube-dl --skip-download --print-json --flat-playlist J-innQH71As
 
-func youtubeDL(m *discordgo.MessageCreate, videoID string) (Song, error) {
+func execYoutubeDL(song *Song) error {
 
-	cmd := exec.Command("youtube-dl", "--skip-download", "--print-json", "--flat-playlist", videoID)
+	cmd := exec.Command("youtube-dl", "--skip-download", "--print-json", "--flat-playlist", song.YoutubeURL)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
 	err := cmd.Run()
 	if err != nil {
-		return Song{}, err
+		return err
 	}
 
 	var videoRes videoResponse
 	err = json.NewDecoder(&out).Decode(&videoRes)
 	if err != nil {
 		log.Println("Could not decode the video")
-		return Song{}, err
+		return err
 	}
 
-	// Query the name of the song from youtube using their endpoint
-
-	song := Song{
-		ChannelID:  m.ChannelID,
-		Title:      "Placeholder title",
-		YoutubeURL: videoID,
-		User:       m.Author.Username,
-	}
-
-	return song, nil
+	// The URL directely to the audio
+	song.StreamURL = videoRes.Formats[0].Url
+	return nil
 }

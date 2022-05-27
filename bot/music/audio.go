@@ -32,6 +32,7 @@ type Song struct {
 	ChannelName string
 	Title       string
 	YoutubeURL  string
+	StreamURL   string
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -92,15 +93,20 @@ func (vi *VoiceInstance) StreamAudio() error {
 	// Custom settings
 	settings.RawOutput = true
 	settings.Bitrate = 64
-	settings.Application = "lowdelay"
+	//settings.Application = "lowdelay"
 
 	song, err := vi.GetFirstInQueue()
-
 	if err != nil {
 		return err
 	}
 
-	vi.encoder, err = dca.EncodeFile(song.YoutubeURL, settings)
+	// This function is slow. Can take up to 2 seconds
+	err = execYoutubeDL(&song)
+	if err != nil {
+		return err
+	}
+
+	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {
 		return err
 	}
