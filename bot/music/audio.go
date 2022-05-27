@@ -19,10 +19,9 @@ type VoiceInstance struct {
 	queueMutex sync.Mutex
 	Queue      []Song // First song in the queue is the current song
 	GuildID    string
-	Playing    bool
+	playing    bool
 	Paused     bool
 	stop       bool // Means clearing the queue
-	Skip       bool // Maybe not needed
 }
 
 type Song struct {
@@ -36,14 +35,12 @@ type Song struct {
 }
 
 func (vi *VoiceInstance) playingStarted() {
-	vi.Playing = true
+	vi.playing = true
 	vi.Paused = false
-	vi.Skip = false
 }
 func (vi *VoiceInstance) playingStopped() {
 	vi.stop = false
-	vi.Skip = false
-	vi.Playing = false
+	vi.playing = false
 }
 
 // Plays the Queue
@@ -179,4 +176,24 @@ func (vi *VoiceInstance) Disconnect() {
 		malm.Error("%s", err)
 		return
 	}
+}
+
+// Skip skipps the song. returns true of success, else false
+func (vi *VoiceInstance) Skip() bool {
+
+	if !vi.playing {
+		return false
+	}
+
+	if vi.encoder != nil {
+		vi.encoder.Cleanup()
+	}
+
+	vi.RemoveFirstInQueue()
+
+	return true
+}
+
+func (vi *VoiceInstance) IsPlaying() bool {
+	return vi.playing
 }

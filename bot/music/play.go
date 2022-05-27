@@ -28,6 +28,12 @@ var instances = map[string]*VoiceInstance{}
 	To save storage, in DB
 */
 
+/*
+TODO:
+	play with a link is broken
+	skip does not play the next song
+*/
+
 var (
 	musicMutex           sync.Mutex
 	songSignal           chan *VoiceInstance
@@ -106,7 +112,9 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
 
-	songSignal <- vi
+	if !vi.IsPlaying() {
+		songSignal <- vi
+	}
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -114,6 +122,16 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	guildID := utils.GetGuild(s, m)
+	vi := instances[guildID]
+
+	if vi == nil {
+		// Nothing is playing
+		malm.Debug("Stop command was run, but nothing is playing")
+		return
+	}
+
+	leaveVoice(vi, s, m)
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -121,4 +139,33 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	guildID := utils.GetGuild(s, m)
+	vi := instances[guildID]
+
+	if vi == nil {
+		// Nothing is playing
+		malm.Debug("Skip command was run, but bot is not playing music")
+		return
+	}
+
+	vi.Skip()
+}
+
+// ClearQueueMusic clears the queue and stopps the current song
+func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !isMusicEnabled(s, m) {
+		return
+	}
+
+	guildID := utils.GetGuild(s, m)
+	vi := instances[guildID]
+
+	if vi == nil {
+		// Nothing is playing
+		malm.Debug("Skip command was run, but bot is not playing music")
+		return
+	}
+
+	vi.ClearQueue()
+	vi.Stop() // Should it stop the bot?
 }

@@ -53,8 +53,8 @@ type thumbnails struct {
 
 type standard struct {
 	Url    string
-	Width  string
-	Height string
+	Width  int
+	Height int
 }
 
 // Returns the title, thumbnail and channel of a youtube video
@@ -163,12 +163,7 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 	return vi
 }
 
-func LeaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	if vi == nil {
-		// Not in a voice channel
-		return
-	}
+func leaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	vi.Disconnect()
 
@@ -211,7 +206,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 		malm.Debug("%s", parsedURL.Host)
 		return errors.New("non youtube URL detected")
 	} else {
-		// Presumably a song name
+		// Presumably a song name. Search Youtube
 		title, thumbnail, channelName, videoID, err = youtubeSearch(input)
 		if err != nil {
 			return err

@@ -108,9 +108,10 @@ func mapValidCommands() {
 	validCommands["play"] = command{
 		function:           music.PlayMusic,
 		requiredPermission: enumUser,
+		helpSyntax:         "[youtube url/search query]",
 		commandType:        typeGeneral}
 
-	validCommands["stop"] = command{
+	validCommands["stop"] = command{ // Will also leave the voice channel
 		function:           music.StopMusic,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
@@ -122,6 +123,11 @@ func mapValidCommands() {
 
 	validCommands["next"] = command{ // Same as skip
 		function:           music.SkipMusic,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
+	validCommands["clearqueue"] = command{ // Clears the queue
+		function:           music.ClearQueueMusic,
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
