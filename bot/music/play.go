@@ -45,6 +45,9 @@ const (
 	urlPattern     string = `[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 )
 
+// TODO
+// weird error when plaing music: 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
+
 // InitializeMusic initializes the music goroutine and channel signal
 func InitializeMusic() {
 
@@ -93,7 +96,10 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(0) {
 		// User want to resume a song
-		// TODO
+		if vi.Paused {
+			vi.Paused = false
+			vi.stream.SetPaused(vi.Paused)
+		}
 		return
 	}
 
@@ -112,6 +118,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
 
+	// The bot is already playing music so we dont send the start signal
 	if !vi.IsPlaying() {
 		songSignal <- vi
 	}
@@ -148,7 +155,11 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	vi.Skip()
+	if vi.Skip() {
+		s.ChannelMessageSend(m.ChannelID, "Skipped the song")
+	} else {
+		s.ChannelMessageSend(m.ChannelID, "There is no song to skip")
+	}
 }
 
 // ClearQueueMusic clears the queue and stopps the current song
@@ -168,4 +179,24 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 
 	vi.ClearQueue()
 	vi.Stop() // Should it stop the bot?
+}
+
+//
+// PauseMusic clears the queue and stopps the current song
+func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !isMusicEnabled(s, m) {
+		return
+	}
+
+	guildID := utils.GetGuild(s, m)
+	vi := instances[guildID]
+
+	if vi == nil {
+		// Nothing is playing
+		malm.Debug("Pause command was run, but bot is not playing music")
+		return
+	}
+
+	vi.Paused = !vi.Paused
+	vi.stream.SetPaused(vi.Paused)
 }

@@ -38,7 +38,7 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 - Daily - Gives the user a random amount of money daily [24 hour cooldown]
 - Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. New crops can be unlocked by planting.
 - Mine - Your own dwarven keep where your dwarfs will mine for ore and other precious gems
-- play - Plays a youtube song in the voice channel. Provide an url or search for a song.
+- Play - Plays a youtube song in the voice channel. Provide an url or search for a song.
 
 ## Setup
 

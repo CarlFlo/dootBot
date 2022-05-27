@@ -111,6 +111,11 @@ func mapValidCommands() {
 		helpSyntax:         "[youtube url/search query]",
 		commandType:        typeGeneral}
 
+	validCommands["pause"] = command{
+		function:           music.PauseMusic,
+		requiredPermission: enumUser,
+		commandType:        typeGeneral}
+
 	validCommands["stop"] = command{ // Will also leave the voice channel
 		function:           music.StopMusic,
 		requiredPermission: enumUser,

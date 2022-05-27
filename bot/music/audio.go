@@ -22,6 +22,7 @@ type VoiceInstance struct {
 	playing    bool
 	Paused     bool
 	stop       bool // Means clearing the queue
+	done       chan error
 }
 
 type Song struct {
@@ -47,7 +48,7 @@ func (vi *VoiceInstance) playingStopped() {
 func (vi *VoiceInstance) PlayQueue() {
 
 	for {
-		malm.Debug("Starting a song")
+		malm.Debug("Playing queue")
 		vi.playingStarted()
 
 		if err := vi.Voice.Speaking(true); err != nil {
@@ -55,8 +56,8 @@ func (vi *VoiceInstance) PlayQueue() {
 			return
 		}
 
+		// This is the function that streams the audio to the voice channel
 		err := vi.StreamAudio()
-
 		if err != nil {
 			malm.Error("%s", err)
 			return
@@ -64,13 +65,10 @@ func (vi *VoiceInstance) PlayQueue() {
 
 		if vi.stop {
 			vi.ClearQueue()
+			malm.Info("Told to stop")
 			return
 		}
 		vi.RemoveFirstInQueue()
-
-		if vi.QueueIsEmpty() {
-			return
-		}
 
 		vi.playingStopped()
 
@@ -79,8 +77,13 @@ func (vi *VoiceInstance) PlayQueue() {
 			malm.Error("%s", err)
 			return
 		}
-	}
 
+		if vi.QueueIsEmpty() {
+			malm.Info("Queue is empty")
+			return
+		}
+		malm.Debug("End of for loop")
+	}
 }
 
 func (vi *VoiceInstance) StreamAudio() error {
@@ -96,7 +99,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 		return err
 	}
 
-	// Be aware. This function is slow. Can take up to 2 seconds
+	// This function is slow. ~2 seconds
 	err = execYoutubeDL(&song)
 	if err != nil {
 		return err
@@ -106,18 +109,22 @@ func (vi *VoiceInstance) StreamAudio() error {
 	if err != nil {
 		return err
 	}
-	done := make(chan error)
-	vi.stream = dca.NewStream(vi.encoder, vi.Voice, done)
 
-	for err := range done {
-		if err != nil && err != io.EOF {
-			return err
+	vi.done = make(chan error)
+	vi.stream = dca.NewStream(vi.encoder, vi.Voice, vi.done)
+
+	for {
+		select {
+		case err := <-vi.done:
+			malm.Info("Streaming done")
+			if err != nil && err != io.EOF {
+				return err
+			}
+			vi.encoder.Cleanup()
+			malm.Info("returning from stream")
+			return nil
 		}
-
-		vi.encoder.Cleanup()
 	}
-
-	return nil
 }
 
 func (vi *VoiceInstance) AddToQueue(s Song) {
@@ -158,14 +165,6 @@ func (vi *VoiceInstance) QueueIsEmpty() bool {
 	return len(vi.Queue) == 0
 }
 
-// Stops the current song
-func (vi *VoiceInstance) Stop() {
-	vi.stop = true
-	if vi.encoder != nil {
-		vi.encoder.Cleanup()
-	}
-}
-
 // Disconnect dissconnects the bot from the voice connection
 func (vi *VoiceInstance) Disconnect() {
 	vi.Stop()
@@ -185,15 +184,26 @@ func (vi *VoiceInstance) Skip() bool {
 		return false
 	}
 
-	if vi.encoder != nil {
-		vi.encoder.Cleanup()
-	}
-
-	vi.RemoveFirstInQueue()
+	// This will interupt and stop the stream
+	vi.done <- nil
 
 	return true
 }
 
 func (vi *VoiceInstance) IsPlaying() bool {
 	return vi.playing
+}
+
+// Stops the current song and clears the queue. returns true of success, else false
+func (vi *VoiceInstance) Stop() bool {
+	if !vi.playing {
+		return false
+	}
+
+	vi.stop = true
+
+	// This will interupt and stop the stream
+	vi.done <- nil
+
+	return true
 }
