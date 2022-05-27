@@ -197,6 +197,5 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
-	vi.paused = !vi.paused
-	vi.stream.SetPaused(vi.paused)
+	vi.Pause()
 }

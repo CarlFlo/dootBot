@@ -192,6 +192,7 @@ func (vi *VoiceInstance) IsPlaying() bool {
 
 // Stops the current song and clears the queue. returns true of success, else false
 func (vi *VoiceInstance) Stop() bool {
+
 	if !vi.playing {
 		return false
 	}
@@ -202,4 +203,10 @@ func (vi *VoiceInstance) Stop() bool {
 	vi.done <- nil
 
 	return true
+}
+
+func (vi *VoiceInstance) Pause() {
+
+	vi.paused = !vi.paused
+	vi.stream.SetPaused(vi.paused)
 }
