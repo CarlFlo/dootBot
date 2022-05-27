@@ -49,12 +49,11 @@ const (
 // weird error when plaing music: 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
 
 // InitializeMusic initializes the music goroutine and channel signal
-func InitializeMusic() {
+func InitializeMusic() error {
 
 	if err := utils.ValidateYoutubeAPIKey(); err != nil {
-		malm.Info("Music disabled. %s", err.Error())
 		youtubeAPIKeyPresent = false
-		return
+		return err
 	}
 
 	songSignal = make(chan *VoiceInstance)
@@ -67,6 +66,7 @@ func InitializeMusic() {
 
 	malm.Info("Music initialized")
 	youtubeAPIKeyPresent = true
+	return nil
 }
 
 // Same as resume

@@ -16,7 +16,7 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-const CurrentVersion = "2022-05-21"
+const CurrentVersion = "2022-05-27"
 
 func init() {
 
@@ -35,7 +35,9 @@ func init() {
 		malm.Fatal("Database initialization error: %s", err)
 	}
 
-	music.InitializeMusic()
+	if err := music.InitializeMusic(); err != nil {
+		malm.Info("Music disabled. %s", err.Error())
+	}
 
 	// Handles checking if there is an update available for the bot
 	upToDate, githubVersion, err := utils.BotVersonHandler(CurrentVersion)
