@@ -89,7 +89,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Check if the user is in the voice channel before playing
 	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
-	if vi.Voice.ChannelID != voiceChannelID {
+	if vi.voice.ChannelID != voiceChannelID {
 		s.ChannelMessageSend(m.ChannelID, "You are not in the same voice channel as the bot")
 		return
 	}
@@ -116,7 +116,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue", m.Author.Username, song.Title))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
 
 	// The bot is already playing music so we dont send the start signal
 	if !vi.IsPlaying() {

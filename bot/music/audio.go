@@ -12,7 +12,7 @@ import (
 )
 
 type VoiceInstance struct {
-	Voice      *discordgo.VoiceConnection
+	voice      *discordgo.VoiceConnection
 	Session    *discordgo.Session
 	encoder    *dca.EncodeSession
 	stream     *dca.StreamingSession
@@ -33,6 +33,7 @@ type Song struct {
 	Title       string
 	YoutubeURL  string
 	StreamURL   string
+	Duration    string
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -50,7 +51,7 @@ func (vi *VoiceInstance) PlayQueue() {
 	for {
 		vi.playingStarted()
 
-		if err := vi.Voice.Speaking(true); err != nil {
+		if err := vi.voice.Speaking(true); err != nil {
 			malm.Error("%s", err)
 			return
 		}
@@ -70,7 +71,7 @@ func (vi *VoiceInstance) PlayQueue() {
 
 		vi.playingStopped()
 
-		err = vi.Voice.Speaking(false)
+		err = vi.voice.Speaking(false)
 		if err != nil {
 			malm.Error("%s", err)
 			return
@@ -107,7 +108,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 	}
 
 	vi.done = make(chan error)
-	vi.stream = dca.NewStream(vi.encoder, vi.Voice, vi.done)
+	vi.stream = dca.NewStream(vi.encoder, vi.voice, vi.done)
 
 	// Ignore this problem. Using a range here does not work properly for this purpose
 	for {
@@ -165,7 +166,7 @@ func (vi *VoiceInstance) Disconnect() {
 	vi.Stop()
 	time.Sleep(200 * time.Millisecond)
 
-	err := vi.Voice.Disconnect()
+	err := vi.voice.Disconnect()
 	if err != nil {
 		malm.Error("%s", err)
 		return
