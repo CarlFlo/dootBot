@@ -139,18 +139,15 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(0) {
 		// User want to resume a song
+		// TODO
 		return
 	}
-
-	// If input is a youtube link
 
 	song, err := parseMusicInput(m, strings.Join(input.GetArgs(), " "))
 	if err != nil {
 		malm.Error("%s", err)
 		return
 	}
-
-	// This function is very slow. Takes up to 2 seconds
 
 	if err != nil {
 		malm.Error("%s", err)
@@ -168,10 +165,8 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
 
-	// youtubeBaseURL
-	// youtubePattern
-
-	var videoId string
+	var title, thumbnail, channelName, videoID string
+	var err error
 
 	pattern := regexp.MustCompile(youtubePattern)
 	if pattern.MatchString(input) {
@@ -183,10 +178,9 @@ func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
 		}
 
 		query := parsedURL.Query()
-		videoId = query.Get("v")
+		videoID = query.Get("v")
 
-		title, thumbnail, channelName, err := youtubeFindByVideoID(videoId)
-
+		title, thumbnail, channelName, err := youtubeFindByVideoID(videoID)
 		if err != nil {
 			return Song{}, err
 		}
@@ -195,9 +189,16 @@ func parseMusicInput(m *discordgo.MessageCreate, input string) (Song, error) {
 
 	} else {
 		// Presumably a song name
+		title, thumbnail, channelName, videoID, err = youtubeSearch(input)
+		if err != nil {
+			return Song{}, err
+		}
 
+		fmt.Printf("%s %s %s %s\n", title, thumbnail, channelName, videoID)
 	}
-	song, err := youtubeDL(m, videoId)
+
+	// This function is very slow. Takes up to 2 seconds
+	song, err := youtubeDL(m, videoID)
 	if err != nil {
 		return Song{}, err
 	}
