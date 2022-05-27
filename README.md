@@ -26,6 +26,8 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - Engaging the users by providing daily tasks 
 
+- Music player with queue
+
 - Progression!
 
 - SQLite database
@@ -35,6 +37,8 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 - Work - Allows the user to earn a random amount of money [6 hour cooldown]
 - Daily - Gives the user a random amount of money daily [24 hour cooldown]
 - Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. New crops can be unlocked by planting.
+- Mine - Your own dwarven keep where your dwarfs will mine for ore and other precious gems
+- play - Plays a youtube song in the voice channel. Provide an url or search for a song.
 
 ## Setup
 
@@ -43,7 +47,7 @@ The first time the bot is run, a config.json file is created. This JSON file req
 1. The bot token [Token]
 2. The owners (your) Discord ID [OwnerID]
 3. The bots Discord ID [AppID]
-
+4. (optinal) Youtube API key for music [youtubeAPIKey]
 
 ### Configuration
 
