@@ -49,6 +49,10 @@ The first time the bot is run, a config.json file is created. This JSON file req
 3. The bots Discord ID [AppID]
 4. (optinal) Youtube API key for music [youtubeAPIKey]
 
+### Requirements 
+
+* [**youtube-dl**](https://youtube-dl.org/) is required for the music player to work
+
 ### Configuration
 
 The bot is fully customizable through the config.json file, where most if not all variables can be customised.
