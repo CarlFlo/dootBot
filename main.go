@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/bot"
-	"github.com/CarlFlo/DiscordMoneyBot/bot/music"
-	"github.com/CarlFlo/DiscordMoneyBot/config"
-	"github.com/CarlFlo/DiscordMoneyBot/database"
-	"github.com/CarlFlo/DiscordMoneyBot/utils"
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot"
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/music"
+	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/DiscordMoneyBot/src/database"
+	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 )
 
