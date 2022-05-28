@@ -1,0 +1,19 @@
+* Playing a song will create a message showing
+1. The current song playing
+2. The next song(s) in the queue
+3. Amound of songs in the queue
+4. Buttons for pausing/playing, skipping and stopping the bot (and clear queue?)
+
+
+* Adding a song to the queue will 
+1. Remove the previous message showing which was playing (save message id in the instance)
+2. Post the 'overview' message again with the new information
+3. save that new message ID in the instance
+
+
+* Once a song finishes playing
+automatically update the message (with the message ID stored in the instance)
+
+
+* Interact
+Perform the button action and refresh the message
