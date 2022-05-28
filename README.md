@@ -51,7 +51,9 @@ The first time the bot is run, a config.json file is created. This JSON file req
 
 ### Requirements 
 
-* [**youtube-dl**](https://youtube-dl.org/) is required for the music player to work
+**For the music**
+* [**ffmpeg**](https://ffmpeg.org/)
+* [**youtube-dl**](https://youtube-dl.org/)
 
 ### Configuration
 
