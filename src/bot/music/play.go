@@ -110,7 +110,16 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+
+	complexMessage := &discordgo.MessageSend{}
+
+	CreateMusicOverviewMessage(s, m, complexMessage, nil)
+
+	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
+		malm.Error("Could not send message! %s", err)
+		return
+	}
 
 	// The bot is already playing music so we dont send the start signal
 	if !vi.IsPlaying() {
@@ -154,7 +163,7 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 }
 
-// ClearQueueMusic clears the queue and stopps the current song
+// ClearQueueMusic clears but the first song from the queue
 func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled(s, m) {
 		return
@@ -168,12 +177,11 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
-	vi.ClearQueue()
+	vi.RemoveAllButFirstInQueue()
 	vi.Stop() // Should it stop the bot?
 }
 
-//
-// PauseMusic clears the queue and stopps the current song
+// PauseMusic pauyses the music
 func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled(s, m) {
 		return

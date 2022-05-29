@@ -2,6 +2,7 @@ package music
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -21,8 +22,9 @@ type VoiceInstance struct {
 	GuildID    string
 	playing    bool
 	paused     bool
-	stop       bool // Means clearing the queue
+	stop       bool
 	done       chan error
+	messageID  string
 }
 
 type Song struct {
@@ -33,7 +35,7 @@ type Song struct {
 	Title       string
 	YoutubeURL  string
 	StreamURL   string
-	Duration    string
+	duration    string
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -50,7 +52,6 @@ func (vi *VoiceInstance) PlayQueue() {
 
 	for {
 		vi.playingStarted()
-
 		if err := vi.voice.Speaking(true); err != nil {
 			malm.Error("%s", err)
 			return
@@ -101,7 +102,6 @@ func (vi *VoiceInstance) StreamAudio() error {
 	if err != nil {
 		return err
 	}
-
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {
 		return err
@@ -147,6 +147,17 @@ func (vi *VoiceInstance) RemoveFirstInQueue() {
 	vi.queue = vi.queue[1:]
 }
 
+func (vi *VoiceInstance) RemoveAllButFirstInQueue() {
+	vi.queueMutex.Lock()
+	defer vi.queueMutex.Unlock()
+
+	// Only one entry in the queue, so clear it
+	if len(vi.queue) == 1 {
+		return
+	}
+	vi.queue = vi.queue[:1]
+}
+
 func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
@@ -190,6 +201,10 @@ func (vi *VoiceInstance) IsPlaying() bool {
 	return vi.playing
 }
 
+func (vi *VoiceInstance) IsPaused() bool {
+	return vi.paused
+}
+
 // Stops the current song and clears the queue. returns true of success, else false
 func (vi *VoiceInstance) Stop() bool {
 
@@ -209,4 +224,26 @@ func (vi *VoiceInstance) Pause() {
 
 	vi.paused = !vi.paused
 	vi.stream.SetPaused(vi.paused)
+}
+
+func (vi *VoiceInstance) QueueLength() int {
+	return len(vi.queue)
+}
+
+// Returns the song from the queue with the given index
+func (vi *VoiceInstance) GetSongByIndex(i int) Song {
+	return vi.queue[i]
+}
+
+/* SONG */
+
+// GetDuration returns the duration of the song
+func (s *Song) GetDuration() string {
+	return s.duration
+}
+
+// GetYoutubeURL returns the full youtube url of the song
+func (s *Song) GetYoutubeURL() string {
+
+	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", s.YoutubeURL)
 }

@@ -18,13 +18,16 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	msgEdit := &discordgo.MessageEdit{Channel: i.ChannelID, ID: i.Message.ID}
 	var response string
 	var responseEmbed []*discordgo.MessageEmbed
+	var commandIssuerID string
 
-	commandIssuerID := strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
+	if strings.Contains(i.Message.Content, "#") {
 
-	if interactionValidateInteractor(i, commandIssuerID) {
-		response = "You cannot interact with this message!"
-		interactionResponse(s, i, &response, &responseEmbed)
-		return
+		commandIssuerID = strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
+		if interactionValidateInteractor(i, commandIssuerID) {
+			response = "You cannot interact with this message!"
+			interactionResponse(s, i, &response, &responseEmbed)
+			return
+		}
 	}
 
 	switch i.MessageComponentData().CustomID {
@@ -48,6 +51,14 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		work.DoWorkInteraction(commandIssuerID, &response, i.Interaction.Member.User, msgEdit)
 	case "PD": // PD: Profile Daily - User did their daily from the profile message
 		daily.DoDailyInteraction(commandIssuerID, &response, i.Interaction.Member.User, msgEdit)
+	case "toggleSong":
+		malm.Info("Toggling song")
+	case "stopSong":
+		malm.Info("Stopping song")
+	case "clearQueue":
+		malm.Info("Cleaing queue")
+	case "nextSong":
+		malm.Info("Next song")
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return

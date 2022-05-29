@@ -141,9 +141,11 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 	}
 
 	if vi == nil {
-		// Instance alreay initialized
+		// Instance not initialized
 		musicMutex.Lock()
-		vi = &VoiceInstance{}
+		vi = &VoiceInstance{
+			playing: false,
+		}
 		guildID := utils.GetGuild(s, m)
 		instances[guildID] = vi
 		vi.GuildID = guildID
@@ -226,7 +228,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.Thumbnail = thumbnail
 	song.ChannelName = channelName
 	song.YoutubeURL = videoID
-	song.Duration = duration
+	song.duration = duration
 
 	return nil
 }

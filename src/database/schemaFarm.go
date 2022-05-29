@@ -458,7 +458,7 @@ func (f *Farm) CreateEmbedDescription() string {
 }
 
 func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
-	var embed []*discordgo.MessageEmbedField
+	var fields []*discordgo.MessageEmbedField
 
 	f.QueryFarmPlots()
 
@@ -466,7 +466,7 @@ func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
 
 		p.QueryCropInfo()
 
-		embed = append(embed, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   fmt.Sprintf("%d) %s %s", i+1, p.Crop.Emoji, p.Crop.Name),
 			Value:  p.HarvestableAt(),
 			Inline: true,
@@ -478,7 +478,7 @@ func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
 	emptyPlotValue := strings.Repeat(config.CONFIG.Emojis.EmptyPlot, 5)
 
 	for i := 0; i < int(unusedPlots); i++ {
-		embed = append(embed, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name: fmt.Sprintf("%d) Empty Plot ", i+1+len(f.Plots)),
 			//Value:  "⠀",
 			Value:  emptyPlotValue,
@@ -486,7 +486,7 @@ func (f *Farm) CreateEmbedFields() []*discordgo.MessageEmbedField {
 		})
 	}
 
-	return embed
+	return fields
 }
 
 func (f *Farm) HasMaxAmountOfPlots() bool {

@@ -112,6 +112,9 @@ type emojis struct {
 	PerishedCrop        string              `json:"perishedCrop"`
 	EmptyPlot           string              `json:"emptyPlot"`
 	Tools               string              `json:"tools"`
+	MusicNotes          string              `json:"musicNotes"`
+	MusicPlaying        string              `json:"musicPlaying"`
+	MusicPaused         string              `json:"musicPaused"`
 }
 
 type componentEmojiNames struct {
@@ -220,6 +223,9 @@ func createConfig() error {
 			PerishedCrop: ":wilted_rose:",
 			EmptyPlot:    ":brown_square:",
 			Tools:        ":tools:",
+			MusicNotes:   ":musical_note:",
+			MusicPlaying: ":arrow_forward:",
+			MusicPaused:  ":pause_button:",
 		},
 		Debug: debug{
 			IgnoreWorkCooldown:  false,
