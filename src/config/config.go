@@ -38,7 +38,8 @@ type botInfo struct {
 }
 
 type music struct {
-	YoutubeAPIKey string `json:"youtubeAPIKey"`
+	YoutubeAPIKey        string `json:"youtubeAPIKey"`
+	MaxSongLengthMinutes int    `json:"maxSongLengthMinutes"`
 }
 
 type messageProcessing struct {
@@ -160,7 +161,8 @@ func createConfig() error {
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
 		},
 		Music: music{
-			YoutubeAPIKey: "",
+			YoutubeAPIKey:        "",
+			MaxSongLengthMinutes: 12,
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.

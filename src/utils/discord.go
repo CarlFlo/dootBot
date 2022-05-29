@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -13,6 +14,27 @@ func SendDirectMessage(s *discordgo.Session, m *discordgo.MessageCreate, content
 	}
 	return s.ChannelMessageSend(ch.ID, content)
 }
+
+func SendMessageSuccess(s *discordgo.Session, m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbed(s, m, content, config.CONFIG.Colors.Success)
+}
+
+func SendMessageFailure(s *discordgo.Session, m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbed(s, m, content, config.CONFIG.Colors.Failure)
+}
+
+func SendMessageNeutral(s *discordgo.Session, m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbed(s, m, content, config.CONFIG.Colors.Neutral)
+}
+
+func sendMessageEmbed(s *discordgo.Session, m *discordgo.MessageCreate, content string, color int) (*discordgo.Message, error) {
+	return s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+		Description: content,
+		Color:       color,
+	})
+}
+
+/* */
 
 // GetGuild returns the guild ID from a channel ID
 func GetGuild(s *discordgo.Session, m *discordgo.MessageCreate) string {

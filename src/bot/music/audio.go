@@ -19,12 +19,18 @@ type VoiceInstance struct {
 	stream     *dca.StreamingSession
 	queueMutex sync.Mutex
 	queue      []Song // First song in the queue is the current song
-	GuildID    string
-	playing    bool
-	paused     bool
-	stop       bool
-	done       chan error
+	guildID    string
+	done       chan error // Used to interrupt the stream
 	messageID  string
+	DJ
+}
+
+// The variables keeping track of the playback state
+type DJ struct {
+	playing bool
+	paused  bool
+	stop    bool
+	looping bool
 }
 
 type Song struct {
@@ -68,7 +74,7 @@ func (vi *VoiceInstance) PlayQueue() {
 			vi.ClearQueue()
 			return
 		}
-		vi.RemoveFirstInQueue()
+		vi.FinishedPlayingSong()
 
 		vi.playingStopped()
 
@@ -129,10 +135,19 @@ func (vi *VoiceInstance) AddToQueue(s Song) {
 	vi.queue = append(vi.queue, s)
 }
 
+// Removes all songs in the queue. Including the current playing song
 func (vi *VoiceInstance) ClearQueue() {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
 	vi.queue = []Song{}
+}
+
+func (vi *VoiceInstance) FinishedPlayingSong() {
+
+	if vi.IsLooping() {
+		return
+	}
+	vi.RemoveFirstInQueue()
 }
 
 func (vi *VoiceInstance) RemoveFirstInQueue() {
@@ -205,6 +220,10 @@ func (vi *VoiceInstance) IsPaused() bool {
 	return vi.paused
 }
 
+func (vi *VoiceInstance) IsLooping() bool {
+	return vi.looping
+}
+
 // Stops the current song and clears the queue. returns true of success, else false
 func (vi *VoiceInstance) Stop() bool {
 
@@ -233,6 +252,10 @@ func (vi *VoiceInstance) QueueLength() int {
 // Returns the song from the queue with the given index
 func (vi *VoiceInstance) GetSongByIndex(i int) Song {
 	return vi.queue[i]
+}
+
+func (vi *VoiceInstance) GetGuildID() string {
+	return vi.guildID
 }
 
 /* SONG */

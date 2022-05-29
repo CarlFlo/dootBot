@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -84,7 +85,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Check if the user is in the voice channel before playing
 	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
 	if vi.voice.ChannelID != voiceChannelID {
-		s.ChannelMessageSend(m.ChannelID, "You are not in the same voice channel as the bot")
+		utils.SendMessageFailure(s, m, "You are not in the same voice channel as the bot")
 		return
 	}
 
@@ -103,14 +104,14 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	err := parseMusicInput(m, inputText, &song)
 	if err != nil {
 		malm.Error("%s", err)
-		s.ChannelMessageSend(m.ChannelID, "Something went wrong when getting the song")
+		utils.SendMessageFailure(s, m, fmt.Sprintf("Something went wrong when getting the song. The maximum duration for a song is %d", config.CONFIG.Music.MaxSongLengthMinutes))
 		return
 	}
 
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+	utils.SendMessageNeutral(s, m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
 
 	complexMessage := &discordgo.MessageSend{}
 
@@ -157,9 +158,9 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	if vi.Skip() {
-		s.ChannelMessageSend(m.ChannelID, "Skipped the song")
+		utils.SendMessageSuccess(s, m, "Skipped the song")
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "There is no song to skip")
+		utils.SendMessageFailure(s, m, "There is no song to skip")
 	}
 }
 
