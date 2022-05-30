@@ -1,0 +1,18 @@
+* Travel around with a train and explore a desolate landscape ravaged by nuclear war
+Concept:
+Own a train
+Travel to procedurally generate land
+Scavenge for material
+Upgrade the train, build train compartments
+Recruit people
+
+Train upgrades:
+Sleeping compartment
+Lifestock compartment
+Farming compartment
+Storage compartment
+Crafting compartment
+etc
+
+
+Each new area traveled to incresed difficulty/risk?

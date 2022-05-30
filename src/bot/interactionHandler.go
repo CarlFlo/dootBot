@@ -20,6 +20,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var responseEmbed []*discordgo.MessageEmbed
 	var commandIssuerID string
 
+	// Some messages, like music, does not have a user thumbnail (with their ID)
 	if strings.Contains(i.Message.Embeds[0].Thumbnail.URL, "#") {
 
 		commandIssuerID = strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]

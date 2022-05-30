@@ -1,0 +1,26 @@
+* Own a bakery!
+Concept:
+Spend money on ingredients
+Buy ovens
+Products that can be baked:
+* Bread
+Sourdough, Banana Bread, Cornbread, Brioche Bread, Rye Bread, Multigrain Bread, Baguette
+
+* Cookies
+Chocolate Chip Cookies, Biscotti Cookies, Gingerbread Cookies, Fortune Cookies, Shortbread Cookies, Peanut Butter Cookies
+
+* Pies
+Apple Pie, Pumpkin Pie, Cherry Pie, Strawberry Pie, Blackberry Pie, Mixed Berry Pie, Cream Pie
+
+* Pastries
+Sweet rolls, Apple-Cheese Danish, Almond & Vanilla Bean Scone, Potato Cinnamon Rolls, Donuts, croissant
+
+* Muffins
+Chocolate Chip Muffins, Banana Nut Muffins, Triple Chocolate Muffins, Cornbread Muffins, Lemon Poppyseed Muffins
+
+
+* Starting the bake process
+1. Select the recipe
+2. It get put in the oven
+3. Take it out before it burns
+

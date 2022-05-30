@@ -224,6 +224,10 @@ func (vi *VoiceInstance) IsLooping() bool {
 	return vi.looping
 }
 
+func (vi *VoiceInstance) SetLooping(loop bool) {
+	vi.looping = loop
+}
+
 // Stops the current song and clears the queue. returns true of success, else false
 func (vi *VoiceInstance) Stop() bool {
 
