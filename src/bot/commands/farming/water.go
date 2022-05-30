@@ -5,6 +5,7 @@ import (
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/database"
+	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -19,9 +20,13 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var response string
 
-	waterShared(&farm, &response, true)
+	ok := waterShared(&farm, &response, true)
 
-	s.ChannelMessageSend(m.ChannelID, response)
+	if ok {
+		utils.SendMessageSuccess(s, m, response)
+	} else {
+		utils.SendMessageFailure(s, m, response)
+	}
 
 	farm.Save()
 }
@@ -47,18 +52,20 @@ func WaterInteraction(discordID string, response *string, s *discordgo.Session, 
 	farm.UpdateInteractionOverview(discordUser, me)
 }
 
-func waterShared(farm *database.Farm, response *string, printSuccess bool) {
+// waterShared is the shared code for watering plots
+// Returns true if it succeeded, else false
+func waterShared(farm *database.Farm, response *string, printSuccess bool) bool {
 
 	// Check if user can water their plot
 	if !config.CONFIG.Debug.IgnoreWaterCooldown && !farm.CanWater() {
 		*response = fmt.Sprintf("You can't water your farm right now! You can water again %s", farm.CanWaterAt())
-		return
+		return false
 	}
 
 	farm.QueryFarmPlots()
 	if len(farm.Plots) == 0 {
-		*response = "You don't have any plots to water, plant a crop first!"
-		return
+		*response = "You do not have any plots to water. Plant a crop first!"
+		return false
 	}
 
 	perished := farm.Peek()
@@ -73,5 +80,5 @@ func waterShared(farm *database.Farm, response *string, printSuccess bool) {
 	if perished {
 		*response += "\nHowever, some crops perished!\nRemember to water your crops daily!"
 	}
-
+	return true
 }

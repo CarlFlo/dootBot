@@ -6,6 +6,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/database"
+	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -15,7 +16,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(1) {
 		// only ,farm plant. Missing plant name. Give some help
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("You need to specify which crop to plant. Use the command '%sfarm [c | crops]' to see a list of available crops.", config.CONFIG.BotPrefix))
+		utils.SendMessageFailure(s, m, fmt.Sprintf("You need to specify which crop to plant. Use the command '%sfarm [c | crops]' to see a list of available crops.", config.CONFIG.BotPrefix))
 		return
 	}
 
@@ -34,10 +35,14 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	farm.QueryUserFarmData(&user)
 
 	var response string
-	farmPlantShared(&user, &farm, cropName, &response, true)
+	ok := farmPlantShared(&user, &farm, cropName, &response, true)
 
 	// Send message to the user
-	s.ChannelMessageSend(m.ChannelID, response)
+	if ok {
+		utils.SendMessageSuccess(s, m, response)
+	} else {
+		utils.SendMessageFailure(s, m, response)
+	}
 
 	// Update the database
 	user.Save()
@@ -69,28 +74,30 @@ func FarmPlantInteraction(discordID string, response *string, i *discordgo.Inter
 	farm.Save()
 }
 
-func farmPlantShared(user *database.User, farm *database.Farm, cropName string, response *string, outputCrop bool) {
+// farmPlantShared is the shared code for planting crops
+// Returns true if success, else false
+func farmPlantShared(user *database.User, farm *database.Farm, cropName string, response *string, outputCrop bool) bool {
 
 	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
 		*response = "You don't have enough money to plant a seed!"
-		return
+		return false
 	}
 
 	var crop database.FarmCrop
 	if ok := crop.GetCropByName(cropName); !ok {
 		*response = fmt.Sprintf("The crop '%s' is not valid!", cropName)
-		return
+		return false
 	}
 
 	// Check if the user have unlocked the crop
 	if !farm.HasUserUnlocked(&crop) {
 		*response = "You have not unlocked this crop!"
-		return
+		return false
 	}
 
 	if !farm.HasFreePlot() {
 		*response = "You don't have a free farm plot to plant in!"
-		return
+		return false
 	}
 
 	user.DeductMoney(uint64(config.CONFIG.Farm.CropSeedPrice))
@@ -116,5 +123,5 @@ func farmPlantShared(user *database.User, farm *database.Farm, cropName string, 
 		farm.HighestPlantedCropIndex++
 		*response += "\n``You have unlocked a new crop!``"
 	}
-
+	return true
 }

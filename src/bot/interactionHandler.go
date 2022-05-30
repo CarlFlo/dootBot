@@ -20,7 +20,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var responseEmbed []*discordgo.MessageEmbed
 	var commandIssuerID string
 
-	if strings.Contains(i.Message.Content, "#") {
+	if strings.Contains(i.Message.Embeds[0].Thumbnail.URL, "#") {
 
 		commandIssuerID = strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
 		if interactionValidateInteractor(i, commandIssuerID) {

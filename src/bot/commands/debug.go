@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
+	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,5 +15,5 @@ func Debug(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdI
 
 	currentOS := runtime.GOOS
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("OS: %s", currentOS))
+	utils.SendMessageNeutral(s, m, fmt.Sprintf("OS: %s", currentOS))
 }
