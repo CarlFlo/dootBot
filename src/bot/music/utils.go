@@ -231,7 +231,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.Title = title
 	song.Thumbnail = thumbnail
 	song.ChannelName = channelName
-	song.YoutubeURL = videoID
+	song.YoutubeVideoID = videoID
 	song.duration = duration
 
 	return nil

@@ -12,6 +12,15 @@ import (
 	"github.com/jung-m/dca"
 )
 
+/*
+	TODO:
+	Change how the queue works.
+	Store the index for the song
+	Make it possible to go back and forward in the queue
+	Ability to replay the last song
+	Ability to loop the queue
+*/
+
 type VoiceInstance struct {
 	voice      *discordgo.VoiceConnection
 	Session    *discordgo.Session
@@ -34,14 +43,14 @@ type DJ struct {
 }
 
 type Song struct {
-	ChannelID   string
-	User        string // Who requested the song
-	Thumbnail   string
-	ChannelName string
-	Title       string
-	YoutubeURL  string
-	StreamURL   string
-	duration    string
+	ChannelID      string
+	User           string // Who requested the song
+	Thumbnail      string
+	ChannelName    string
+	Title          string
+	YoutubeVideoID string
+	StreamURL      string
+	duration       string
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -272,5 +281,5 @@ func (s *Song) GetDuration() string {
 // GetYoutubeURL returns the full youtube url of the song
 func (s *Song) GetYoutubeURL() string {
 
-	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", s.YoutubeURL)
+	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", s.YoutubeVideoID)
 }

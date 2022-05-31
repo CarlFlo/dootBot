@@ -13,11 +13,9 @@ type videoResponse struct {
 	} `json:"formats"`
 }
 
-// youtube-dl --skip-download --print-json --flat-playlist J-innQH71As
-
 func execYoutubeDL(song *Song) error {
 
-	cmd := exec.Command("youtube-dl", "--skip-download", "--print-json", "--flat-playlist", song.YoutubeURL)
+	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--print-json", "--flat-playlist")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
@@ -33,7 +31,8 @@ func execYoutubeDL(song *Song) error {
 		return err
 	}
 
-	// The URL directely to the audio
-	song.StreamURL = videoRes.Formats[0].Url
+	// The URL directly to the audio. Expires after 6 hours
+	// yt-dlp uses index 3. Youtube-dl uses index 0
+	song.StreamURL = videoRes.Formats[3].Url
 	return nil
 }
