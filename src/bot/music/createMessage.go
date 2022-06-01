@@ -92,7 +92,7 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		},
 	}
 
-	if vi.QueueLength() > 1 {
+	if vi.GetQueueLength() > 1 {
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
 			Label:    "Clear queue",
 			CustomID: "clearQueue",
@@ -147,7 +147,7 @@ func messageTitleAndDescription(vi *VoiceInstance) (string, string, string) {
 	title = song.Title
 	description = song.GetDuration()
 
-	if vi.QueueLength() > 1 {
+	if vi.GetQueueLength() > 1 {
 		description += "\nQueue:"
 	}
 
@@ -159,7 +159,7 @@ func messageCreateFields(vi *VoiceInstance) []*discordgo.MessageEmbedField {
 	var fields []*discordgo.MessageEmbedField
 
 	// Only show 3 song previews from the queue
-	upTo := int(math.Min(float64(vi.QueueLength()), float64(4)))
+	upTo := int(math.Min(float64(vi.GetQueueLength()), float64(4)))
 
 	for i := 1; i < upTo; i++ {
 		song := vi.GetSongByIndex(i)
@@ -188,7 +188,7 @@ func messageThumbnail(vi *VoiceInstance) *discordgo.MessageEmbedThumbnail {
 
 func messageFooter(vi *VoiceInstance) *discordgo.MessageEmbedFooter {
 
-	length := vi.QueueLength() - 1
+	length := vi.GetQueueLength() - 1
 
 	if length < 1 {
 		return nil

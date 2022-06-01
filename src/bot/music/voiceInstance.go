@@ -2,8 +2,8 @@ package music
 
 import (
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"sync"
 	"time"
 
@@ -12,14 +12,10 @@ import (
 	"github.com/jung-m/dca"
 )
 
-/*
-	TODO:
-	Change how the queue works.
-	Store the index for the song
-	Make it possible to go back and forward in the queue
-	Ability to replay the last song
-	Ability to loop the queue
-*/
+var (
+	errEmptyQueue = errors.New("the queue is empty")
+	errNoNextSong = errors.New("there is no next song to play")
+)
 
 type VoiceInstance struct {
 	voice      *discordgo.VoiceConnection
@@ -27,7 +23,7 @@ type VoiceInstance struct {
 	encoder    *dca.EncodeSession
 	stream     *dca.StreamingSession
 	queueMutex sync.Mutex
-	queue      []Song // First song in the queue is the current song
+	queue      []Song
 	guildID    string
 	done       chan error // Used to interrupt the stream
 	messageID  string
@@ -36,21 +32,11 @@ type VoiceInstance struct {
 
 // The variables keeping track of the playback state
 type DJ struct {
-	playing bool
-	paused  bool
-	stop    bool
-	looping bool
-}
-
-type Song struct {
-	ChannelID      string
-	User           string // Who requested the song
-	Thumbnail      string
-	ChannelName    string
-	Title          string
-	YoutubeVideoID string
-	StreamURL      string
-	duration       string
+	playing    bool
+	paused     bool
+	stop       bool
+	looping    bool
+	queueIndex int
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -65,10 +51,17 @@ func (vi *VoiceInstance) playingStopped() {
 // Plays the Queue
 func (vi *VoiceInstance) PlayQueue() {
 
+	// This suppresses the warning from dca:
+	// 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
+	dca.Logger = log.New(io.Discard, "", 0)
+
+	defer vi.playingStopped()
+
 	for {
 		vi.playingStarted()
 		if err := vi.voice.Speaking(true); err != nil {
 			malm.Error("%s", err)
+
 			return
 		}
 
@@ -76,11 +69,13 @@ func (vi *VoiceInstance) PlayQueue() {
 		err := vi.StreamAudio()
 		if err != nil {
 			malm.Error("%s", err)
+
 			return
 		}
 
 		if vi.stop {
 			vi.ClearQueue()
+
 			return
 		}
 		vi.FinishedPlayingSong()
@@ -117,6 +112,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 	if err != nil {
 		return err
 	}
+
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {
 		return err
@@ -138,62 +134,91 @@ func (vi *VoiceInstance) StreamAudio() error {
 	}
 }
 
+// #### Queue Code ####
+
+func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
+	vi.queueMutex.Lock()
+	defer vi.queueMutex.Unlock()
+	if vi.GetQueueLength() == 0 {
+		return Song{}, errEmptyQueue
+	} else if vi.IsIndexOutOfBoundsByOne() {
+		return Song{}, errNoNextSong
+	}
+
+	return vi.queue[vi.queueIndex], nil
+}
+
 func (vi *VoiceInstance) AddToQueue(s Song) {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
 	vi.queue = append(vi.queue, s)
 }
 
-// Removes all songs in the queue. Including the current playing song
+// Removes all songs in the queue after the current song.
 func (vi *VoiceInstance) ClearQueue() {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
-	vi.queue = []Song{}
+	vi.queue = vi.queue[:vi.queueIndex+1]
 }
+
+// Removes all songs in the queue before the current song.
+func (vi *VoiceInstance) ClearQueuePrev() {
+	vi.queueMutex.Lock()
+	defer vi.queueMutex.Unlock()
+	vi.queue = vi.queue[vi.queueIndex:]
+	vi.queueIndex = 0
+}
+
+func (vi *VoiceInstance) QueueIsEmpty() bool {
+	return vi.GetQueueLength() == 0
+}
+
+func (vi *VoiceInstance) GetQueueIndex() int {
+	return vi.queueIndex
+}
+
+func (vi *VoiceInstance) GetQueueLength() int {
+	return len(vi.queue)
+}
+
+// Returns the song from the queue with the given index
+func (vi *VoiceInstance) GetSongByIndex(i int) Song {
+	return vi.queue[i]
+}
+
+//////////////////////////// Queue code end ////////////////////////////
 
 func (vi *VoiceInstance) FinishedPlayingSong() {
 
 	if vi.IsLooping() {
 		return
 	}
-	vi.RemoveFirstInQueue()
+	vi.IncrementQueueIndex()
 }
 
-func (vi *VoiceInstance) RemoveFirstInQueue() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
+// TODO: When at the end of queue. Should increment one more
+func (vi *VoiceInstance) IncrementQueueIndex() bool {
 
-	// Only one entry in the queue, so clear it
-	if len(vi.queue) == 1 {
-		vi.queue = []Song{}
-		return
+	// Do not increment past the end of the queue
+	if vi.IsIndexOutOfBoundsByOne() {
+		return false
 	}
-	vi.queue = vi.queue[1:]
+	vi.queueIndex++
+	return true
 }
 
-func (vi *VoiceInstance) RemoveAllButFirstInQueue() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
+// Returns true if the index could be decremented
+func (vi *VoiceInstance) DecrementQueueIndex() bool {
 
-	// Only one entry in the queue, so clear it
-	if len(vi.queue) == 1 {
-		return
+	if vi.queueIndex == 0 {
+		return false
 	}
-	vi.queue = vi.queue[:1]
+	vi.queueIndex--
+	return true
 }
 
-func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
-	if len(vi.queue) == 0 {
-
-		return Song{}, errors.New("the queue is empty")
-	}
-	return vi.queue[0], nil
-}
-
-func (vi *VoiceInstance) QueueIsEmpty() bool {
-	return len(vi.queue) == 0
+func (vi *VoiceInstance) IsIndexOutOfBoundsByOne() bool {
+	return vi.GetQueueLength() == vi.queueIndex
 }
 
 // Disconnect dissconnects the bot from the voice connection
@@ -212,6 +237,18 @@ func (vi *VoiceInstance) Disconnect() {
 func (vi *VoiceInstance) Skip() bool {
 
 	if !vi.playing {
+		return false
+	}
+
+	// This will interupt and stop the stream
+	vi.done <- nil
+
+	return true
+}
+
+func (vi *VoiceInstance) Prev() bool {
+	if !vi.playing || !vi.DecrementQueueIndex() {
+		// Music is not playing or there is no song to go back to
 		return false
 	}
 
@@ -258,28 +295,6 @@ func (vi *VoiceInstance) Pause() {
 	vi.stream.SetPaused(vi.paused)
 }
 
-func (vi *VoiceInstance) QueueLength() int {
-	return len(vi.queue)
-}
-
-// Returns the song from the queue with the given index
-func (vi *VoiceInstance) GetSongByIndex(i int) Song {
-	return vi.queue[i]
-}
-
 func (vi *VoiceInstance) GetGuildID() string {
 	return vi.guildID
-}
-
-/* SONG */
-
-// GetDuration returns the duration of the song
-func (s *Song) GetDuration() string {
-	return s.duration
-}
-
-// GetYoutubeURL returns the full youtube url of the song
-func (s *Song) GetYoutubeURL() string {
-
-	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", s.YoutubeVideoID)
 }

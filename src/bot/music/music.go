@@ -40,9 +40,6 @@ const (
 	urlPattern     string = `[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 )
 
-// TODO
-// weird error when plaing music: 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
-
 // InitializeMusic initializes the music goroutine and channel signal
 func InitializeMusic() error {
 
@@ -164,7 +161,7 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 }
 
-// ClearQueueMusic clears but the first song from the queue
+// ClearQueueMusic clears the queue. Does not include the current song or previus songs
 func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled(s, m) {
 		return
@@ -178,7 +175,7 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
-	vi.RemoveAllButFirstInQueue()
+	vi.ClearQueue()
 	vi.Stop() // Should it stop the bot?
 }
 

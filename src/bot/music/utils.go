@@ -16,6 +16,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+	errDetectedNonYTURL = errors.New("non youtube URL detected")
+	errEmptyYTResult    = errors.New("empty youtube search result")
+)
+
 const (
 	youtubeFindEndpoint     string = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&key=%s&id=%s"
 	youtubeSearchEndpoint   string = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=%s&q=%s&fields=items(id)"
@@ -84,7 +89,7 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 	}
 
 	if len(page.Items) == 0 {
-		return "", "", "", "", errors.New("empty youtube search result")
+		return "", "", "", "", errEmptyYTResult
 	}
 
 	title := page.Items[0].Snippet.Title
@@ -116,7 +121,7 @@ func youtubeSearch(query string) (string, string, string, string, string, error)
 	}
 
 	if len(page.Items) == 0 {
-		return "", "", "", "", "", errors.New("empty youtube search result")
+		return "", "", "", "", "", errEmptyYTResult
 	}
 
 	videoID := page.Items[0].ID.VideoId
@@ -216,7 +221,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 		}
 
 		malm.Debug("%s", parsedURL.Host)
-		return errors.New("non youtube URL detected")
+		return errDetectedNonYTURL
 	} else {
 		// Presumably a song name. Search Youtube
 		title, thumbnail, channelName, videoID, duration, err = youtubeSearch(input)

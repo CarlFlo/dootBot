@@ -3,7 +3,6 @@ package music
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"os/exec"
 )
 
@@ -27,7 +26,6 @@ func execYoutubeDL(song *Song) error {
 	var videoRes videoResponse
 	err = json.NewDecoder(&out).Decode(&videoRes)
 	if err != nil {
-		log.Println("Could not decode the video")
 		return err
 	}
 
