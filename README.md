@@ -54,8 +54,8 @@ The first time the bot is run, a config.json file is created. This JSON file req
 Needs to be available in the PATH
 
 **For the music**
-* [**ffmpeg**](https://ffmpeg.org/)
-* [**yt-dlp**](https://github.com/yt-dlp/yt-dlp)
+* [**ffmpeg**](https://ffmpeg.org/download.html)
+* [**yt-dlp**](https://github.com/yt-dlp/yt-dlp/releases)
 
 ### Configuration
 

@@ -50,7 +50,7 @@ func (fc *FarmCrop) GetDuration() string {
 		// We have hours. Ignore the minutes
 		hours, err := strconv.Atoi(split[0])
 		if err != nil {
-			malm.Error("%w", err)
+			malm.Error("%s", err)
 			return "error"
 		}
 		if hours == 24 {
@@ -74,7 +74,7 @@ func (fc *FarmCrop) GetDuration() string {
 	// convert to int
 	minutes, err := strconv.Atoi(split[0])
 	if err != nil {
-		malm.Error("%w", err)
+		malm.Error("%s", err)
 		return "error"
 	}
 
