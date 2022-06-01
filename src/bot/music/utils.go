@@ -17,8 +17,10 @@ import (
 )
 
 var (
-	errDetectedNonYTURL = errors.New("non youtube URL detected")
-	errEmptyYTResult    = errors.New("empty youtube search result")
+	errDetectedNonYTURL      = errors.New("non youtube URL detected")
+	errEmptyYTResult         = errors.New("empty youtube search result")
+	errStatusYTSearchQuery   = "youtube search error - status code: %d - query: %s"
+	errStatusYTSearchVideoID = "youtube search error - status code: %d - videoID: %s"
 )
 
 const (
@@ -77,7 +79,7 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 	if err != nil {
 		return "", "", "", "", err
 	} else if res.StatusCode != 200 {
-		return "", "", "", "", fmt.Errorf("youtube search error - status code: %d - videoID: %s", res.StatusCode, videoID)
+		return "", "", "", "", fmt.Errorf(errStatusYTSearchVideoID, res.StatusCode, videoID)
 	}
 	defer res.Body.Close()
 
@@ -109,7 +111,7 @@ func youtubeSearch(query string) (string, string, string, string, string, error)
 	if err != nil {
 		return "", "", "", "", "", err
 	} else if res.StatusCode != 200 {
-		return "", "", "", "", "", fmt.Errorf("youtube search error - status code: %d - query: %s", res.StatusCode, query)
+		return "", "", "", "", "", fmt.Errorf(errStatusYTSearchQuery, res.StatusCode, query)
 	}
 	defer res.Body.Close()
 
