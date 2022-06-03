@@ -99,7 +99,7 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 	channelName := page.Items[0].Snippet.ChannelTitle
 	duration := formatYoutubeDuration(page.Items[0].ContentDetails.Duration)
 
-	// TODO if duration is too long (set in config) return error
+	// TODO: if duration is too long (set in config) return error
 
 	return title, thumbnail, channelName, duration, nil
 }

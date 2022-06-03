@@ -141,7 +141,7 @@ func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
 	defer vi.queueMutex.Unlock()
 	if vi.GetQueueLength() == 0 {
 		return Song{}, errEmptyQueue
-	} else if vi.IsIndexOutOfBoundsByOne() {
+	} else if vi.isEndOfQueue() {
 		return Song{}, errNoNextSong
 	}
 
@@ -200,7 +200,7 @@ func (vi *VoiceInstance) FinishedPlayingSong() {
 func (vi *VoiceInstance) IncrementQueueIndex() bool {
 
 	// Do not increment past the end of the queue
-	if vi.IsIndexOutOfBoundsByOne() {
+	if vi.isEndOfQueue() {
 		return false
 	}
 	vi.queueIndex++
@@ -217,7 +217,7 @@ func (vi *VoiceInstance) DecrementQueueIndex() bool {
 	return true
 }
 
-func (vi *VoiceInstance) IsIndexOutOfBoundsByOne() bool {
+func (vi *VoiceInstance) isEndOfQueue() bool {
 	return vi.GetQueueLength() == vi.queueIndex
 }
 
