@@ -15,7 +15,6 @@ type configStruct struct {
 	Token               string            `json:"token"`
 	BotPrefix           string            `json:"botPrefix"`
 	OwnerID             string            `json:"ownerID"`
-	DispConfOnStart     bool              `json:"dispConfOnStart"`
 	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
