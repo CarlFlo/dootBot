@@ -6,13 +6,30 @@ import (
 	"regexp"
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/malm"
 )
+
+func CheckVersion(currentVersion string) {
+	// Handles checking if there is an update available for the bot
+	upToDate, githubVersion, err := botVersonHandler(currentVersion)
+	if err != nil {
+		malm.Error("%s", err)
+	}
+
+	if upToDate {
+		malm.Debug("Version %s", currentVersion)
+	} else {
+		malm.Info("New version available! New version: '%s'; Your version: '%s'",
+			githubVersion,
+			currentVersion)
+	}
+}
 
 //	Return true or false if the version is up to date
 //	Return version on system
 //	Return version on github
 //	return error
-func BotVersonHandler(current string) (bool, string, error) {
+func botVersonHandler(current string) (bool, string, error) {
 
 	githubVersion, err := githubVersion()
 

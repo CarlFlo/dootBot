@@ -14,6 +14,12 @@ var DB *gorm.DB
 
 const resetDatabaseOnStart = true
 
+func Connect() {
+	if err := connectToDB(); err != nil {
+		malm.Fatal("Database initialization error: %s", err)
+	}
+}
+
 func connectToDB() error {
 
 	var err error
@@ -69,14 +75,4 @@ func connectToDB() error {
 		&FarmPlot{},
 		&FarmCrop{},
 		&Debug{})
-}
-
-func SetupDatabase() error {
-
-	err := connectToDB()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

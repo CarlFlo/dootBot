@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"time"
+
+	"github.com/CarlFlo/malm"
 )
 
 // Redo this so this isnt required https://www.youtube.com/watch?v=y_eIBmt3JdY
@@ -241,8 +243,8 @@ func createConfig() error {
 	return err
 }
 
-// LoadConfiguration loads the configuration file into memory
-func LoadConfiguration() error {
+// loadConfiguration loads the configuration file into memory
+func loadConfiguration() error {
 
 	if err := readConfig(); err != nil {
 		if err = createConfig(); err != nil {
@@ -253,4 +255,10 @@ func LoadConfiguration() error {
 		}
 	}
 	return nil
+}
+
+func Load() {
+	if err := loadConfiguration(); err != nil {
+		malm.Fatal("Error loading configuration: %s", err)
+	}
 }

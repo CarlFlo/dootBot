@@ -40,6 +40,14 @@ const (
 	urlPattern     string = `[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
 )
 
+func Initialize() {
+	if err := InitializeMusic(); err != nil {
+		malm.Info("Music disabled. %s", err.Error())
+		return
+	}
+	malm.Info("Music initialized")
+}
+
 // InitializeMusic initializes the music goroutine and channel signal
 func InitializeMusic() error {
 
@@ -56,7 +64,6 @@ func InitializeMusic() error {
 		}
 	}()
 
-	malm.Info("Music initialized")
 	youtubeAPIKeyPresent = true
 	return nil
 }
