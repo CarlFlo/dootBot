@@ -19,7 +19,8 @@ func CheckVersion(currentVersion string) {
 	if upToDate {
 		malm.Debug("Version %s", currentVersion)
 	} else {
-		malm.Info("New version available! New version: '%s'; Your version: '%s'",
+		malm.Info("New version available at '%s'! New version: '%s'; Your version: '%s'",
+			config.CONFIG.BotInfo.DepositURL,
 			githubVersion,
 			currentVersion)
 	}
@@ -41,19 +42,6 @@ func botVersonHandler(current string) (bool, string, error) {
 
 	return upToDate, githubVersion, nil
 }
-
-/*
-func currentVersion() string {
-
-	// read file from directory
-	file, err := ioutil.ReadFile("./version")
-	if err != nil {
-		malm.Fatal("%s", err)
-	}
-
-	return string(file)
-}
-*/
 
 // Returns the online version or the error
 func githubVersion() (string, error) {

@@ -36,6 +36,7 @@ type botInfo struct {
 	AppID      string `json:"appID"`
 	Permission uint64 `json:"permission"`
 	VersionURL string `json:"versionURL"`
+	DepositURL string `json:"depositURL"`
 }
 
 type music struct {
@@ -160,6 +161,7 @@ func createConfig() error {
 			AppID:      "",
 			Permission: 139690691648,
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
+			DepositURL: "https://github.com/CarlFlo/DiscordMoneyBot",
 		},
 		Music: music{
 			YoutubeAPIKey:        "",
