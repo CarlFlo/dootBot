@@ -17,7 +17,9 @@ const resetDatabaseOnStart = true
 func Connect() {
 	if err := connectToDB(); err != nil {
 		malm.Fatal("Database initialization error: %s", err)
+		return
 	}
+	malm.Info("Connected to database")
 }
 
 func connectToDB() error {

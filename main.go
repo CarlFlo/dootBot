@@ -29,16 +29,14 @@ func init() {
 	config.Load()
 	database.Connect()
 	music.Initialize()
-	utils.CheckVersion(CurrentVersion)
+	go utils.CheckVersion(CurrentVersion)
 }
 
 func main() {
 
 	session := bot.StartBot()
 
-	time.Sleep(500 * time.Millisecond) // Added this sleep so the messages below will come last
-	// Keeps bot from closing. Waits for CTRL-C
-	malm.Info("Press CTRL-C to initiate shutdown")
+	// Waits for a CTRL-C
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc

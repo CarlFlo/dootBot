@@ -262,5 +262,7 @@ func loadConfiguration() error {
 func Load() {
 	if err := loadConfiguration(); err != nil {
 		malm.Fatal("Error loading configuration: %s", err)
+		return
 	}
+	malm.Info("Configuration loaded")
 }

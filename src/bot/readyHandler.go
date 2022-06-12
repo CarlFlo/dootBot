@@ -10,6 +10,7 @@ import (
 func readyHandler(s *discordgo.Session, ready *discordgo.Ready) {
 
 	malm.Info("Bot is connected and present on %d servers", len(s.State.Guilds))
+	malm.Info("Press CTRL-C to initiate shutdown")
 
 	statusMessage := fmt.Sprintf("on %d servers", len(s.State.Guilds))
 
