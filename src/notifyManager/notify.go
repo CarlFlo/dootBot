@@ -29,7 +29,7 @@ func Initialize() {
 			}
 		}
 	}()
-	malm.Info("Notification manager initialized")
+	malm.Info("Notification manager initialized (%d minute intervals)", config.CONFIG.NotifySettings.CheckInterval)
 }
 
 func Stop() {

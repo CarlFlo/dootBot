@@ -10,5 +10,5 @@ type Notify struct {
 }
 
 func (Notify) TableName() string {
-	return "notifications"
+	return "notify"
 }

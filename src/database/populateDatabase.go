@@ -8,7 +8,7 @@ import (
 
 func PopulateDatabase() {
 	malm.Info("Populating database...")
-	debug()
+	//debug()
 	farming()
 }
 

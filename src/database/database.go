@@ -32,49 +32,32 @@ func connectToDB() error {
 		return err
 	}
 
-	/*
-		var modelList = []interface{}{
-			&User{},
-			&Work{},
-			&Daily{},
-			&Farm{},
-			&FarmPlot{},
-			&FarmCrop{},
-			&Debug{},
-		}
-	*/
-
-	if resetDatabaseOnStart {
-
-		malm.Info("Resetting database...")
-
-		// Populates the database with the default values
-		defer PopulateDatabase()
-
-		tableList := []string{
-			(&User{}).TableName(),
-			(&Work{}).TableName(),
-			(&Daily{}).TableName(),
-			(&Farm{}).TableName(),
-			(&FarmPlot{}).TableName(),
-			(&FarmCrop{}).TableName(),
-			(&Debug{}).TableName()}
-		/*
-			if len(tableList) != len(modelList) {
-				return fmt.Errorf("Table list and model list are not the same length")
-			}
-		*/
-		for _, name := range tableList {
-			DB.Exec(fmt.Sprintf("DROP TABLE %s", name))
-		}
-	}
-
-	// Remeber to add new tables to the tableList and not just here!
-	return DB.AutoMigrate(&User{},
+	var modelList = []interface{}{
+		&User{},
 		&Work{},
 		&Daily{},
 		&Farm{},
 		&FarmPlot{},
 		&FarmCrop{},
-		&Debug{})
+		&Notify{},
+		&Debug{},
+	}
+
+	if resetDatabaseOnStart {
+
+		malm.Info("Resetting database...")
+
+		type tmp interface {
+			TableName() string
+		}
+
+		for _, e := range modelList {
+			table := e.(tmp).TableName()
+			DB.Exec(fmt.Sprintf("DROP TABLE %s", table))
+		}
+		defer PopulateDatabase() // Populates the database with the default values
+	}
+
+	// Remeber to add new tables to the tableList and not just here!
+	return DB.AutoMigrate(modelList...)
 }
