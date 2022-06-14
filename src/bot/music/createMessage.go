@@ -22,9 +22,9 @@ Music Player
 */
 
 // CreateMusicOverviewMessage creates the music overview message
-func CreateMusicOverviewMessage(s *discordgo.Session, m *discordgo.MessageCreate, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
+func CreateMusicOverviewMessage(s *discordgo.Session, channelID string, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, channelID)
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -72,24 +72,33 @@ func CreateMusicOverviewMessage(s *discordgo.Session, m *discordgo.MessageCreate
 
 func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 
-	playOrPaused := "Pause"
-	if !vi.IsPlaying() {
-		playOrPaused = "Play"
-	}
+	buttonRow := discordgo.ActionsRow{}
 
-	buttonRow := discordgo.ActionsRow{
-		Components: []discordgo.MessageComponent{
-			discordgo.Button{
-				Label:    playOrPaused,
-				CustomID: "toggleSong",
-				Style:    3, // Green
-			},
-			discordgo.Button{
-				Label:    "Stop",
-				CustomID: "stopSong",
-				Style:    4, // Red
-			},
-		},
+	if vi.IsLoading() {
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    "Loading...",
+			CustomID: "-",
+			Disabled: true,
+			Style:    2, // Gray
+		})
+
+	} else {
+		playOrPaused := "Pause"
+		if !vi.IsPlaying() {
+			playOrPaused = "Play"
+		}
+
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    playOrPaused,
+			CustomID: "toggleSong",
+			Style:    3, // Green
+		})
+
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    "Stop",
+			CustomID: "stopSong",
+			Style:    4, // Red
+		})
 	}
 
 	if vi.GetQueueLength() > 1 {

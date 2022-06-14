@@ -27,6 +27,7 @@ type VoiceInstance struct {
 	guildID    string
 	done       chan error // Used to interrupt the stream
 	messageID  string
+	channelID  string
 	DJ
 }
 
@@ -34,6 +35,7 @@ type VoiceInstance struct {
 type DJ struct {
 	playing    bool
 	paused     bool
+	loading    bool
 	stop       bool
 	looping    bool
 	queueIndex int
@@ -42,10 +44,12 @@ type DJ struct {
 func (vi *VoiceInstance) playingStarted() {
 	vi.playing = true
 	vi.paused = false
+	vi.loading = true
 }
 func (vi *VoiceInstance) playingStopped() {
 	vi.stop = false
 	vi.playing = false
+	vi.loading = false
 }
 
 // Plays the Queue
@@ -59,9 +63,9 @@ func (vi *VoiceInstance) PlayQueue() {
 
 	for {
 		vi.playingStarted()
+
 		if err := vi.voice.Speaking(true); err != nil {
 			malm.Error("%s", err)
-
 			return
 		}
 
@@ -69,13 +73,11 @@ func (vi *VoiceInstance) PlayQueue() {
 		err := vi.StreamAudio()
 		if err != nil {
 			malm.Error("%s", err)
-
 			return
 		}
 
 		if vi.stop {
 			vi.ClearQueue()
-
 			return
 		}
 		vi.FinishedPlayingSong()
@@ -120,6 +122,20 @@ func (vi *VoiceInstance) StreamAudio() error {
 
 	vi.done = make(chan error)
 	vi.stream = dca.NewStream(vi.encoder, vi.voice, vi.done)
+
+	// Update the message to reflect that the song is playing
+
+	vi.loading = false
+	msgEdit := &discordgo.MessageEdit{
+		Channel: vi.GetChannelID(),
+		ID:      vi.GetMessageID(),
+	}
+
+	CreateMusicOverviewMessage(vi.Session, vi.GetChannelID(), nil, msgEdit)
+
+	if _, err := vi.Session.ChannelMessageEditComplex(msgEdit); err != nil {
+		malm.Error("cannot create message edit, error: %s", err)
+	}
 
 	// Ignore this problem. Using a range here does not work properly for this purpose
 	for {
@@ -258,6 +274,10 @@ func (vi *VoiceInstance) Prev() bool {
 	return true
 }
 
+func (vi *VoiceInstance) IsLoading() bool {
+	return vi.loading
+}
+
 func (vi *VoiceInstance) IsPlaying() bool {
 	return vi.playing
 }
@@ -297,4 +317,20 @@ func (vi *VoiceInstance) Pause() {
 
 func (vi *VoiceInstance) GetGuildID() string {
 	return vi.guildID
+}
+
+func (vi *VoiceInstance) SetMessageID(id string) {
+	vi.messageID = id
+}
+
+func (vi *VoiceInstance) GetMessageID() string {
+	return vi.messageID
+}
+
+func (vi *VoiceInstance) SetChannelID(id string) {
+	vi.channelID = id
+}
+
+func (vi *VoiceInstance) GetChannelID() string {
+	return vi.channelID
 }

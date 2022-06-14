@@ -75,7 +75,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, m.ChannelID)
 	vi := instances[guildID]
 	if vi == nil {
 		// Not initialized
@@ -119,12 +119,20 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	complexMessage := &discordgo.MessageSend{}
 
-	CreateMusicOverviewMessage(s, m, complexMessage, nil)
+	// If its not playing and is not paused. Then it must be loading
+	if !vi.IsPlaying() && !vi.IsPaused() {
+		vi.loading = true
+	}
 
-	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
+	CreateMusicOverviewMessage(vi.Session, m.ChannelID, complexMessage, nil)
+
+	msg, err := vi.Session.ChannelMessageSendComplex(m.ChannelID, complexMessage)
+	if err != nil {
 		malm.Error("Could not send message! %s", err)
 		return
 	}
+	vi.SetMessageID(msg.ID)
+	vi.SetChannelID(msg.ChannelID)
 
 	// The bot is already playing music so we dont send the start signal
 	if !vi.IsPlaying() {
@@ -137,7 +145,7 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, m.ChannelID)
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -153,7 +161,7 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, m.ChannelID)
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -174,7 +182,7 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, m.ChannelID)
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -192,7 +200,7 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
-	guildID := utils.GetGuild(s, m)
+	guildID := utils.GetGuild(s, m.ChannelID)
 	vi := instances[guildID]
 
 	if vi == nil {

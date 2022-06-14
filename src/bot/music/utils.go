@@ -157,7 +157,7 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 		// Instance not initialized
 		musicMutex.Lock()
 		vi = &VoiceInstance{}
-		guildID := utils.GetGuild(s, m)
+		guildID := utils.GetGuild(s, m.ChannelID)
 		instances[guildID] = vi
 		vi.guildID = guildID
 		vi.Session = s

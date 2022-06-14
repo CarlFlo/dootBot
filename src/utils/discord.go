@@ -37,8 +37,8 @@ func sendMessageEmbed(s *discordgo.Session, m *discordgo.MessageCreate, content 
 /* */
 
 // GetGuild returns the guild ID from a channel ID
-func GetGuild(s *discordgo.Session, m *discordgo.MessageCreate) string {
-	channel, err := s.Channel(m.ChannelID)
+func GetGuild(s *discordgo.Session, channelID string) string {
+	channel, err := s.Channel(channelID)
 	if err != nil {
 		malm.Warn("Failed to get channel: %s", err)
 	}
