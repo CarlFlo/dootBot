@@ -20,6 +20,7 @@ type configStruct struct {
 	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
+	NotifySettings      notifySettings    `json:"notifySettings"`
 	Music               music             `json:"music"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
@@ -37,6 +38,10 @@ type botInfo struct {
 	Permission uint64 `json:"permission"`
 	VersionURL string `json:"versionURL"`
 	DepositURL string `json:"depositURL"`
+}
+
+type notifySettings struct {
+	CheckInterval time.Duration `json:"checkDBInterval"`
 }
 
 type music struct {
@@ -163,6 +168,9 @@ func createConfig() error {
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
 			DepositURL: "https://github.com/CarlFlo/DiscordMoneyBot",
 		},
+		NotifySettings: notifySettings{
+			CheckInterval: 5,
+		},
 		Music: music{
 			YoutubeAPIKey:        "",
 			MaxSongLengthMinutes: 12,
@@ -264,5 +272,34 @@ func Load() {
 		malm.Fatal("Error loading configuration: %s", err)
 		return
 	}
+
+	requiredVariableCheck()
+
 	malm.Info("Configuration loaded")
+}
+
+// Some variables are required for the bot to work
+func requiredVariableCheck() {
+
+	// This function checks if some important variables are set in the config file
+	problem := false
+
+	if len(CONFIG.Token) == 0 {
+		malm.Error("No bot Token provided in the config file!")
+		problem = true
+	}
+
+	if len(CONFIG.BotInfo.AppID) == 0 {
+		malm.Error("No AppID provided in the config file! (The bot's Discord ID)")
+		problem = true
+	}
+
+	if len(CONFIG.OwnerID) == 0 {
+		malm.Error("No OwnerID provided in the config file! (This should be your Discord ID)")
+		problem = true
+	}
+
+	if problem {
+		malm.Fatal("There are at least one variable missing in the configuration file. Please fix the above errors!")
+	}
 }
