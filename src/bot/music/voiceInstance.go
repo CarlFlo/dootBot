@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
+	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jung-m/dca"
@@ -19,7 +21,6 @@ var (
 
 type VoiceInstance struct {
 	voice      *discordgo.VoiceConnection
-	Session    *discordgo.Session
 	encoder    *dca.EncodeSession
 	stream     *dca.StreamingSession
 	queueMutex sync.Mutex
@@ -39,6 +40,17 @@ type DJ struct {
 	stop       bool
 	looping    bool
 	queueIndex int
+}
+
+func (vi *VoiceInstance) New(channelID string) error {
+
+	guildID, err := utils.GetGuild(channelID)
+	if err != nil {
+		vi = nil
+		return err
+	}
+	vi.guildID = guildID
+	return nil
 }
 
 func (vi *VoiceInstance) playingStarted() {
@@ -131,9 +143,9 @@ func (vi *VoiceInstance) StreamAudio() error {
 		ID:      vi.GetMessageID(),
 	}
 
-	CreateMusicOverviewMessage(vi.Session, vi.GetChannelID(), nil, msgEdit)
+	CreateMusicOverviewMessage(vi.GetChannelID(), nil, msgEdit)
 
-	if _, err := vi.Session.ChannelMessageEditComplex(msgEdit); err != nil {
+	if _, err := context.SESSION.ChannelMessageEditComplex(msgEdit); err != nil {
 		malm.Error("cannot create message edit, error: %s", err)
 	}
 

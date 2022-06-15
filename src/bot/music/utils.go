@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
@@ -145,7 +146,7 @@ func isMusicEnabled(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 	return youtubeAPIKeyPresent
 }
 
-func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
+func joinVoice(vi *VoiceInstance, m *discordgo.MessageCreate) *VoiceInstance {
 
 	voiceChannelID := utils.FindVoiceChannel(m.Author.ID)
 	if len(voiceChannelID) == 0 {
@@ -158,20 +159,19 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 		musicMutex.Lock()
 
 		vi = &VoiceInstance{}
-		guildID, err := utils.GetGuild(m.ChannelID)
-		if err != nil {
-			malm.Error("Error getting guild ID: %s", err.Error())
+
+		if err := vi.New(m.ChannelID); err != nil {
+			musicMutex.Unlock()
 			return nil
 		}
-		vi.guildID = guildID
-		vi.Session = s
+
 		instances[vi.guildID] = vi
 
 		musicMutex.Unlock()
 	}
 
 	var err error
-	vi.voice, err = s.ChannelVoiceJoin(vi.GetGuildID(), voiceChannelID, false, true)
+	vi.voice, err = context.SESSION.ChannelVoiceJoin(vi.GetGuildID(), voiceChannelID, false, true)
 
 	if err != nil {
 		utils.SendMessageFailure(m, "Failed to join voice channel")
@@ -188,7 +188,7 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 	return vi
 }
 
-func leaveVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) {
+func leaveVoice(vi *VoiceInstance, m *discordgo.MessageCreate) {
 
 	vi.Disconnect()
 

@@ -22,7 +22,7 @@ Music Player
 */
 
 // CreateMusicOverviewMessage creates the music overview message
-func CreateMusicOverviewMessage(s *discordgo.Session, channelID string, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
+func CreateMusicOverviewMessage(channelID string, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
 
 	guildID, err := utils.GetGuild(channelID)
 	if err != nil {

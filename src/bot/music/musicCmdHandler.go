@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
@@ -84,7 +85,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	vi := instances[guildID]
 	if vi == nil {
 		// Not initialized
-		vi = joinVoice(vi, s, m)
+		vi = joinVoice(vi, m)
 		if vi == nil {
 			return
 		}
@@ -128,9 +129,9 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		vi.loading = true
 	}
 
-	CreateMusicOverviewMessage(vi.Session, m.ChannelID, complexMessage, nil)
+	CreateMusicOverviewMessage(m.ChannelID, complexMessage, nil)
 
-	msg, err := vi.Session.ChannelMessageSendComplex(m.ChannelID, complexMessage)
+	msg, err := context.SESSION.ChannelMessageSendComplex(m.ChannelID, complexMessage)
 	if err != nil {
 		malm.Error("Could not send message! %s", err)
 		return
@@ -162,7 +163,7 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	leaveVoice(vi, s, m)
+	leaveVoice(vi, m)
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
