@@ -36,40 +36,35 @@ func CreateMusicOverviewMessage(channelID string, i interface{}) {
 		return
 	}
 
-	title, description, url := messageTitleAndDescription(vi)
-
 	switch msg := i.(type) {
 	case *discordgo.MessageSend:
-		msg.Embeds = []*discordgo.MessageEmbed{
-			{
-				Title:       title,
-				URL:         url,
-				Description: description,
-				Color:       config.CONFIG.Colors.Neutral,
-				Fields:      messageCreateFields(vi),
-				Thumbnail:   messageThumbnail(vi),
-				Author:      messageAuthor(vi),
-				Footer:      messageFooter(vi),
-			},
-		}
+		msg.Embeds = createEmbeds(vi)
+		messageComponents(vi, &msg.Components)
 
-		messageComponents(vi, &msg.Components)
 	case *discordgo.MessageEdit:
-		msg.Embeds = []*discordgo.MessageEmbed{
-			{
-				Title:       title,
-				URL:         url,
-				Description: description,
-				Color:       config.CONFIG.Colors.Neutral,
-				Fields:      messageCreateFields(vi),
-				Thumbnail:   messageThumbnail(vi),
-				Author:      messageAuthor(vi),
-				Footer:      messageFooter(vi),
-			},
-		}
+		msg.Embeds = createEmbeds(vi)
 		messageComponents(vi, &msg.Components)
+
 	default:
-		malm.Warn("Unknown message type when creating a message")
+		malm.Fatal("Unknown message type when creating a message")
+	}
+}
+
+func createEmbeds(vi *VoiceInstance) []*discordgo.MessageEmbed {
+
+	title, description, url := messageTitleAndDescription(vi)
+
+	return []*discordgo.MessageEmbed{
+		{
+			Title:       title,
+			URL:         url,
+			Description: description,
+			Color:       config.CONFIG.Colors.Neutral,
+			Fields:      messageCreateFields(vi),
+			Thumbnail:   messageThumbnail(vi),
+			Author:      messageAuthor(vi),
+			Footer:      messageFooter(vi),
+		},
 	}
 }
 
