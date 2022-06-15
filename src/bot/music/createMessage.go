@@ -22,7 +22,7 @@ Music Player
 */
 
 // CreateMusicOverviewMessage creates the music overview message
-func CreateMusicOverviewMessage(channelID string, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
+func CreateMusicOverviewMessage(channelID string, i interface{}) {
 
 	guildID, err := utils.GetGuild(channelID)
 	if err != nil {
@@ -38,10 +38,9 @@ func CreateMusicOverviewMessage(channelID string, ms *discordgo.MessageSend, me 
 
 	title, description, url := messageTitleAndDescription(vi)
 
-	// Received a message send
-	if ms != nil {
-
-		ms.Embeds = []*discordgo.MessageEmbed{
+	switch msg := i.(type) {
+	case *discordgo.MessageSend:
+		msg.Embeds = []*discordgo.MessageEmbed{
 			{
 				Title:       title,
 				URL:         url,
@@ -54,24 +53,24 @@ func CreateMusicOverviewMessage(channelID string, ms *discordgo.MessageSend, me 
 			},
 		}
 
-		messageComponents(vi, &ms.Components)
-		return
+		messageComponents(vi, &msg.Components)
+	case *discordgo.MessageEdit:
+		msg.Embeds = []*discordgo.MessageEmbed{
+			{
+				Title:       title,
+				URL:         url,
+				Description: description,
+				Color:       config.CONFIG.Colors.Neutral,
+				Fields:      messageCreateFields(vi),
+				Thumbnail:   messageThumbnail(vi),
+				Author:      messageAuthor(vi),
+				Footer:      messageFooter(vi),
+			},
+		}
+		messageComponents(vi, &msg.Components)
+	default:
+		malm.Warn("Unknown message type when creating a message")
 	}
-
-	// Received a message edit
-	me.Embeds = []*discordgo.MessageEmbed{
-		{
-			Title:       title,
-			URL:         url,
-			Description: description,
-			Color:       config.CONFIG.Colors.Neutral,
-			Fields:      messageCreateFields(vi),
-			Thumbnail:   messageThumbnail(vi),
-			Author:      messageAuthor(vi),
-			Footer:      messageFooter(vi),
-		},
-	}
-	messageComponents(vi, &me.Components)
 }
 
 func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {

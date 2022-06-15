@@ -143,7 +143,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 		ID:      vi.GetMessageID(),
 	}
 
-	CreateMusicOverviewMessage(vi.GetChannelID(), nil, msgEdit)
+	CreateMusicOverviewMessage(vi.GetChannelID(), msgEdit)
 
 	if _, err := context.SESSION.ChannelMessageEditComplex(msgEdit); err != nil {
 		malm.Error("cannot create message edit, error: %s", err)

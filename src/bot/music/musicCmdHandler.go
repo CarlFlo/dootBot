@@ -129,7 +129,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		vi.loading = true
 	}
 
-	CreateMusicOverviewMessage(m.ChannelID, complexMessage, nil)
+	CreateMusicOverviewMessage(m.ChannelID, complexMessage)
 
 	msg, err := context.SESSION.ChannelMessageSendComplex(m.ChannelID, complexMessage)
 	if err != nil {
