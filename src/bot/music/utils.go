@@ -139,7 +139,7 @@ func youtubeSearch(query string) (string, string, string, string, string, error)
 func isMusicEnabled(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 
 	if !youtubeAPIKeyPresent {
-		utils.SendMessageNeutral(s, m, "Music is currently disabled")
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 	}
 
 	return youtubeAPIKeyPresent
@@ -147,20 +147,26 @@ func isMusicEnabled(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 
 func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCreate) *VoiceInstance {
 
-	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
+	voiceChannelID := utils.FindVoiceChannel(m.Author.ID)
 	if len(voiceChannelID) == 0 {
-		utils.SendMessageFailure(s, m, "You are not in a voice channel")
+		utils.SendMessageFailure(m, "You are not in a voice channel")
 		return nil
 	}
 
 	if vi == nil {
 		// Instance not initialized
 		musicMutex.Lock()
+
 		vi = &VoiceInstance{}
-		guildID := utils.GetGuild(s, m.ChannelID)
-		instances[guildID] = vi
+		guildID, err := utils.GetGuild(m.ChannelID)
+		if err != nil {
+			malm.Error("Error getting guild ID: %s", err.Error())
+			return nil
+		}
 		vi.guildID = guildID
 		vi.Session = s
+		instances[vi.guildID] = vi
+
 		musicMutex.Unlock()
 	}
 
@@ -168,7 +174,7 @@ func joinVoice(vi *VoiceInstance, s *discordgo.Session, m *discordgo.MessageCrea
 	vi.voice, err = s.ChannelVoiceJoin(vi.GetGuildID(), voiceChannelID, false, true)
 
 	if err != nil {
-		utils.SendMessageFailure(s, m, "Failed to join voice channel")
+		utils.SendMessageFailure(m, "Failed to join voice channel")
 		vi.Stop()
 		return nil
 	}

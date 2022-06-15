@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot"
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/music"
 	"github.com/CarlFlo/DiscordMoneyBot/src/config"
 	"github.com/CarlFlo/DiscordMoneyBot/src/database"
@@ -38,6 +39,7 @@ func init() {
 func main() {
 
 	session := bot.StartBot()
+	context.SESSION = session
 
 	// Waits for a CTRL-C
 	sc := make(chan os.Signal, 1)

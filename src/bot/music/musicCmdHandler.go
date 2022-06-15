@@ -75,21 +75,25 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m.ChannelID)
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
+
 	vi := instances[guildID]
 	if vi == nil {
 		// Not initialized
 		vi = joinVoice(vi, s, m)
 		if vi == nil {
-			malm.Error("Failed to join voice channel")
 			return
 		}
 	}
 
 	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(s, m.Author.ID)
+	voiceChannelID := utils.FindVoiceChannel(m.Author.ID)
 	if vi.voice.ChannelID != voiceChannelID {
-		utils.SendMessageFailure(s, m, "You are not in the same voice channel as the bot")
+		utils.SendMessageFailure(m, "You are not in the same voice channel as the bot")
 		return
 	}
 
@@ -105,17 +109,17 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	var song Song
 	inputText := strings.Join(input.GetArgs(), " ")
 
-	err := parseMusicInput(m, inputText, &song)
+	err = parseMusicInput(m, inputText, &song)
 	if err != nil {
 		malm.Error("%s", err)
-		utils.SendMessageFailure(s, m, fmt.Sprintf("Something went wrong when getting the song. The maximum duration for a song is %d", config.CONFIG.Music.MaxSongLengthMinutes))
+		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song. The maximum duration for a song is %d", config.CONFIG.Music.MaxSongLengthMinutes))
 		return
 	}
 
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	utils.SendMessageNeutral(s, m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+	utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
 
 	complexMessage := &discordgo.MessageSend{}
 
@@ -145,7 +149,12 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m.ChannelID)
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
+
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -161,7 +170,11 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID := utils.GetGuild(s, m.ChannelID)
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -170,9 +183,9 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	if vi.Skip() {
-		utils.SendMessageSuccess(s, m, "Skipped the song")
+		utils.SendMessageSuccess(m, "Skipped the song")
 	} else {
-		utils.SendMessageFailure(s, m, "There is no song to skip")
+		utils.SendMessageFailure(m, "There is no song to skip")
 	}
 }
 
@@ -182,7 +195,11 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
-	guildID := utils.GetGuild(s, m.ChannelID)
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
 	vi := instances[guildID]
 
 	if vi == nil {
@@ -200,7 +217,11 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
-	guildID := utils.GetGuild(s, m.ChannelID)
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
 	vi := instances[guildID]
 
 	if vi == nil {

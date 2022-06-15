@@ -15,5 +15,5 @@ func Debug(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdI
 
 	currentOS := runtime.GOOS
 
-	utils.SendMessageNeutral(s, m, fmt.Sprintf("OS: %s", currentOS))
+	utils.SendMessageNeutral(m, fmt.Sprintf("OS: %s", currentOS))
 }

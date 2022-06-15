@@ -17,7 +17,7 @@ var cache = make(map[string]time.Time)
 func Ping(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	// Send ping
-	pingMsg, err := utils.SendDirectMessage(s, m, "Pinging...")
+	pingMsg, err := utils.SendDirectMessage(m, "Pinging...")
 	if err != nil {
 		malm.Error("Error: %s", err)
 		return

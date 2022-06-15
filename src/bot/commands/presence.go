@@ -81,7 +81,7 @@ func Presence(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.C
 	} else {
 		// Output to discord. Discord message limit is ~5 messages a second
 		for _, line := range outputBuffer {
-			utils.SendDirectMessage(s, m, fmt.Sprintf("```%s```", line))
+			utils.SendDirectMessage(m, fmt.Sprintf("```%s```", line))
 		}
 	}
 }

@@ -16,7 +16,7 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(1) {
 		// only ,farm plant. Missing plant name. Give some help
-		utils.SendMessageFailure(s, m, fmt.Sprintf("You need to specify which crop to plant. Use the command '%sfarm [c | crops]' to see a list of available crops.", config.CONFIG.BotPrefix))
+		utils.SendMessageFailure(m, fmt.Sprintf("You need to specify which crop to plant. Use the command '%sfarm [c | crops]' to see a list of available crops.", config.CONFIG.BotPrefix))
 		return
 	}
 
@@ -39,9 +39,9 @@ func farmPlant(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Send message to the user
 	if ok {
-		utils.SendMessageSuccess(s, m, response)
+		utils.SendMessageSuccess(m, response)
 	} else {
-		utils.SendMessageFailure(s, m, response)
+		utils.SendMessageFailure(m, response)
 	}
 
 	// Update the database

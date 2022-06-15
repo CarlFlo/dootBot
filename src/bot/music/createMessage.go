@@ -24,7 +24,11 @@ Music Player
 // CreateMusicOverviewMessage creates the music overview message
 func CreateMusicOverviewMessage(s *discordgo.Session, channelID string, ms *discordgo.MessageSend, me *discordgo.MessageEdit) {
 
-	guildID := utils.GetGuild(s, channelID)
+	guildID, err := utils.GetGuild(channelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return
+	}
 	vi := instances[guildID]
 
 	if vi == nil {

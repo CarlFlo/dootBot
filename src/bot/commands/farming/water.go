@@ -23,9 +23,9 @@ func farmWaterCrops(s *discordgo.Session, m *discordgo.MessageCreate) {
 	ok := waterShared(&farm, &response, true)
 
 	if ok {
-		utils.SendMessageSuccess(s, m, response)
+		utils.SendMessageSuccess(m, response)
 	} else {
-		utils.SendMessageFailure(s, m, response)
+		utils.SendMessageFailure(m, response)
 	}
 
 	farm.Save()

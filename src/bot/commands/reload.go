@@ -17,5 +17,5 @@ func Reload(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cmd
 		return
 	}
 
-	utils.SendDirectMessage(s, m, "Config reloaded")
+	utils.SendDirectMessage(m, "Config reloaded")
 }
