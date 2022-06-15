@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jung-m/dca"
@@ -42,13 +41,7 @@ type DJ struct {
 	queueIndex int
 }
 
-func (vi *VoiceInstance) New(channelID string) error {
-
-	guildID, err := utils.GetGuild(channelID)
-	if err != nil {
-		vi = nil
-		return err
-	}
+func (vi *VoiceInstance) New(guildID string) error {
 	vi.guildID = guildID
 	return nil
 }
@@ -209,6 +202,11 @@ func (vi *VoiceInstance) GetQueueLength() int {
 	return len(vi.queue)
 }
 
+// Takes into account the current queue index
+func (vi *VoiceInstance) GetQueueLengthRelative() int {
+	return len(vi.queue) - vi.queueIndex
+}
+
 // Returns the song from the queue with the given index
 func (vi *VoiceInstance) GetSongByIndex(i int) Song {
 	return vi.queue[i]
@@ -321,7 +319,8 @@ func (vi *VoiceInstance) Stop() bool {
 	return true
 }
 
-func (vi *VoiceInstance) Pause() {
+// Toggles between play and pause
+func (vi *VoiceInstance) PauseToggle() {
 
 	vi.paused = !vi.paused
 	vi.stream.SetPaused(vi.paused)

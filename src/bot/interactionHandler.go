@@ -7,6 +7,7 @@ import (
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/daily"
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/farming"
 	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/work"
+	"github.com/CarlFlo/DiscordMoneyBot/src/bot/music"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -53,7 +54,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "PD": // PD: Profile Daily - User did their daily from the profile message
 		daily.DoDailyInteraction(commandIssuerID, &response, i.Interaction.Member.User, msgEdit)
 	case "toggleSong":
-		malm.Info("Toggling song")
+		music.PlayMusicInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "stopSong":
 		malm.Info("Stopping song")
 	case "clearQueue":

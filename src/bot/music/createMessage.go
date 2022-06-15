@@ -60,10 +60,10 @@ func createEmbeds(vi *VoiceInstance) []*discordgo.MessageEmbed {
 			URL:         url,
 			Description: description,
 			Color:       config.CONFIG.Colors.Neutral,
-			Fields:      messageCreateFields(vi),
-			Thumbnail:   messageThumbnail(vi),
-			Author:      messageAuthor(vi),
-			Footer:      messageFooter(vi),
+			//Fields:      messageCreateFields(vi),
+			Thumbnail: messageThumbnail(vi),
+			Author:    messageAuthor(vi),
+			Footer:    messageFooter(vi),
 		},
 	}
 }
@@ -152,10 +152,20 @@ func messageTitleAndDescription(vi *VoiceInstance) (string, string, string) {
 	}
 
 	title = song.Title
-	description = song.GetDuration()
 
-	if vi.GetQueueLength() > 1 {
-		description += "\nQueue:"
+	// Display the queue
+	if vi.GetQueueLengthRelative() > 1 {
+
+		description = "**Up Next**"
+
+		upTo := int(math.Min(math.Min(float64(vi.GetQueueLength()+vi.GetQueueIndex()), float64(vi.GetQueueIndex()+4)), float64(vi.GetQueueLength())))
+
+		for i := vi.GetQueueIndex() + 1; i < upTo; i++ {
+			song := vi.GetSongByIndex(i)
+
+			description = fmt.Sprintf("%s\n%s", description, song.Title)
+		}
+
 	}
 
 	return title, description, song.GetYoutubeURL()
@@ -183,7 +193,6 @@ func messageCreateFields(vi *VoiceInstance) []*discordgo.MessageEmbedField {
 func messageThumbnail(vi *VoiceInstance) *discordgo.MessageEmbedThumbnail {
 
 	song, err := vi.GetFirstInQueue()
-
 	if err != nil {
 		return nil
 	}
@@ -205,6 +214,11 @@ func messageFooter(vi *VoiceInstance) *discordgo.MessageEmbedFooter {
 
 	if length == 1 {
 		text = fmt.Sprintf("%d song in the queue", length)
+	}
+
+	song, err := vi.GetFirstInQueue()
+	if err == nil {
+		text += fmt.Sprintf("\nCurrent song duration: %s", song.GetDuration())
 	}
 
 	return &discordgo.MessageEmbedFooter{

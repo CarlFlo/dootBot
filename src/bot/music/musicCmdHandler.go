@@ -72,21 +72,24 @@ func InitializeMusic() error {
 // Same as resume
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
-	if !isMusicEnabled(s, m) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
 	guildID, err := utils.GetGuild(m.ChannelID)
 	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
+		malm.Error("Error getting guild ID: %s", err)
 		return
 	}
 
 	vi := instances[guildID]
+	var errStr string
 	if vi == nil {
 		// Not initialized
-		vi = joinVoice(vi, m)
+		vi, errStr = joinVoice(vi, m.Author.ID, m.ChannelID)
 		if vi == nil {
+			utils.SendMessageFailure(m, errStr)
 			return
 		}
 	}
@@ -146,7 +149,8 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 }
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if !isMusicEnabled(s, m) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
@@ -167,7 +171,8 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if !isMusicEnabled(s, m) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
@@ -192,7 +197,8 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 // ClearQueueMusic clears the queue. Does not include the current song or previus songs
 func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if !isMusicEnabled(s, m) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
@@ -214,9 +220,12 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 
 // PauseMusic pauyses the music
 func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if !isMusicEnabled(s, m) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
+
+	malm.Info("PauseMusic - ChannelID: '%s'", m.ChannelID)
 
 	guildID, err := utils.GetGuild(m.ChannelID)
 	if err != nil {
@@ -230,5 +239,5 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
-	vi.Pause()
+	vi.PauseToggle()
 }
