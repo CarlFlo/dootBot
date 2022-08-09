@@ -47,9 +47,7 @@ func Pong(s *discordgo.Session, mu *discordgo.MessageUpdate) {
 		delete(cache, mu.ID)
 
 		// Parses the time and ignores the error
-		//newTime, _ := mu.EditedTimestamp.Parse()
-		newTime := mu.EditedTimestamp
-		diff := newTime.Sub(cachedTime)
+		diff := mu.EditedTimestamp.Sub(cachedTime)
 
 		s.ChannelMessageEdit(mu.ChannelID, mu.ID, fmt.Sprintf("The ping is %v", diff))
 	}
