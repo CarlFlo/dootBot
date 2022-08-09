@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/bwmarrin/discordgo"
 )
 

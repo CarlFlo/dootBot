@@ -3,9 +3,9 @@ package daily
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands"
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/database"
+	"github.com/CarlFlo/dootBot/src/bot/commands"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/database"
 	"github.com/bwmarrin/discordgo"
 )
 

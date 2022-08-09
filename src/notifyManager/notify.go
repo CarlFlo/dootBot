@@ -3,7 +3,7 @@ package notifyManager
 import (
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
 )
 

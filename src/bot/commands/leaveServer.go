@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/bot/structs"
+	"github.com/CarlFlo/dootBot/src/utils"
 
 	"github.com/bwmarrin/discordgo"
 )

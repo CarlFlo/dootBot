@@ -3,11 +3,11 @@ package bot
 import (
 	"strings"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/daily"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/farming"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/commands/work"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/music"
+	"github.com/CarlFlo/dootBot/src/bot/commands"
+	"github.com/CarlFlo/dootBot/src/bot/commands/daily"
+	"github.com/CarlFlo/dootBot/src/bot/commands/farming"
+	"github.com/CarlFlo/dootBot/src/bot/commands/work"
+	"github.com/CarlFlo/dootBot/src/bot/music"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )

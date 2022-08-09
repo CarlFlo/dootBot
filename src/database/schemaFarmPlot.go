@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 	"gorm.io/gorm"
 )
 

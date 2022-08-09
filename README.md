@@ -1,5 +1,5 @@
 <h1 align="center">
-  Discord Money Bot
+  DootBot
 </h1>
 
 <p align="center">
@@ -26,11 +26,9 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - Engaging the users by providing daily tasks 
 
+- User activities with progression
+
 - Music player with queue
-
-- Progression!
-
-- SQLite database
 
 ## Commands
 

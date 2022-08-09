@@ -1,7 +1,7 @@
 package music
 
 import (
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/bwmarrin/discordgo"
 )
 

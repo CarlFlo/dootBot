@@ -10,9 +10,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/bot/context"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -190,6 +190,7 @@ func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, s
 func leaveVoice(vi *VoiceInstance, m *discordgo.MessageCreate) {
 
 	vi.Disconnect()
+	vi.Close()
 
 	musicMutex.Lock()
 	delete(instances, vi.GetGuildID())

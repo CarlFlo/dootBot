@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/bot/context"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -41,6 +41,13 @@ func GetGuild(channelID string) (string, error) {
 
 	channel, err := context.SESSION.Channel(channelID)
 	if err != nil {
+		/*
+			// Workaround for msg interactions when creating a new session
+			// This can cause problems if the API requests fails for any other reason
+			if strings.Contains(err.Error(), "Unknown Channel") {
+				return channelID, nil
+			}*/
+
 		return "", err
 	}
 	return channel.GuildID, nil

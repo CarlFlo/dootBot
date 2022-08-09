@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/structs"
+	"github.com/CarlFlo/dootBot/src/bot/structs"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"

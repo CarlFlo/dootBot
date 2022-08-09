@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
+	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jung-m/dca"
@@ -41,9 +41,20 @@ type DJ struct {
 	queueIndex int
 }
 
+// New creates a new VoiceInstance. Remember to call Close() when before deleting the object
 func (vi *VoiceInstance) New(guildID string) error {
 	vi.guildID = guildID
 	return nil
+}
+
+// Close acts as the destructor for the object
+func (vi *VoiceInstance) Close() {
+
+	// Delete the interaction buttons from the message
+
+	// For now will delete the message
+	context.SESSION.ChannelMessageDelete(vi.GetChannelID(), vi.GetMessageID())
+	malm.Info("Ending music session. Deleted the bot message")
 }
 
 func (vi *VoiceInstance) playingStarted() {

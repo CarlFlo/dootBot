@@ -3,9 +3,9 @@ package farming
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/database"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/database"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )

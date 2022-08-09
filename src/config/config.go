@@ -166,7 +166,7 @@ func createConfig() error {
 			AppID:      "",
 			Permission: 139690691648,
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
-			DepositURL: "https://github.com/CarlFlo/DiscordMoneyBot",
+			DepositURL: "https://github.com/CarlFlo/dootBot",
 		},
 		NotifySettings: notifySettings{
 			CheckInterval: 5,

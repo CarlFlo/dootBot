@@ -3,7 +3,7 @@ package structs
 import (
 	"strings"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 )
 
 // CmdInput holds a command

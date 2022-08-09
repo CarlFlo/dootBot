@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

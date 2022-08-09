@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/bwmarrin/discordgo"
 	"gorm.io/gorm"
 )

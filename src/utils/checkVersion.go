@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
 )
 
@@ -26,10 +26,10 @@ func CheckVersion(currentVersion string) {
 	}
 }
 
-//	Return true or false if the version is up to date
-//	Return version on system
-//	Return version on github
-//	return error
+// Return true or false if the version is up to date
+// Return version on system
+// Return version on github
+// return error
 func botVersonHandler(current string) (bool, string, error) {
 
 	githubVersion, err := githubVersion()

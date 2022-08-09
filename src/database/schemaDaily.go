@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"gorm.io/gorm"
 )
 

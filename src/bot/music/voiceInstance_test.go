@@ -3,7 +3,7 @@ package music
 import (
 	"testing"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/test"
+	"github.com/CarlFlo/dootBot/src/test"
 )
 
 func TestClearQueue(t *testing.T) {

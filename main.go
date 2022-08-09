@@ -8,13 +8,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/context"
-	"github.com/CarlFlo/DiscordMoneyBot/src/bot/music"
-	"github.com/CarlFlo/DiscordMoneyBot/src/config"
-	"github.com/CarlFlo/DiscordMoneyBot/src/database"
-	"github.com/CarlFlo/DiscordMoneyBot/src/notifyManager"
-	"github.com/CarlFlo/DiscordMoneyBot/src/utils"
+	"github.com/CarlFlo/dootBot/src/bot"
+	"github.com/CarlFlo/dootBot/src/bot/context"
+	"github.com/CarlFlo/dootBot/src/bot/music"
+	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/database"
+	"github.com/CarlFlo/dootBot/src/notifyManager"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 )
 
