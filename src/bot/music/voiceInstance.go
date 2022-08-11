@@ -225,6 +225,7 @@ func (vi *VoiceInstance) GetSongByIndex(i int) Song {
 
 //////////////////////////// Queue code end ////////////////////////////
 
+// Call once the song has finished playing, or you want to skip to the next song
 func (vi *VoiceInstance) FinishedPlayingSong() {
 
 	if vi.IsLooping() {
