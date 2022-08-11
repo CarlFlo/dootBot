@@ -12,7 +12,10 @@
   <a href="#setup">Setup</a>
   •
   <a href="#todo">Todo</a>
+  
 </p>
+
+![Tests](https://github.com/CarlFlo/dootBot/actions/workflows/go.yml/badge.svg)
 
 ## About
 
