@@ -1,8 +1,9 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/CarlFlo/malm"
@@ -139,13 +140,16 @@ func ReloadConfig() error {
 // readConfig will read the config file
 func readConfig() error {
 
-	file, err := ioutil.ReadFile("./config.json")
-
+	file, err := os.Open("./config.json")
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(file, &CONFIG); err != nil {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(file)
+	file.Close()
+
+	if err = json.Unmarshal(buf.Bytes(), &CONFIG); err != nil {
 		return err
 	}
 
@@ -248,7 +252,7 @@ func createConfig() error {
 	}
 
 	jsonData, _ := json.MarshalIndent(configStruct, "", "   ")
-	err := ioutil.WriteFile("config.json", jsonData, 0644)
+	err := os.WriteFile("config.json", jsonData, 0644)
 
 	return err
 }

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 
@@ -54,7 +54,7 @@ func githubVersion() (string, error) {
 
 	// read response
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024)) // Limited to 1 MB
 	if err != nil {
 		return "", err
 	}
