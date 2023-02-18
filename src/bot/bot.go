@@ -18,6 +18,7 @@ func StartBot() *discordgo.Session {
 
 	// Loads all the valid commands into a map
 	mapValidCommands()
+	//initializeSlashCommands(session)
 
 	// Adds message handler (https://github.com/bwmarrin/discordgo/blob/37088aefec2241139e59b9b804f193b539be25d6/eventhandlers.go#L937)
 	session.AddHandler(messageHandler)
