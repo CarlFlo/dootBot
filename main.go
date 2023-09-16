@@ -23,7 +23,7 @@ const CurrentVersion = "2022-06-14"
 func init() {
 
 	malm.SetLogVerboseBitmask(39) // Turns of verbose for debug and info log messages
-	rand.Seed(time.Now().UTC().UnixNano())
+	rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
 
 	utils.Clear()
 	malm.Debug("Running on %s", runtime.GOOS)
