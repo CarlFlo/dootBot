@@ -57,7 +57,7 @@ var songCache = songStreamCacheWrapper{
 }
 
 // Adding a duplicate will overwrite the old one
-func (c songStreamCacheWrapper) Add(song *Song) {
+func (c *songStreamCacheWrapper) Add(song *Song) {
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -68,7 +68,7 @@ func (c songStreamCacheWrapper) Add(song *Song) {
 	}
 }
 
-func (c songStreamCacheWrapper) Check(ytURL string) string {
+func (c *songStreamCacheWrapper) Check(ytURL string) string {
 
 	ssc := c.songCache[ytURL]
 	if time.Now().After(ssc.expires) {
