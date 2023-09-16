@@ -74,7 +74,7 @@ func (u *User) CreateProfileEmbeds(du *discordgo.User, work *Work, daily *Daily,
 	*embeds = append(*embeds, &discordgo.MessageEmbed{
 		Type:        discordgo.EmbedTypeRich,
 		Color:       config.CONFIG.Colors.Neutral,
-		Title:       fmt.Sprintf("%s#%s's profile", du.Username, du.Discriminator),
+		Title:       fmt.Sprintf("%s's profile", du.Username),
 		Description: "",
 		Fields:      u.createProfileFields(work, daily),
 		Thumbnail: &discordgo.MessageEmbedThumbnail{

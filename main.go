@@ -18,7 +18,7 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-const CurrentVersion = "2022-06-14"
+const CurrentVersion = "2023-08-16"
 
 func init() {
 
@@ -31,7 +31,7 @@ func init() {
 	config.Load()
 	database.Connect()
 	music.Initialize()
-	notifyManager.Initialize()
+	//notifyManager.Initialize()
 
 	go utils.CheckVersion(CurrentVersion)
 }

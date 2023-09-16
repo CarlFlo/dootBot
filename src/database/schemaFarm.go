@@ -160,7 +160,7 @@ func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUse
 	*embeds = append(*embeds, &discordgo.MessageEmbed{
 		Type:        discordgo.EmbedTypeRich,
 		Color:       config.CONFIG.Colors.Neutral,
-		Title:       fmt.Sprintf("%s#%s's Farm", discordUser.Username, discordUser.Discriminator),
+		Title:       fmt.Sprintf("%s's Farm", discordUser.Username),
 		Description: f.CreateEmbedDescription(),
 		Fields:      f.CreateEmbedFields(),
 		Footer: &discordgo.MessageEmbedFooter{

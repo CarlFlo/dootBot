@@ -29,7 +29,7 @@ func Balance(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 			Title:       "Here is your financial information",
 			Description: description,
 			Author: &discordgo.MessageEmbedAuthor{
-				Name:    fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator),
+				Name:    fmt.Sprintf("%s", m.Author.Username),
 				IconURL: m.Author.AvatarURL(""),
 			},
 			Fields: []*discordgo.MessageEmbedField{

@@ -13,7 +13,7 @@ COPY . .
 RUN go mod download
 
 # Builds the executable
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o app .
 
 
 ## Second stage (running)
