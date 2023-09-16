@@ -167,7 +167,7 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	leaveVoice(vi, m)
+	leaveVoice(vi)
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -215,7 +215,7 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 	}
 
 	vi.ClearQueue()
-	vi.Stop() // Should it stop the bot?
+	//vi.Stop() // Should it stop the bot?
 }
 
 // PauseMusic pauyses the music

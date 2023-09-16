@@ -2,6 +2,7 @@ package music
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -128,7 +129,7 @@ func (vi *VoiceInstance) StreamAudio() error {
 	// This function is slow. ~2 seconds
 	err = execYoutubeDL(&song)
 	if err != nil {
-		return err
+		return fmt.Errorf("[Youtube Downloader] %v", err)
 	}
 
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
@@ -356,4 +357,27 @@ func (vi *VoiceInstance) SetChannelID(id string) {
 
 func (vi *VoiceInstance) GetChannelID() string {
 	return vi.channelID
+}
+
+// Not finished
+func (vi *VoiceInstance) UpdateOverviewMessage() {
+
+	// TODO
+	complexMessage := &discordgo.MessageSend{}
+
+	// If its not playing and is not paused. Then it must be loading
+	if !vi.IsPlaying() && !vi.IsPaused() {
+		vi.loading = true
+	}
+
+	CreateMusicOverviewMessage(vi.channelID, complexMessage)
+
+	msg, err := context.SESSION.ChannelMessageSendComplex(vi.channelID, complexMessage)
+	if err != nil {
+		malm.Error("Could not send message! %s", err)
+		return
+	}
+	vi.SetMessageID(msg.ID)
+	vi.SetChannelID(msg.ChannelID)
+
 }

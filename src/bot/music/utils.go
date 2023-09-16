@@ -187,7 +187,7 @@ func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, s
 	return vi, ""
 }
 
-func leaveVoice(vi *VoiceInstance, m *discordgo.MessageCreate) {
+func leaveVoice(vi *VoiceInstance) {
 
 	vi.Disconnect()
 	vi.Close()

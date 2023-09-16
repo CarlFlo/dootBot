@@ -26,6 +26,7 @@ const (
 	typeGeneral uint8 = iota // General commands (All admin commands should be considered general)
 	typeUser                 // Commands for the users
 	typeEconomy              // Commands for the economy
+	typeMusic                //	Commands for the music
 	typeMisc                 // Miscellaneous commands
 )
 
@@ -109,32 +110,32 @@ func mapValidCommands() {
 		function:           music.PlayMusic,
 		requiredPermission: enumUser,
 		helpSyntax:         "[youtube url/search query]",
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	validCommands["pause"] = command{
 		function:           music.PauseMusic,
 		requiredPermission: enumUser,
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	validCommands["stop"] = command{ // Will also leave the voice channel
 		function:           music.StopMusic,
 		requiredPermission: enumUser,
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	validCommands["skip"] = command{ // Same as next
 		function:           music.SkipMusic,
 		requiredPermission: enumUser,
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	validCommands["next"] = command{ // Same as skip
 		function:           music.SkipMusic,
 		requiredPermission: enumUser,
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	validCommands["clearqueue"] = command{ // Clears the queue
 		function:           music.ClearQueueMusic,
 		requiredPermission: enumUser,
-		commandType:        typeGeneral}
+		commandType:        typeMusic}
 
 	// Perm User - Economy commands
 	validCommands["balance"] = command{

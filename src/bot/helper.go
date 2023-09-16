@@ -84,6 +84,8 @@ func commandTypeToString(key uint8) string {
 		cmdType = "User"
 	case typeEconomy:
 		cmdType = "Economy"
+	case typeMusic:
+		cmdType = "Music"
 	case typeMisc:
 		cmdType = "Misc"
 	default:

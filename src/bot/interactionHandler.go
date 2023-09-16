@@ -56,9 +56,9 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "toggleSong":
 		music.PlayMusicInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "stopSong":
-		malm.Info("Stopping song")
+		music.StopMusicInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "clearQueue":
-		malm.Info("Cleaing queue")
+		music.ClearMusicQueue(i.GuildID, i.Interaction.Member.User, &response)
 	case "nextSong":
 		malm.Info("Next song")
 	default:
@@ -70,6 +70,11 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if _, err := s.ChannelMessageEditComplex(msgEdit); err != nil {
 			malm.Error("cannot create message edit, error: %s", err)
 		}
+	}
+
+	// -1 meaning that a response should not be sent. Most cases because the original message was or is going to be deleted
+	if response == "-1" {
+		return
 	}
 
 	// Nothing to reply with
