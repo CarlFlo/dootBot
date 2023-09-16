@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
@@ -103,9 +104,9 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	if input.NumberOfArgsAre(0) {
 		// User want to resume a song
-		if vi.paused {
-			vi.paused = false
-			vi.stream.SetPaused(vi.paused)
+		if !vi.playing {
+			vi.playing = true
+			vi.stream.SetPaused(vi.playing)
 		}
 		return
 	}
@@ -123,12 +124,17 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	// Add the song to the queue
 	vi.AddToQueue(song)
 
-	utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+
+	go func() {
+		for range time.After(time.Second * 5) {
+			context.SESSION.ChannelMessageDelete(m.ChannelID, addedSongMsg.ID)
+		}
+	}()
 
 	complexMessage := &discordgo.MessageSend{}
 
-	// If its not playing and is not paused. Then it must be loading
-	if !vi.IsPlaying() && !vi.IsPaused() {
+	if !vi.IsPlaying() {
 		vi.loading = true
 	}
 

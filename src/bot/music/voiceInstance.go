@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
+	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jung-m/dca"
@@ -35,11 +36,49 @@ type VoiceInstance struct {
 // The variables keeping track of the playback state
 type DJ struct {
 	playing    bool
-	paused     bool
 	loading    bool
-	stop       bool
+	stop       bool // stopping the music bot, removing the queue etc
 	looping    bool
 	queueIndex int
+}
+
+type songStreamCacheWrapper struct {
+	mu        sync.Mutex
+	songCache map[string]songStreamCache
+}
+
+type songStreamCache struct {
+	streamURL string
+	expires   time.Time
+}
+
+var songCache = songStreamCacheWrapper{
+	songCache: make(map[string]songStreamCache),
+}
+
+// Adding a duplicate will overwrite the old one
+func (c songStreamCacheWrapper) Add(song *Song) {
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.songCache[song.YoutubeVideoID] = songStreamCache{
+		streamURL: song.StreamURL,
+		expires:   time.Now().Add(time.Minute * config.CONFIG.Music.MaxCacheAgeMin), // Valid for 90 minutes, 1h 30 min
+	}
+}
+
+func (c songStreamCacheWrapper) Check(ytURL string) string {
+
+	ssc := c.songCache[ytURL]
+	if time.Now().After(ssc.expires) {
+		// remove from map
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		delete(c.songCache, ytURL)
+		return ""
+	}
+	return ssc.streamURL
 }
 
 // New creates a new VoiceInstance. Remember to call Close() when before deleting the object
@@ -58,12 +97,12 @@ func (vi *VoiceInstance) Close() {
 	malm.Info("Ending music session. Deleted the bot message")
 }
 
-func (vi *VoiceInstance) playingStarted() {
+func (vi *VoiceInstance) playbackStarted() {
+	vi.stop = false
 	vi.playing = true
-	vi.paused = false
 	vi.loading = true
 }
-func (vi *VoiceInstance) playingStopped() {
+func (vi *VoiceInstance) playbackStopped() {
 	vi.stop = false
 	vi.playing = false
 	vi.loading = false
@@ -76,10 +115,10 @@ func (vi *VoiceInstance) PlayQueue() {
 	// 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
 	dca.Logger = log.New(io.Discard, "", 0)
 
-	defer vi.playingStopped()
+	defer vi.playbackStopped()
 
 	for {
-		vi.playingStarted()
+		vi.playbackStarted()
 
 		if err := vi.voice.Speaking(true); err != nil {
 			malm.Error("%s", err)
@@ -99,7 +138,7 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 		vi.FinishedPlayingSong()
 
-		vi.playingStopped()
+		vi.playbackStopped()
 
 		err = vi.voice.Speaking(false)
 		if err != nil {
@@ -127,9 +166,19 @@ func (vi *VoiceInstance) StreamAudio() error {
 	}
 
 	// This function is slow. ~2 seconds
-	err = execYoutubeDL(&song)
-	if err != nil {
-		return fmt.Errorf("[Youtube Downloader] %v", err)
+	// song.StreamURL contains the URL to the stream.
+
+	if streamURL := songCache.Check(song.YoutubeVideoID); len(streamURL) == 0 {
+		err = execYoutubeDL(song)
+		if err != nil {
+			return fmt.Errorf("[Youtube Downloader] %v", err)
+		}
+
+		songCache.Add(song)
+		malm.Info("[song] Added [%s] to cache", song.YoutubeVideoID)
+	} else {
+		malm.Info("[song] Loaded from cache")
+		song.StreamURL = streamURL
 	}
 
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
@@ -154,8 +203,9 @@ func (vi *VoiceInstance) StreamAudio() error {
 		malm.Error("cannot create message edit, error: %s", err)
 	}
 
-	// Ignore this problem. Using a range here does not work properly for this purpose
-	for {
+	// This code streams the audio
+	// Once the song is finished, stopped or skipped so will this function return
+	for { // (Do not use a range here as it does not work for this purpose)
 		select {
 		case err := <-vi.done:
 			if err != nil && err != io.EOF {
@@ -165,66 +215,8 @@ func (vi *VoiceInstance) StreamAudio() error {
 			return nil
 		}
 	}
+
 }
-
-// #### Queue Code ####
-
-func (vi *VoiceInstance) GetFirstInQueue() (Song, error) {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
-	if vi.GetQueueLength() == 0 {
-		return Song{}, errEmptyQueue
-	} else if vi.isEndOfQueue() {
-		return Song{}, errNoNextSong
-	}
-
-	return vi.queue[vi.queueIndex], nil
-}
-
-func (vi *VoiceInstance) AddToQueue(s Song) {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
-	vi.queue = append(vi.queue, s)
-}
-
-// Removes all songs in the queue after the current song.
-func (vi *VoiceInstance) ClearQueue() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
-	vi.queue = vi.queue[:vi.queueIndex+1]
-}
-
-// Removes all songs in the queue before the current song.
-func (vi *VoiceInstance) ClearQueuePrev() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
-	vi.queue = vi.queue[vi.queueIndex:]
-	vi.queueIndex = 0
-}
-
-func (vi *VoiceInstance) QueueIsEmpty() bool {
-	return vi.GetQueueLength() == 0
-}
-
-func (vi *VoiceInstance) GetQueueIndex() int {
-	return vi.queueIndex
-}
-
-func (vi *VoiceInstance) GetQueueLength() int {
-	return len(vi.queue)
-}
-
-// Takes into account the current queue index
-func (vi *VoiceInstance) GetQueueLengthRelative() int {
-	return len(vi.queue) - vi.queueIndex
-}
-
-// Returns the song from the queue with the given index
-func (vi *VoiceInstance) GetSongByIndex(i int) Song {
-	return vi.queue[i]
-}
-
-//////////////////////////// Queue code end ////////////////////////////
 
 // Call once the song has finished playing, or you want to skip to the next song
 func (vi *VoiceInstance) FinishedPlayingSong() {
@@ -273,11 +265,14 @@ func (vi *VoiceInstance) Disconnect() {
 }
 
 // Skip skipps the song. returns true of success, else false
+// Will also disable looping (if enabled)
 func (vi *VoiceInstance) Skip() bool {
 
 	if !vi.playing {
 		return false
 	}
+
+	vi.looping = false
 
 	// This will interupt and stop the stream
 	vi.done <- nil
@@ -305,16 +300,8 @@ func (vi *VoiceInstance) IsPlaying() bool {
 	return vi.playing
 }
 
-func (vi *VoiceInstance) IsPaused() bool {
-	return vi.paused
-}
-
 func (vi *VoiceInstance) IsLooping() bool {
 	return vi.looping
-}
-
-func (vi *VoiceInstance) SetLooping(loop bool) {
-	vi.looping = loop
 }
 
 // Stops the current song and clears the queue. returns true of success, else false
@@ -332,11 +319,16 @@ func (vi *VoiceInstance) Stop() bool {
 	return true
 }
 
+func (vi *VoiceInstance) ToggleLooping() {
+
+	vi.looping = !vi.looping
+}
+
 // Toggles between play and pause
 func (vi *VoiceInstance) PauseToggle() {
 
-	vi.paused = !vi.paused
-	vi.stream.SetPaused(vi.paused)
+	vi.playing = !vi.playing
+	vi.stream.SetPaused(vi.playing)
 }
 
 func (vi *VoiceInstance) GetGuildID() string {
@@ -357,27 +349,4 @@ func (vi *VoiceInstance) SetChannelID(id string) {
 
 func (vi *VoiceInstance) GetChannelID() string {
 	return vi.channelID
-}
-
-// Not finished
-func (vi *VoiceInstance) UpdateOverviewMessage() {
-
-	// TODO
-	complexMessage := &discordgo.MessageSend{}
-
-	// If its not playing and is not paused. Then it must be loading
-	if !vi.IsPlaying() && !vi.IsPaused() {
-		vi.loading = true
-	}
-
-	CreateMusicOverviewMessage(vi.channelID, complexMessage)
-
-	msg, err := context.SESSION.ChannelMessageSendComplex(vi.channelID, complexMessage)
-	if err != nil {
-		malm.Error("Could not send message! %s", err)
-		return
-	}
-	vi.SetMessageID(msg.ID)
-	vi.SetChannelID(msg.ChannelID)
-
 }

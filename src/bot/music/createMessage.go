@@ -81,13 +81,13 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		})
 
 	} else {
-		playOrPaused := "Pause"
+		playOrPausedLabel := "Pause"
 		if !vi.IsPlaying() {
-			playOrPaused = "Play"
+			playOrPausedLabel = "Play"
 		}
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    playOrPaused,
+			Label:    playOrPausedLabel,
 			CustomID: "toggleSong",
 			Style:    3, // Green
 		})
@@ -96,6 +96,17 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 			Label:    "Stop",
 			CustomID: "stopSong",
 			Style:    4, // Red
+		})
+
+		isLoopingLabel := "Loop (off)"
+		if vi.IsLooping() {
+			isLoopingLabel = "Loop (on)"
+		}
+
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    isLoopingLabel,
+			CustomID: "loopSong",
+			Style:    1, // Default 'blurple'
 		})
 	}
 
@@ -114,7 +125,7 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 
 	}
 
-	// The buttons
+	// Append the buttons
 	*c = append(*c, buttonRow)
 
 	// #### Playlist menu ####
@@ -153,12 +164,16 @@ func messageTitleAndDescription(vi *VoiceInstance) (string, string, string) {
 
 	title = song.Title
 
+	upNextSongsToDisplay := 3
+
 	// Display the queue
-	if vi.GetQueueLengthRelative() > 1 {
+	if upNextSongsToDisplay != 0 && vi.GetQueueLengthRelative() > 1 {
 
 		description = "**Up Next**"
 
-		upTo := int(math.Min(math.Min(float64(vi.GetQueueLength()+vi.GetQueueIndex()), float64(vi.GetQueueIndex()+4)), float64(vi.GetQueueLength())))
+		upTo := int(math.Min(
+			math.Min(float64(vi.GetQueueLength()+vi.GetQueueIndex()), float64(vi.GetQueueIndex()+upNextSongsToDisplay+1)),
+			float64(vi.GetQueueLength())))
 
 		for i := vi.GetQueueIndex() + 1; i < upTo; i++ {
 			song := vi.GetSongByIndex(i)
@@ -206,7 +221,7 @@ func messageFooter(vi *VoiceInstance) *discordgo.MessageEmbedFooter {
 
 	length := vi.GetQueueLength() - 1
 
-	if length < 1 {
+	if length <= 0 {
 		return nil
 	}
 

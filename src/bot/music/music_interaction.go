@@ -57,7 +57,7 @@ func StopMusicInteraction(guildID string, author *discordgo.User, response *stri
 	leaveVoice(vi)
 }
 
-func ClearMusicQueue(guildID string, author *discordgo.User, response *string) {
+func ClearMusicQueueInteraction(guildID string, author *discordgo.User, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
 		return
@@ -80,4 +80,26 @@ func ClearMusicQueue(guildID string, author *discordgo.User, response *string) {
 
 	// Todo update the 'Music Player' message
 	// music.CreateMusicOverviewMessage(vi.channelID, i)
+}
+
+func SongLoopInteraction(guildID string, author *discordgo.User, response *string) {
+	if !isMusicEnabled() {
+		*response = "Music is currently disabled"
+		return
+	}
+
+	vi := instances[guildID]
+	if vi == nil {
+		*response = "No music is currently playing"
+		return
+	}
+
+	// Check if the user is in the voice channel before playing
+	voiceChannelID := utils.FindVoiceChannel(author.ID)
+	if vi.voice.ChannelID != voiceChannelID {
+		*response = "You are not in the same voice channel as the bot"
+		return
+	}
+
+	vi.ToggleLooping()
 }

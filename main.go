@@ -13,7 +13,6 @@ import (
 	"github.com/CarlFlo/dootBot/src/bot/music"
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/dootBot/src/database"
-	"github.com/CarlFlo/dootBot/src/notifyManager"
 	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 )
@@ -31,7 +30,6 @@ func init() {
 	config.Load()
 	database.Connect()
 	music.Initialize()
-	//notifyManager.Initialize()
 
 	go utils.CheckVersion(CurrentVersion)
 }
@@ -49,7 +47,6 @@ func main() {
 
 	// Run cleanup code here
 	close(sc)
-	notifyManager.Stop()
 	session.Close() // Stops the discord bot
 }
 

@@ -151,6 +151,7 @@ func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, s
 	if vi == nil {
 		// Instance not initialized
 		musicMutex.Lock()
+		defer musicMutex.Unlock()
 
 		vi = &VoiceInstance{}
 
@@ -161,13 +162,10 @@ func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, s
 		}
 
 		if err := vi.New(guildID); err != nil {
-			musicMutex.Unlock()
 			return nil, ""
 		}
 
 		instances[vi.guildID] = vi
-
-		musicMutex.Unlock()
 	}
 
 	var err error

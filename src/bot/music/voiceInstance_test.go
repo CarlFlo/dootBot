@@ -40,7 +40,7 @@ func TestQueueNextSong(t *testing.T) {
 	test.Validate(t, s2.Title, "song 2", "GetFirstInQueue() should return song 2")
 
 	vi.AddToQueue(Song{Title: "song 3"})
-	vi.SetLooping(true)
+	vi.looping = true
 	vi.FinishedPlayingSong()
 
 	s3, _ := vi.GetFirstInQueue()

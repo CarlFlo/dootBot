@@ -21,7 +21,6 @@ type configStruct struct {
 	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
-	NotifySettings      notifySettings    `json:"notifySettings"`
 	Music               music             `json:"music"`
 	MessageProcessing   messageProcessing `json:"messageProcessing"`
 	Database            database          `json:"database"`
@@ -40,14 +39,10 @@ type botInfo struct {
 	VersionURL string `json:"versionURL"`
 	DepositURL string `json:"depositURL"`
 }
-
-type notifySettings struct {
-	CheckInterval time.Duration `json:"checkDBInterval"`
-}
-
 type music struct {
-	YoutubeAPIKey        string `json:"youtubeAPIKey"`
-	MaxSongLengthMinutes int    `json:"maxSongLengthMinutes"`
+	YoutubeAPIKey        string        `json:"youtubeAPIKey"`
+	MaxSongLengthMinutes int           `json:"maxSongLengthMinutes"`
+	MaxCacheAgeMin       time.Duration `json:"maxCacheAgeMin"`
 }
 
 type messageProcessing struct {
@@ -172,12 +167,10 @@ func createConfig() error {
 			VersionURL: "https://raw.githubusercontent.com/CarlFlo/DiscordMoneyBot/master/main.go",
 			DepositURL: "https://github.com/CarlFlo/dootBot",
 		},
-		NotifySettings: notifySettings{
-			CheckInterval: 5,
-		},
 		Music: music{
 			YoutubeAPIKey:        "",
 			MaxSongLengthMinutes: 12,
+			MaxCacheAgeMin:       90,
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.

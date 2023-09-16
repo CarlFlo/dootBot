@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"os/exec"
+
+	"github.com/CarlFlo/malm"
 )
 
 type videoResponse struct {
@@ -13,6 +15,8 @@ type videoResponse struct {
 }
 
 func execYoutubeDL(song *Song) error {
+
+	malm.Debug("Running youtube-DL")
 
 	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--print-json", "--flat-playlist")
 	var out bytes.Buffer
