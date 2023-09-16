@@ -165,19 +165,17 @@ func (vi *VoiceInstance) StreamAudio() error {
 		return err
 	}
 
-	// This function is slow. ~2 seconds
 	// song.StreamURL contains the URL to the stream.
 
 	if streamURL := songCache.Check(song.YoutubeVideoID); len(streamURL) == 0 {
+		// This function is slow. At least 2 seconds
 		err = execYoutubeDL(song)
 		if err != nil {
 			return fmt.Errorf("[Youtube Downloader] %v", err)
 		}
 
 		songCache.Add(song)
-		malm.Info("[song] Added [%s] to cache", song.YoutubeVideoID)
 	} else {
-		malm.Info("[song] Loaded from cache")
 		song.StreamURL = streamURL
 	}
 
