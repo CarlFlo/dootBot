@@ -38,6 +38,7 @@ docker:
 
 # Builder command
 build: .default
+	set CGO_ENABLED=1
 	go build -o ./${fNameOut} ./${fNameSrc}
 
 b: build
