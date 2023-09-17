@@ -10,16 +10,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-/*	Message idea
-Music Player
-[Prev] > Heat Waves - Oliver Heldens
-[Playing] > Colors - METAHESH
-[Next] > Young RIght Now - Robin Schulz, Dennis Lloyd
-[Next] > ...
+/*
 
-> The name of the last user that pressed a button (So we can tell who paused or stopped)
- *Buttons* *Buttons* *Buttons*
-*/
+ */
 
 // CreateMusicOverviewMessage creates the music overview message
 func CreateMusicOverviewMessage(channelID string, i interface{}) {

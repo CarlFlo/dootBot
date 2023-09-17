@@ -14,8 +14,8 @@ import (
 
 /*
 	todo
-	Keep track of messages in the channel. Every 30 seconds or efter n messages. Delete the old "Music Player" message
-	and make a new one at the bottom
+	Fix message update (rewrite)
+	What to do once the last song has played
 */
 
 type VoiceInstance struct {
