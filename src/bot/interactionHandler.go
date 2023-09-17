@@ -63,6 +63,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		music.ClearMusicQueueInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "nextSong":
 		malm.Info("Next song")
+	case "prevSong":
+		music.PreviousSongInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return

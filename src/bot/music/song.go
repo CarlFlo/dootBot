@@ -26,10 +26,11 @@ func (s *Song) FetchStreamURL() error {
 			return err
 		}
 		songCache.Add(s)
+		malm.Debug("[%s] cached - %s", s.Title, s.YoutubeVideoID)
 	} else {
 		s.StreamURL = streamURL
 	}
-	malm.Debug("[%s] cached and prepared", s.YoutubeVideoID)
+
 	return nil
 }
 

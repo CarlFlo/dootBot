@@ -34,12 +34,12 @@ func (vi *VoiceInstance) GetMessageID() string {
 	return vi.messageID
 }
 
-func (vi *VoiceInstance) SetChannelID(id string) {
-	vi.channelID = id
+func (vi *VoiceInstance) SetMessageChannelID(id string) {
+	vi.messageChannelID = id
 }
 
-func (vi *VoiceInstance) GetChannelID() string {
-	return vi.channelID
+func (vi *VoiceInstance) GetMessageChannelID() string {
+	return vi.messageChannelID
 }
 
 func (vi *VoiceInstance) IsLoading() bool {
@@ -48,6 +48,10 @@ func (vi *VoiceInstance) IsLoading() bool {
 
 func (vi *VoiceInstance) IsPlaying() bool {
 	return vi.playing
+}
+
+func (vi *VoiceInstance) IsStartOfQueue() bool {
+	return vi.queueIndex == 0
 }
 
 func (vi *VoiceInstance) IsLooping() bool {

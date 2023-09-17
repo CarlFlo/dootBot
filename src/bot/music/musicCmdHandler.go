@@ -71,6 +71,7 @@ func InitializeMusic() error {
 }
 
 // Same as resume
+// TODO: Crashes when "play" command is run multiple times before the instance has been able to initialize - invalid memory address or nil pointer dereference
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
 	if !isMusicEnabled() {
@@ -146,8 +147,14 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		malm.Error("Could not send message! %s", err)
 		return
 	}
+
+	// Delete the old message
+	if len(vi.GetMessageID()) != 0 {
+		context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), vi.GetMessageID())
+	}
+
 	vi.SetMessageID(msg.ID)
-	vi.SetChannelID(msg.ChannelID)
+	vi.SetMessageChannelID(msg.ChannelID)
 
 	// The bot is already playing music so we dont send the start signal
 	if !vi.IsPlaying() {

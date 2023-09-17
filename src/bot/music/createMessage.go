@@ -81,15 +81,30 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		})
 
 	} else {
-		playOrPausedLabel := "Pause"
-		if !vi.IsPlaying() {
-			playOrPausedLabel = "Play"
+
+		//Max 5 items allowed. Per ActionsRow?
+
+		// Play or pause
+		playOrPausedLabel := "Play"
+		if vi.IsPlaying() {
+			playOrPausedLabel = "Pause"
 		}
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
 			Label:    playOrPausedLabel,
 			CustomID: "toggleSong",
 			Style:    3, // Green
+		})
+
+		// Restart or previous song
+		previousOrRestart := "Back"
+		if vi.IsStartOfQueue() {
+			previousOrRestart = "Restart"
+		}
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    previousOrRestart,
+			CustomID: "prevSong",
+			Style:    2, // Gray
 		})
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
@@ -111,11 +126,13 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 	}
 
 	if vi.GetQueueLength() > 1 {
-		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    "Clear queue",
-			CustomID: "clearQueue",
-			Style:    2, // Gray
-		})
+		/*
+			buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+				Label:    "Clear queue",
+				CustomID: "clearQueue",
+				Style:    2, // Gray
+			})
+		*/
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
 			Label:    "Next",

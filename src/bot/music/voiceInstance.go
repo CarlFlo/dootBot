@@ -12,16 +12,22 @@ import (
 	"github.com/jung-m/dca"
 )
 
+/*
+	todo
+	Keep track of messages in the channel. Every 30 seconds or efter n messages. Delete the old "Music Player" message
+	and make a new one at the bottom
+*/
+
 type VoiceInstance struct {
-	voice     *discordgo.VoiceConnection
-	encoder   *dca.EncodeSession
-	stream    *dca.StreamingSession
-	mu        sync.Mutex
-	queue     []*Song
-	guildID   string
-	done      chan error // Used to interrupt the stream
-	messageID string
-	channelID string
+	voice            *discordgo.VoiceConnection
+	encoder          *dca.EncodeSession
+	stream           *dca.StreamingSession
+	mu               sync.Mutex
+	queue            []*Song
+	guildID          string
+	done             chan error // Used to interrupt the stream
+	messageID        string
+	messageChannelID string
 	PlaybackState
 }
 
@@ -47,7 +53,7 @@ func (vi *VoiceInstance) Close() {
 	// Delete the interaction buttons from the message
 
 	// For now will delete the message
-	context.SESSION.ChannelMessageDelete(vi.GetChannelID(), vi.GetMessageID())
+	context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), vi.GetMessageID())
 	malm.Info("Ending music session. Deleted the bot message")
 }
 
@@ -123,11 +129,11 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 
 	vi.loading = false
 	msgEdit := &discordgo.MessageEdit{
-		Channel: vi.GetChannelID(),
+		Channel: vi.GetMessageChannelID(),
 		ID:      vi.GetMessageID(),
 	}
 
-	CreateMusicOverviewMessage(vi.GetChannelID(), msgEdit)
+	CreateMusicOverviewMessage(vi.GetMessageChannelID(), msgEdit)
 
 	if _, err := context.SESSION.ChannelMessageEditComplex(msgEdit); err != nil {
 		malm.Error("cannot create message edit, error: %s", err)
