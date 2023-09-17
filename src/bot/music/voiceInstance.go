@@ -2,7 +2,6 @@ package music
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -165,19 +164,12 @@ func (vi *VoiceInstance) StreamAudio() error {
 		return err
 	}
 
-	// song.StreamURL contains the URL to the stream.
-
-	if streamURL := songCache.Check(song.YoutubeVideoID); len(streamURL) == 0 {
-		// This function is slow. At least 2 seconds
-		err = execYoutubeDL(song)
-		if err != nil {
-			return fmt.Errorf("[Youtube Downloader] %v", err)
-		}
-
-		songCache.Add(song)
-	} else {
-		song.StreamURL = streamURL
+	// download code moved to 'func (vi *VoiceInstance) AddToQueue(s Song)'
+	for song.StreamURL == "" {
+		time.Sleep(100 * time.Millisecond)
 	}
+
+	// Wait until song object has an url
 
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {

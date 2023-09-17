@@ -224,14 +224,12 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 	//vi.Stop() // Should it stop the bot?
 }
 
-// PauseMusic pauyses the music
+// PauseMusic toggles the music from playing to pausing
 func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
 		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
-
-	malm.Info("PauseMusic - ChannelID: '%s'", m.ChannelID)
 
 	guildID, err := utils.GetGuild(m.ChannelID)
 	if err != nil {

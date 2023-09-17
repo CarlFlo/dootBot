@@ -1,6 +1,8 @@
 package music
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Song struct {
 	ChannelID      string

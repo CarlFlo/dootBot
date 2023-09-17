@@ -4,9 +4,31 @@ import (
 	"bytes"
 	"encoding/json"
 	"os/exec"
+	"strings"
 
 	"github.com/CarlFlo/malm"
 )
+
+func execYoutubeDL(song *Song) error {
+	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--get-url", "--flat-playlist")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(out.String(), "\n")
+
+	if len(lines) >= 2 {
+		song.StreamURL = lines[1]
+	} else {
+		malm.Error("youtube DL - There are not enough lines of output.")
+	}
+
+	return nil
+}
 
 type videoResponse struct {
 	Formats []struct {
@@ -14,9 +36,7 @@ type videoResponse struct {
 	} `json:"formats"`
 }
 
-func execYoutubeDL(song *Song) error {
-
-	malm.Debug("Running youtube-DL")
+func execYoutubeDLOld(song *Song) error {
 
 	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--print-json", "--flat-playlist")
 	var out bytes.Buffer

@@ -1,5 +1,7 @@
 package music
 
+import "github.com/CarlFlo/malm"
+
 func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
 	vi.queueMutex.Lock()
 	defer vi.queueMutex.Unlock()
@@ -12,10 +14,25 @@ func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
 	return &vi.queue[vi.queueIndex], nil
 }
 
+// AddToQueue - adds the song to the queue, and also prepares the song and caches it
 func (vi *VoiceInstance) AddToQueue(s Song) {
 	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
 	vi.queue = append(vi.queue, s)
+	vi.queueMutex.Unlock()
+
+	go func() {
+		song := &vi.queue[len(vi.queue)-1]
+
+		// song.StreamURL contains the URL to the stream.
+		if streamURL := songCache.Check(song.YoutubeVideoID); len(streamURL) == 0 {
+			// This function is slow. Takes a bit over 2 seconds
+			execYoutubeDL(song)
+			songCache.Add(song)
+		} else {
+			song.StreamURL = streamURL
+		}
+		malm.Info("[%s] cached and prepared", song.YoutubeVideoID)
+	}()
 }
 
 // Removes all songs in the queue after the current song.
