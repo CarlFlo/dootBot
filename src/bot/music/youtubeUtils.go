@@ -21,8 +21,7 @@ import (
 var (
 	errDetectedNonYTURL        = errors.New("non youtube URL detected")
 	errEmptyYTResult           = errors.New("empty youtube search result")
-	errNoYoutubeAPIKey         = errors.New("no Youtube API key present")
-	errSongLengthLimitExceeded = errors.New("song duration exceeds 'MaxSongLengthMinutes' in the config file")
+	errSongLengthLimitExceeded = "song duration exceeds the limit (%s min) in the config file"
 	errStatusYTSearchQuery     = "youtube search error - status code: %d - query: %s"
 	errStatusYTSearchVideoID   = "youtube search error - status code: %d - videoID: %s"
 )
@@ -75,11 +74,16 @@ type contentDetails struct {
 	Duration string
 }
 
+func isMusicEnabled() bool {
+	return youtubeAPIKeysValid
+}
+
 // Returns the title, thumbnail and channel of a youtube video
 // error if there was any problem
 func youtubeFindByVideoID(videoID string) (string, string, string, string, error) {
 
-	res, err := http.Get(fmt.Sprintf(youtubeFindEndpoint, config.CONFIG.Music.YoutubeAPIKey, videoID))
+	apiKey := utils.GetYoutubeAPIKey()
+	res, err := http.Get(fmt.Sprintf(youtubeFindEndpoint, apiKey, videoID))
 	if err != nil {
 		return "", "", "", "", err
 	} else if res.StatusCode != 200 {
@@ -108,12 +112,9 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 
 func youtubeFindBySearch(query string) (string, string, string, string, string, error) {
 
-	if !youtubeAPIKeyPresent {
-		return "", "", "", "", "", errNoYoutubeAPIKey
-	}
-
 	query = url.QueryEscape(query)
-	res, err := http.Get(fmt.Sprintf(youtubeSearchEndpoint, config.CONFIG.Music.YoutubeAPIKey, query))
+	apiKey := utils.GetYoutubeAPIKey()
+	res, err := http.Get(fmt.Sprintf(youtubeSearchEndpoint, apiKey, query))
 	if err != nil {
 		return "", "", "", "", "", err
 	} else if res.StatusCode != 200 {
@@ -140,10 +141,6 @@ func youtubeFindBySearch(query string) (string, string, string, string, string, 
 	}
 
 	return title, thumbnail, channelName, videoID, duration, nil
-}
-
-func isMusicEnabled() bool {
-	return config.CONFIG.Music.MusicEnabled
 }
 
 func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, string) {
@@ -311,7 +308,7 @@ func checkDurationCompliance(duration string) error {
 	}
 
 	if totalMinutes > config.CONFIG.Music.MaxSongLengthMinutes {
-		return errSongLengthLimitExceeded
+		return fmt.Errorf(errSongLengthLimitExceeded, config.CONFIG.Music.MaxSongLengthMinutes)
 	}
 
 	return nil

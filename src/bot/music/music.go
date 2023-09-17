@@ -32,9 +32,9 @@ var instances = map[string]*VoiceInstance{}
 */
 
 var (
-	musicMutex           sync.Mutex
-	songSignal           chan *VoiceInstance
-	youtubeAPIKeyPresent bool
+	musicMutex          sync.Mutex
+	songSignal          chan *VoiceInstance
+	youtubeAPIKeysValid bool
 )
 
 const (
@@ -44,21 +44,25 @@ const (
 
 func Initialize() {
 
-	if !config.CONFIG.Music.MusicEnabled {
-		malm.Info("Music disabled in config")
+	if !config.CONFIG.Music.EnableMusic {
+		malm.Info("Music Disabled")
+		return
 	}
 
-	if err := initializeMusic(); err != nil {
-		malm.Info("Youtube API key missing: %s", err)
+	if youtubeAPIKeysValid = initializeMusic(); !youtubeAPIKeysValid {
+		malm.Info("Music Disabled")
+		return
 	}
-	malm.Info("Music initialized")
+
+	malm.Info("Music Initialized")
 }
 
 // initializeMusic initializes the music goroutine and channel signal
-func initializeMusic() error {
+func initializeMusic() bool {
 
 	if err := utils.ValidateYoutubeAPIKey(); err != nil {
-		youtubeAPIKeyPresent = false
+		malm.Error("%s", err)
+		return false
 	}
 
 	songSignal = make(chan *VoiceInstance)
@@ -68,9 +72,7 @@ func initializeMusic() error {
 			go vi.PlayQueue()
 		}
 	}()
-
-	youtubeAPIKeyPresent = true
-	return nil
+	return true
 }
 
 // Close - clean-up for the music
@@ -127,14 +129,14 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	err = parseMusicInput(m, inputText, &song)
 	if err != nil {
-		malm.Error("%s", err)
-		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nConsider using a YouTube URL (if you didn't) for the song if you attempted to find.\nNote: the maximum duration for a song is currently set at *%d* minutes in the configuration file", config.CONFIG.Music.MaxSongLengthMinutes))
+		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nReason: %s", err))
 		return
 	}
 
 	// Add the song to the queue
 	vi.AddToQueue(&song)
 	go song.FetchStreamURL()
+	// Spamming the same song over and over will casue the song to be fetched until the first song is cached
 
 	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
 

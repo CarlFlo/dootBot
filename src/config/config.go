@@ -38,10 +38,10 @@ type botInfo struct {
 	DepositURL string `json:"depositURL"`
 }
 type music struct {
-	YoutubeAPIKey        string        `json:"youtubeAPIKey"`
+	EnableMusic          bool          `json:"enableMusic"`
+	YoutubeAPIKeys       []string      `json:"youtubeAPIKeys"`
 	MaxSongLengthMinutes int           `json:"maxSongLengthMinutes"`
 	MaxCacheAgeMin       time.Duration `json:"maxCacheAgeMin"`
-	MusicEnabled         bool          `json:"musicEnabled"`
 }
 
 type messageProcessing struct {
@@ -167,7 +167,7 @@ func createConfig() error {
 			DepositURL: "https://github.com/CarlFlo/dootBot",
 		},
 		Music: music{
-			YoutubeAPIKey:        "",
+			YoutubeAPIKeys:       []string{},
 			MaxSongLengthMinutes: 60,
 			MaxCacheAgeMin:       90,
 		},
