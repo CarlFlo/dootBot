@@ -1,5 +1,5 @@
 fNameSrc = main.go
-fNameOut = main.exe
+fNameOut = dootbot.exe
 
 # 64 bit x86 setting
 .64Bitx86:
@@ -8,17 +8,17 @@ fNameOut = main.exe
 # Windows settings
 .windows:
 	go env -w GOOS=windows
-	$(eval fNameOut = main.exe)
+	$(eval fNameOut = dootbot.exe)
 
 # Linux settings
 .linux:
 	go env -w GOOS=linux
-	$(eval fNameOut = main)
+	$(eval fNameOut = dootbot)
 
 # Mac OS X 10.8 and above
 .mac:
 	go env -w GOOS=darwin
-	$(eval fNameOut = main.app)
+	$(eval fNameOut = dootbot.app)
 
 # Default value, change for your needs
 .default: .64Bitx86 .windows

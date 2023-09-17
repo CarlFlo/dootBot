@@ -219,21 +219,23 @@ func messageThumbnail(vi *VoiceInstance) *discordgo.MessageEmbedThumbnail {
 
 func messageFooter(vi *VoiceInstance) *discordgo.MessageEmbedFooter {
 
-	length := vi.GetQueueLength() - 1
+	// Only shows those left in the queue
+	length := vi.GetQueueLengthRelative() - 1
 
-	if length <= 0 {
-		return nil
-	}
+	var text string
 
-	text := fmt.Sprintf("%d songs in the queue", length)
+	if length > 0 {
+		text = fmt.Sprintf("%d songs in the queue", length)
 
-	if length == 1 {
-		text = fmt.Sprintf("%d song in the queue", length)
+		if length == 1 {
+			text = fmt.Sprintf("%d song in the queue", length)
+		}
+		text += "\n"
 	}
 
 	song, err := vi.GetFirstInQueue()
 	if err == nil {
-		text += fmt.Sprintf("\nCurrent song duration: %s", song.GetDuration())
+		text += fmt.Sprintf("Current song duration: %s", song.GetDuration())
 	}
 
 	return &discordgo.MessageEmbedFooter{

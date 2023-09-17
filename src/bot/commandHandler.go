@@ -132,7 +132,7 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeMusic}
 
-	validCommands["back"] = command{ // Goes back one song
+	validCommands["previous"] = command{ // Goes back one song or restarts the current one
 		function:           music.MusicPrevious,
 		requiredPermission: enumUser,
 		commandType:        typeMusic}
