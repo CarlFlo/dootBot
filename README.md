@@ -51,7 +51,7 @@ The first time the bot is run, a config.json file is created. This JSON file req
 4. (optional) Youtube API key(s) if you want to use music. [youtubeAPIKeys] 
 
 
-Note: If more than one Youtube API key is entered to will the program cycle between them
+Note: If multiple YouTube API keys are provided, the program will alternate between them.
 
 ### Requirements 
 
