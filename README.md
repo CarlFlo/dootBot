@@ -48,7 +48,7 @@ The first time the bot is run, a config.json file is created. This JSON file req
 1. The bot token [Token]
 2. The owners (your) Discord ID [OwnerID]
 3. The bots Discord ID [AppID]
-4. (optional) Youtube API key(s) if you want to use music. [youtubeAPIKeys] 
+4. (optional) Youtube API key(s) if you want to use music [youtubeAPIKeys] 
 
 
 Note: If multiple YouTube API keys are provided, the program will alternate between them.
