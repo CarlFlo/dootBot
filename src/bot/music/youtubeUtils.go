@@ -19,10 +19,12 @@ import (
 )
 
 var (
-	errDetectedNonYTURL      = errors.New("non youtube URL detected")
-	errEmptyYTResult         = errors.New("empty youtube search result")
-	errStatusYTSearchQuery   = "youtube search error - status code: %d - query: %s"
-	errStatusYTSearchVideoID = "youtube search error - status code: %d - videoID: %s"
+	errDetectedNonYTURL        = errors.New("non youtube URL detected")
+	errEmptyYTResult           = errors.New("empty youtube search result")
+	errNoYoutubeAPIKey         = errors.New("no Youtube API key present")
+	errSongLengthLimitExceeded = errors.New("song duration exceeds 'MaxSongLengthMinutes' in the config file")
+	errStatusYTSearchQuery     = "youtube search error - status code: %d - query: %s"
+	errStatusYTSearchVideoID   = "youtube search error - status code: %d - videoID: %s"
 )
 
 const (
@@ -104,7 +106,11 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 	return title, thumbnail, channelName, duration, nil
 }
 
-func youtubeSearch(query string) (string, string, string, string, string, error) {
+func youtubeFindBySearch(query string) (string, string, string, string, string, error) {
+
+	if !youtubeAPIKeyPresent {
+		return "", "", "", "", "", errNoYoutubeAPIKey
+	}
 
 	query = url.QueryEscape(query)
 	res, err := http.Get(fmt.Sprintf(youtubeSearchEndpoint, config.CONFIG.Music.YoutubeAPIKey, query))
@@ -137,7 +143,7 @@ func youtubeSearch(query string) (string, string, string, string, string, error)
 }
 
 func isMusicEnabled() bool {
-	return youtubeAPIKeyPresent
+	return config.CONFIG.Music.MusicEnabled
 }
 
 func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, string) {
@@ -229,7 +235,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 		return errDetectedNonYTURL
 	} else {
 		// Presumably a song name. Search Youtube
-		title, thumbnail, channelName, videoID, duration, err = youtubeSearch(input)
+		title, thumbnail, channelName, videoID, duration, err = youtubeFindBySearch(input)
 		if err != nil {
 			return err
 		}
@@ -305,7 +311,7 @@ func checkDurationCompliance(duration string) error {
 	}
 
 	if totalMinutes > config.CONFIG.Music.MaxSongLengthMinutes {
-		return fmt.Errorf("song duration exceeds 'MaxSongLengthMinutes' in the config file")
+		return errSongLengthLimitExceeded
 	}
 
 	return nil

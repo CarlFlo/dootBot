@@ -41,6 +41,7 @@ type music struct {
 	YoutubeAPIKey        string        `json:"youtubeAPIKey"`
 	MaxSongLengthMinutes int           `json:"maxSongLengthMinutes"`
 	MaxCacheAgeMin       time.Duration `json:"maxCacheAgeMin"`
+	MusicEnabled         bool          `json:"musicEnabled"`
 }
 
 type messageProcessing struct {

@@ -43,19 +43,22 @@ const (
 )
 
 func Initialize() {
-	if err := InitializeMusic(); err != nil {
-		malm.Info("Music disabled. %s", err.Error())
-		return
+
+	if !config.CONFIG.Music.MusicEnabled {
+		malm.Info("Music disabled in config")
+	}
+
+	if err := initializeMusic(); err != nil {
+		malm.Info("Youtube API key missing: %s", err)
 	}
 	malm.Info("Music initialized")
 }
 
-// InitializeMusic initializes the music goroutine and channel signal
-func InitializeMusic() error {
+// initializeMusic initializes the music goroutine and channel signal
+func initializeMusic() error {
 
 	if err := utils.ValidateYoutubeAPIKey(); err != nil {
 		youtubeAPIKeyPresent = false
-		return err
 	}
 
 	songSignal = make(chan *VoiceInstance)
@@ -70,7 +73,7 @@ func InitializeMusic() error {
 	return nil
 }
 
-// Close - cleann-up for the music
+// Close - clean-up for the music
 func Close() {
 	for _, vi := range instances {
 		vi.Close()
@@ -125,7 +128,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	err = parseMusicInput(m, inputText, &song)
 	if err != nil {
 		malm.Error("%s", err)
-		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nTry using an youtube url to the song if you tried searching by name\nNote: the maximum duration for a song is currently set at *%d* minutes in the configuration file", config.CONFIG.Music.MaxSongLengthMinutes))
+		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nConsider using a YouTube URL (if you didn't) for the song if you attempted to find.\nNote: the maximum duration for a song is currently set at *%d* minutes in the configuration file", config.CONFIG.Music.MaxSongLengthMinutes))
 		return
 	}
 

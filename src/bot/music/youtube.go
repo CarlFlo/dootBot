@@ -2,7 +2,6 @@ package music
 
 import (
 	"bytes"
-	"encoding/json"
 	"os/exec"
 	"strings"
 
@@ -30,6 +29,7 @@ func execYoutubeDL(song *Song) error {
 	return nil
 }
 
+/*
 type videoResponse struct {
 	Formats []struct {
 		Url string `json:"url"`
@@ -58,3 +58,4 @@ func execYoutubeDLOld(song *Song) error {
 	song.StreamURL = videoRes.Formats[3].Url
 	return nil
 }
+*/
