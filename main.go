@@ -46,6 +46,8 @@ func main() {
 	malm.Info("Shutting down!")
 
 	// Run cleanup code here
+	music.Close()
+
 	close(sc)
 	session.Close() // Stops the discord bot
 }

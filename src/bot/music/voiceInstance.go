@@ -50,11 +50,15 @@ func (vi *VoiceInstance) New(guildID string) error {
 // Close acts as the destructor for the object
 func (vi *VoiceInstance) Close() {
 
-	// Delete the interaction buttons from the message
+	// Clean-up here
+	vi.ClearQueue()
+	vi.stop = true
+	go func() {
+		vi.done <- nil
+	}()
 
 	// For now will delete the message
 	context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), vi.GetMessageID())
-	malm.Info("Ending music session. Deleted the bot message")
 }
 
 // Plays the Queue
@@ -80,7 +84,7 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 
 		if vi.stop {
-			vi.ClearQueue()
+			vi.ClearQueueAfter()
 			return
 		}
 

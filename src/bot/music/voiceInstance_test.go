@@ -10,7 +10,7 @@ func TestClearQueue(t *testing.T) {
 	vi := VoiceInstance{}
 	vi.AddToQueue(&Song{Title: "song 1"})
 	vi.AddToQueue(&Song{Title: "song 2"})
-	vi.ClearQueue()
+	vi.ClearQueueAfter()
 	test.Validate(t, vi.GetQueueLength(), 1, "QueueLength() should be 1 after ClearQueue()")
 
 	vi.AddToQueue(&Song{Title: "song 3"})

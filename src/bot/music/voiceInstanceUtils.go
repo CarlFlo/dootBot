@@ -19,7 +19,7 @@ func (vi *VoiceInstance) ToggleLooping() {
 func (vi *VoiceInstance) PauseToggle() {
 
 	vi.playing = !vi.playing
-	vi.stream.SetPaused(vi.playing)
+	vi.stream.SetPaused(!vi.playing)
 }
 
 func (vi *VoiceInstance) GetGuildID() string {

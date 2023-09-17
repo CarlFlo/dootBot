@@ -70,6 +70,13 @@ func InitializeMusic() error {
 	return nil
 }
 
+// Close - cleann-up for the music
+func Close() {
+	for _, vi := range instances {
+		vi.Close()
+	}
+}
+
 // Same as resume
 // TODO: Crashes when "play" command is run multiple times before the instance has been able to initialize - invalid memory address or nil pointer dereference
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -228,7 +235,7 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
-	vi.ClearQueue()
+	vi.ClearQueueAfter()
 	//vi.Stop() // Should it stop the bot?
 }
 

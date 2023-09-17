@@ -76,7 +76,7 @@ func ClearMusicQueueInteraction(guildID string, author *discordgo.User, response
 		return
 	}
 
-	vi.ClearQueue()
+	vi.ClearQueueAfter()
 
 	// Todo update the 'Music Player' message
 	// music.CreateMusicOverviewMessage(vi.channelID, i)
