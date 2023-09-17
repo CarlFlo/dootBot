@@ -185,7 +185,7 @@ func (vi *VoiceInstance) DecrementQueueIndex() bool {
 		return false
 	}
 
-	vi.queueIndex -= 2 // We need to decrement by 2 as IncrementQueueIndex is run after 'StreamAudio()' is finished
+	vi.queueIndex--
 	return true
 }
 
