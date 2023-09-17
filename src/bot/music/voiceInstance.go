@@ -84,7 +84,7 @@ func (vi *VoiceInstance) PlayQueue() {
 		}
 
 		if vi.stop {
-			vi.ClearQueueAfter()
+			vi.PurgeQueue()
 			return
 		}
 

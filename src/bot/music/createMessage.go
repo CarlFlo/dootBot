@@ -97,7 +97,7 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		})
 
 		// Restart or previous song
-		previousOrRestart := "Back"
+		previousOrRestart := "Previous"
 		if vi.IsStartOfQueue() {
 			previousOrRestart = "Restart"
 		}
@@ -108,7 +108,7 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		})
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    "Stop",
+			Label:    "Exit",
 			CustomID: "stopSong",
 			Style:    4, // Red
 		})
