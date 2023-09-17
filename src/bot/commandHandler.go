@@ -132,6 +132,11 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeMusic}
 
+	validCommands["back"] = command{ // Goes back one song
+		function:           music.MusicPrevious,
+		requiredPermission: enumUser,
+		commandType:        typeMusic}
+
 	validCommands["clearqueue"] = command{ // Clears the queue
 		function:           music.ClearQueueMusic,
 		requiredPermission: enumUser,

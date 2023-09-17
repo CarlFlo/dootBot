@@ -245,3 +245,34 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 
 	vi.PauseToggle()
 }
+
+func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+
+	var userResp *string
+	var vi VoiceInstance
+	if ok := preAction(&vi, userResp, m); !ok {
+		utils.SendMessageNeutral(m, *userResp)
+		return
+	}
+
+	vi.Prev()
+}
+
+func preAction(vi *VoiceInstance, userResp *string, m *discordgo.MessageCreate) bool {
+
+	if !isMusicEnabled() {
+		*userResp = "Music is currently disabled"
+		return false
+	}
+
+	guildID, err := utils.GetGuild(m.ChannelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err.Error())
+		return false
+	}
+
+	*vi = *instances[guildID]
+
+	// If 'vi' is not null, then there exists an instance
+	return vi != nil
+}

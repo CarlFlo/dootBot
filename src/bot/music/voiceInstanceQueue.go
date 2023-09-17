@@ -3,8 +3,8 @@ package music
 import "github.com/CarlFlo/malm"
 
 func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 	if vi.GetQueueLength() == 0 {
 		return &Song{}, errEmptyQueue
 	} else if vi.isEndOfQueue() {
@@ -16,9 +16,9 @@ func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
 
 // AddToQueue - adds the song to the queue, and also prepares the song and caches it
 func (vi *VoiceInstance) AddToQueue(s Song) {
-	vi.queueMutex.Lock()
+	vi.mu.Lock()
 	vi.queue = append(vi.queue, s)
-	vi.queueMutex.Unlock()
+	vi.mu.Unlock()
 
 	go func() {
 		song := &vi.queue[len(vi.queue)-1]
@@ -37,15 +37,15 @@ func (vi *VoiceInstance) AddToQueue(s Song) {
 
 // Removes all songs in the queue after the current song.
 func (vi *VoiceInstance) ClearQueue() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 	vi.queue = vi.queue[:vi.queueIndex+1]
 }
 
 // Removes all songs in the queue before the current song.
 func (vi *VoiceInstance) ClearQueuePrev() {
-	vi.queueMutex.Lock()
-	defer vi.queueMutex.Unlock()
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 	vi.queue = vi.queue[vi.queueIndex:]
 	vi.queueIndex = 0
 }
