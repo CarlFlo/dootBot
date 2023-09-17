@@ -9,8 +9,6 @@ import (
 	"github.com/CarlFlo/malm"
 )
 
-// Redo this so this isnt required https://www.youtube.com/watch?v=y_eIBmt3JdY
-
 // CONFIG holds all the config data
 var CONFIG *configStruct
 
