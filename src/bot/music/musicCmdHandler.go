@@ -117,7 +117,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	err = parseMusicInput(m, inputText, &song)
 	if err != nil {
 		malm.Error("%s", err)
-		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song. The maximum duration for a song is %d", config.CONFIG.Music.MaxSongLengthMinutes))
+		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nNote: the maximum duration for a song is currently set at %d minutes in the configuration file", config.CONFIG.Music.MaxSongLengthMinutes))
 		return
 	}
 

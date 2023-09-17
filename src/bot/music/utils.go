@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
@@ -99,8 +100,6 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 	thumbnail := page.Items[0].Snippet.Thumbnails.Standard.Url
 	channelName := page.Items[0].Snippet.ChannelTitle
 	duration := formatYoutubeDuration(page.Items[0].ContentDetails.Duration)
-
-	// TODO: if duration is too long (set in config) return error
 
 	return title, thumbnail, channelName, duration, nil
 }
@@ -245,11 +244,12 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.YoutubeVideoID = videoID
 	song.duration = duration
 
-	return nil
+	// Returns 'nil' if everything is ok
+	return checkDurationCompliance(song.duration)
 }
 
 // formatYoutubeDuration formats the youtube duration string
-// PT1H24M47S -> 1 hour 24 minutes and 47 seconds
+// PT1H24M47S -> 1h 24m 47s
 func formatYoutubeDuration(input string) string {
 	// example string: PT1H24M47S
 
@@ -277,4 +277,36 @@ func formatYoutubeDuration(input string) string {
 	}
 
 	return buffer.String()
+}
+
+func checkDurationCompliance(duration string) error {
+	// MaxSongLengthMinutes
+
+	parts := strings.Split(duration, " ")
+
+	totalMinutes := 0
+
+	for _, part := range parts {
+		if strings.HasSuffix(part, "h") {
+			hoursStr := strings.TrimSuffix(part, "h")
+			hours, err := strconv.Atoi(hoursStr)
+			if err != nil {
+				return err
+			}
+			totalMinutes += hours * 60
+		} else if strings.HasSuffix(part, "m") {
+			minutesStr := strings.TrimSuffix(part, "m")
+			minutes, err := strconv.Atoi(minutesStr)
+			if err != nil {
+				return err
+			}
+			totalMinutes += minutes
+		}
+	}
+
+	if totalMinutes > config.CONFIG.Music.MaxSongLengthMinutes {
+		return fmt.Errorf("song duration exceeds 'MaxSongLengthMinutes' in the config file")
+	}
+
+	return nil
 }

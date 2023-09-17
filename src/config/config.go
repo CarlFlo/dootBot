@@ -169,7 +169,7 @@ func createConfig() error {
 		},
 		Music: music{
 			YoutubeAPIKey:        "",
-			MaxSongLengthMinutes: 12,
+			MaxSongLengthMinutes: 60,
 			MaxCacheAgeMin:       90,
 		},
 		MessageProcessing: messageProcessing{
