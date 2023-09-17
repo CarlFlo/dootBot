@@ -33,6 +33,9 @@ func (c *songStreamCacheWrapper) Add(song *Song) {
 	}
 }
 
+// Check - returns the stream url for a given url (usually youtube)
+// Will remove old cache entries
+// Returns an empty string there is no result
 func (c *songStreamCacheWrapper) Check(ytURL string) string {
 
 	ssc := c.songCache[ytURL]

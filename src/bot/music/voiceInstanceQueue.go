@@ -31,7 +31,7 @@ func (vi *VoiceInstance) AddToQueue(s Song) {
 		} else {
 			song.StreamURL = streamURL
 		}
-		malm.Info("[%s] cached and prepared", song.YoutubeVideoID)
+		malm.Debug("[%s] cached and prepared", song.YoutubeVideoID)
 	}()
 }
 

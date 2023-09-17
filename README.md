@@ -59,7 +59,7 @@ Needs to be available in the PATH
 * [**yt-dlp**](https://github.com/yt-dlp/yt-dlp/releases)
 
 **Additional requirements**
-* [**gcc**](https://gcc.gnu.org/)
+* [**GCC**](https://gcc.gnu.org/)
 
 ### Configuration
 
