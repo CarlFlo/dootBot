@@ -122,7 +122,8 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	// Add the song to the queue
-	vi.AddToQueue(song)
+	vi.AddToQueue(&song)
+	go song.FetchStreamURL()
 
 	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
 
@@ -248,31 +249,24 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 
 func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 
-	var userResp *string
-	var vi VoiceInstance
-	if ok := preAction(&vi, userResp, m); !ok {
-		utils.SendMessageNeutral(m, *userResp)
-		return
-	}
-
-	vi.Prev()
-}
-
-func preAction(vi *VoiceInstance, userResp *string, m *discordgo.MessageCreate) bool {
-
 	if !isMusicEnabled() {
-		*userResp = "Music is currently disabled"
-		return false
+		utils.SendMessageNeutral(m, "Music is currently disabled")
+		return
 	}
 
 	guildID, err := utils.GetGuild(m.ChannelID)
 	if err != nil {
 		malm.Error("Error getting guild ID: %s", err.Error())
-		return false
+		return
 	}
 
-	*vi = *instances[guildID]
+	vi := instances[guildID]
 
-	// If 'vi' is not null, then there exists an instance
-	return vi != nil
+	if vi == nil { // Nothing is playing
+		return
+	}
+
+	if !vi.Prev() {
+		utils.SendMessageNeutral(m, "You are at the start of the queue")
+	}
 }

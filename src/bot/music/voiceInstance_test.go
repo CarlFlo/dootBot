@@ -8,14 +8,14 @@ import (
 
 func TestClearQueue(t *testing.T) {
 	vi := VoiceInstance{}
-	vi.AddToQueue(Song{Title: "song 1"})
-	vi.AddToQueue(Song{Title: "song 2"})
+	vi.AddToQueue(&Song{Title: "song 1"})
+	vi.AddToQueue(&Song{Title: "song 2"})
 	vi.ClearQueue()
 	test.Validate(t, vi.GetQueueLength(), 1, "QueueLength() should be 1 after ClearQueue()")
 
-	vi.AddToQueue(Song{Title: "song 3"})
-	vi.AddToQueue(Song{Title: "song 4"})
-	vi.AddToQueue(Song{Title: "song 5"})
+	vi.AddToQueue(&Song{Title: "song 3"})
+	vi.AddToQueue(&Song{Title: "song 4"})
+	vi.AddToQueue(&Song{Title: "song 5"})
 
 	// Simulate playing two songs
 	vi.FinishedPlayingSong()
@@ -28,8 +28,8 @@ func TestClearQueue(t *testing.T) {
 func TestQueueNextSong(t *testing.T) {
 
 	vi := VoiceInstance{}
-	vi.AddToQueue(Song{Title: "song 1"})
-	vi.AddToQueue(Song{Title: "song 2"})
+	vi.AddToQueue(&Song{Title: "song 1"})
+	vi.AddToQueue(&Song{Title: "song 2"})
 
 	s1, _ := vi.GetFirstInQueue()
 	test.Validate(t, s1.Title, "song 1", "GetFirstInQueue() should return song 1")
@@ -39,7 +39,7 @@ func TestQueueNextSong(t *testing.T) {
 	s2, _ := vi.GetFirstInQueue()
 	test.Validate(t, s2.Title, "song 2", "GetFirstInQueue() should return song 2")
 
-	vi.AddToQueue(Song{Title: "song 3"})
+	vi.AddToQueue(&Song{Title: "song 3"})
 	vi.looping = true
 	vi.FinishedPlayingSong()
 
@@ -50,8 +50,8 @@ func TestQueueNextSong(t *testing.T) {
 
 func TestEndOfQueue(t *testing.T) {
 	vi := VoiceInstance{}
-	vi.AddToQueue(Song{Title: "song 1"})
-	vi.AddToQueue(Song{Title: "song 2"})
+	vi.AddToQueue(&Song{Title: "song 1"})
+	vi.AddToQueue(&Song{Title: "song 2"})
 	vi.FinishedPlayingSong()
 	vi.FinishedPlayingSong()
 	_, err := vi.GetFirstInQueue()
@@ -63,16 +63,16 @@ func TestEndOfQueue(t *testing.T) {
 func TestQueueAdd(t *testing.T) {
 	vi := VoiceInstance{}
 	test.Validate(t, vi.GetQueueLength(), 0, "QueueLength() just initialized, should be 0")
-	vi.AddToQueue(Song{Title: "song 1"})
-	vi.AddToQueue(Song{Title: "song 2"})
+	vi.AddToQueue(&Song{Title: "song 1"})
+	vi.AddToQueue(&Song{Title: "song 2"})
 	test.Validate(t, vi.GetQueueLength(), 2, "QueueLength() Added two songs, so should be 2")
 }
 
 func TestQueueIncrementDecrement(t *testing.T) {
 	vi := VoiceInstance{}
-	vi.AddToQueue(Song{Title: "song 1"})
-	vi.AddToQueue(Song{Title: "song 2"})
-	vi.AddToQueue(Song{Title: "song 3"})
+	vi.AddToQueue(&Song{Title: "song 1"})
+	vi.AddToQueue(&Song{Title: "song 2"})
+	vi.AddToQueue(&Song{Title: "song 3"})
 	test.Validate(t, vi.GetQueueIndex(), 0, "QueueIndex() should be 0")
 
 	vi.FinishedPlayingSong()

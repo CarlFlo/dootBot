@@ -1,7 +1,6 @@
 package music
 
 import (
-	"errors"
 	"io"
 	"log"
 	"sync"
@@ -13,17 +12,12 @@ import (
 	"github.com/jung-m/dca"
 )
 
-var (
-	errEmptyQueue = errors.New("the queue is empty")
-	errNoNextSong = errors.New("there is no next song to play")
-)
-
 type VoiceInstance struct {
 	voice     *discordgo.VoiceConnection
 	encoder   *dca.EncodeSession
 	stream    *dca.StreamingSession
 	mu        sync.Mutex
-	queue     []Song
+	queue     []*Song
 	guildID   string
 	done      chan error // Used to interrupt the stream
 	messageID string
@@ -37,6 +31,7 @@ type PlaybackState struct {
 	loading    bool
 	stop       bool // stopping the music bot, removing the queue etc
 	looping    bool
+	previous   bool // indicates the user wants to go back and play the previous song
 	queueIndex int
 }
 
@@ -111,12 +106,10 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 		return err
 	}
 
-	// download code moved to 'func (vi *VoiceInstance) AddToQueue(s Song)'
+	// Waiting until the song has a streamURL
 	for song.StreamURL == "" {
 		time.Sleep(100 * time.Millisecond)
 	}
-
-	// Wait until song object has an url
 
 	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {
@@ -159,9 +152,16 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 // Todo, add check for if the user wants to play the song again. i.e. previous command
 func (vi *VoiceInstance) FinishedPlayingSong() {
 
+	// Indicates the user wants to go back and play the previous song
+	if vi.previous {
+		vi.previous = false
+		return
+	}
+
 	if vi.IsLooping() {
 		return
 	}
+
 	vi.IncrementQueueIndex()
 }
 
@@ -178,8 +178,6 @@ func (vi *VoiceInstance) IncrementQueueIndex() bool {
 
 // Returns true if the index could be decremented
 func (vi *VoiceInstance) DecrementQueueIndex() bool {
-
-	malm.Warn("This function is currently broken and will not function as intended with other code")
 
 	if vi.queueIndex == 0 {
 		return false
@@ -221,11 +219,16 @@ func (vi *VoiceInstance) Skip() bool {
 	return true
 }
 
+// Prev will go back to the previous song. If there is no song to go back to so will the song be restarted
 func (vi *VoiceInstance) Prev() bool {
-	if !vi.playing || !vi.DecrementQueueIndex() {
-		// Music is not playing or there is no song to go back to
+	if !vi.playing {
+		// Music is not playing
 		return false
 	}
+
+	vi.DecrementQueueIndex()
+
+	vi.previous = true
 
 	// This will interupt and stop the stream
 	vi.done <- nil

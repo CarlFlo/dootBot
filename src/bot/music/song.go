@@ -2,6 +2,8 @@ package music
 
 import (
 	"fmt"
+
+	"github.com/CarlFlo/malm"
 )
 
 type Song struct {
@@ -13,6 +15,22 @@ type Song struct {
 	YoutubeVideoID string
 	StreamURL      string
 	duration       string
+}
+
+func (s *Song) FetchStreamURL() error {
+
+	// song.StreamURL contains the URL to the stream.
+	if streamURL := songCache.Check(s.YoutubeVideoID); len(streamURL) == 0 {
+		// This function is slow. Takes a bit over 2 seconds
+		if err := execYoutubeDL(s); err != nil {
+			return err
+		}
+		songCache.Add(s)
+	} else {
+		s.StreamURL = streamURL
+	}
+	malm.Debug("[%s] cached and prepared", s.YoutubeVideoID)
+	return nil
 }
 
 /* SONG */

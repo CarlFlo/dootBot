@@ -6,7 +6,6 @@ func (vi *VoiceInstance) playbackStarted() {
 	vi.loading = true
 }
 func (vi *VoiceInstance) playbackStopped() {
-	vi.stop = false
 	vi.playing = false
 	vi.loading = false
 }
