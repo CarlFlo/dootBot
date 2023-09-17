@@ -58,6 +58,9 @@ Needs to be available in the PATH
 * [**ffmpeg**](https://ffmpeg.org/download.html)
 * [**yt-dlp**](https://github.com/yt-dlp/yt-dlp/releases)
 
+**Additional requirements**
+gcc
+
 ### Configuration
 
 The bot is fully customizable through the config.json file, where most if not all variables can be customised.
@@ -66,9 +69,9 @@ The bot is fully customizable through the config.json file, where most if not al
 
 You're able to build and run the bot with the included `makefile`.
 
-Run `make` to build the bot
+Run `make build` or `make b` to build the bot
 
-Run `make run | r` to just run the bot
+Run `make run` or `make r` to just run the bot
 
 The `makefile` can also be used to build/run the bot for different operating systems such as **Windows**, **Mac**, and **Linux**
 
