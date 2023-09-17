@@ -2,8 +2,6 @@ package music
 
 import (
 	"errors"
-
-	"github.com/CarlFlo/malm"
 )
 
 var (
@@ -30,11 +28,24 @@ func (vi *VoiceInstance) AddToQueue(s *Song) {
 	vi.mu.Unlock()
 }
 
-// Removes all songs in the queue
+// Purges the queue
+func (vi *VoiceInstance) PurgeQueue() {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
+	vi.queueIndex = 0
+	vi.queue = []*Song{}
+}
+
+// Removes all songs in the queue. Except the current song.
+// Use 'PurgeQueue' to clear everything
 func (vi *VoiceInstance) ClearQueue() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
-	vi.queue = []*Song{}
+
+	// Bounds check
+	if !(vi.queueIndex >= len(vi.queue)) {
+		vi.queue = vi.queue[vi.queueIndex : vi.queueIndex+1]
+	}
 }
 
 // Removes all songs in the queue after the current song.
@@ -42,6 +53,7 @@ func (vi *VoiceInstance) ClearQueueAfter() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
 
+	// Bounds check
 	if !(vi.queueIndex >= len(vi.queue)) {
 		vi.queue = vi.queue[:vi.queueIndex+1]
 	}
@@ -52,13 +64,11 @@ func (vi *VoiceInstance) ClearQueuePrev() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
 
-	if vi.queueIndex >= len(vi.queue) {
-		malm.Warn("Unable to 'ClearQueuePrev'")
-		return
+	// Bounds check
+	if !(vi.queueIndex >= len(vi.queue)) {
+		vi.queue = vi.queue[vi.queueIndex:]
+		vi.queueIndex = 0
 	}
-
-	vi.queue = vi.queue[vi.queueIndex:]
-	vi.queueIndex = 0
 }
 
 func (vi *VoiceInstance) QueueIsEmpty() bool {

@@ -51,7 +51,7 @@ func (vi *VoiceInstance) New(guildID string) error {
 func (vi *VoiceInstance) Close() {
 
 	// Clean-up here
-	vi.ClearQueue()
+	vi.PurgeQueue()
 	vi.stop = true
 	go func() {
 		vi.done <- nil
