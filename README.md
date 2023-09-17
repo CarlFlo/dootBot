@@ -48,7 +48,10 @@ The first time the bot is run, a config.json file is created. This JSON file req
 1. The bot token [Token]
 2. The owners (your) Discord ID [OwnerID]
 3. The bots Discord ID [AppID]
-4. (optional) Youtube API key (for music) [youtubeAPIKey]
+4. (optional) Youtube API key(s) if you want to use music. [youtubeAPIKeys] 
+
+
+Note: If more than one Youtube API key is entered to will the program cycle between them
 
 ### Requirements 
 
@@ -69,7 +72,7 @@ The bot is fully customizable through the config.json file, where most if not al
 
 You're able to build and run the bot with the included `makefile`.
 
-Run `make build` or `make b` to build the bot
+Run `make` or `make build` or `make b` to build the bot
 
 Run `make run` or `make r` to just run the bot
 
