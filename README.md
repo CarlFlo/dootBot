@@ -31,14 +31,13 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - User activities with progression
 
-- Music player with queue with cache system to reduce YouTube API calls
+- Music player with queue with cache system (when entering an URL) to reduce YouTube API calls
 
 ## Commands
 
 - Work - Allows the user to earn a random amount of money [6 hour cooldown]
 - Daily - Gives the user a random amount of money daily [24 hour cooldown]
-- Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. New crops can be unlocked by planting.
-- Mine - Your own dwarven keep where your dwarfs will mine for ore and other precious gems
+- Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. Includes crop unlocking system.
 - Play - Plays a youtube song in the voice channel. Provide an url or search for a song.
 
 ## Setup
