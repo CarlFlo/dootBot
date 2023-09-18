@@ -36,6 +36,7 @@ func (Farm) TableName() string {
 	return "userFarms"
 }
 
+// Does not trigger normaly.
 func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
 	f.HighestPlantedCropIndex = 1
@@ -68,6 +69,8 @@ func (f *Farm) QueryUserFarmData(u *User) {
 	if f.ID == 0 { // Meaning there is no data, so we initialize it
 		f.ID = u.ID // The farms index is the same as the user
 		f.OwnedPlots = config.CONFIG.Farm.DefaultOwnedFarmPlots
+		f.HighestPlantedCropIndex = 1
+		f.ResetLastWatered()
 
 		f.Save()
 	}
@@ -152,7 +155,7 @@ func (f *Farm) CreateFarmOverview(msg *discordgo.MessageSend, m *discordgo.Messa
 
 	// Handle message components
 	f.overviewCreateButtons(&msg.Components, user)
-	f.overviewCreateCropMenu(&msg.Components, user)
+	f.overviewCreateCropMenu(&msg.Components, user) // Throwing an error currently
 }
 
 func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUser *discordgo.User) {
@@ -183,6 +186,7 @@ func (f *Farm) overviewCreateCropMenu(msgCompondents *[]discordgo.MessageCompone
 
 	menuComponent := []discordgo.MessageComponent{
 		&discordgo.SelectMenu{
+			MenuType:    discordgo.StringSelectMenu,
 			CustomID:    "FPC", // 'FPC' is code for 'Farm Plant Crop'
 			Placeholder: fmt.Sprintf("Select a crop to plant (Cost %s %s)", utils.HumanReadableNumber(config.CONFIG.Farm.CropSeedPrice), config.CONFIG.Economy.Name),
 			MaxValues:   1,
@@ -202,6 +206,7 @@ func (f *Farm) createCropOptions() []discordgo.SelectMenuOption {
 
 	var crops []FarmCrop
 	DB.Where("id <= ?", f.HighestPlantedCropIndex).Order("id desc").Limit(int(f.HighestPlantedCropIndex)).Find(&crops)
+	//DB.Raw("SELECT * FROM farmCrops WHERE id <= ? ORDER BY id DESC LIMIT ?", f.HighestPlantedCropIndex, f.HighestPlantedCropIndex).Scan(&crops)
 
 	for _, crop := range crops {
 

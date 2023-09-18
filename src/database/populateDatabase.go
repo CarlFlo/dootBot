@@ -2,12 +2,9 @@ package database
 
 import (
 	"time"
-
-	"github.com/CarlFlo/malm"
 )
 
 func PopulateDatabase() {
-	malm.Info("Populating database...")
 	//debug()
 	farming()
 }

@@ -22,7 +22,7 @@ func printFarm(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 	// Sends the message
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, complexMessage); err != nil {
-		malm.Error("Could not send message! %s", err)
+		malm.Error("Could not send message! Reason: %s", err)
 		return
 	}
 }

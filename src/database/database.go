@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
@@ -24,6 +25,11 @@ func Connect() {
 
 func connectToDB() error {
 
+	if _, err := os.Stat(config.CONFIG.Database.FileName); os.IsNotExist(err) || resetDatabaseOnStart {
+		malm.Info("SQLite DB missing. Creating and populating with default values...")
+		defer PopulateDatabase() // Populates the database with the default values
+	}
+
 	var err error
 	DB, err = gorm.Open(sqlite.Open(config.CONFIG.Database.FileName), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -45,7 +51,7 @@ func connectToDB() error {
 
 	if resetDatabaseOnStart {
 
-		malm.Info("Resetting database...")
+		malm.Info("and resetting database...")
 
 		type tmp interface {
 			TableName() string
@@ -55,7 +61,6 @@ func connectToDB() error {
 			table := e.(tmp).TableName()
 			DB.Exec(fmt.Sprintf("DROP TABLE %s", table))
 		}
-		defer PopulateDatabase() // Populates the database with the default values
 	}
 
 	// Remeber to add new tables to the tableList and not just here!
