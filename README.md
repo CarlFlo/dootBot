@@ -31,7 +31,7 @@ The purpose of the bot is to allow members of a Discord channel to engage with t
 
 - User activities with progression
 
-- Music player with queue
+- Music player with queue with cache system to reduce YouTube API calls
 
 ## Commands
 
