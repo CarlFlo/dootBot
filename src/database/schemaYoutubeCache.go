@@ -28,7 +28,8 @@ func (c *YoutubeCache) Save() {
 }
 
 // Check checks if the videoID exists in the cache
-// returns true if it exists
+// Populates the values if the video is found
+// Returns true if it exists
 func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, duration *string) bool {
 	if err := DB.Table("youtubeCache").Where("video_id = ?", videoID).First(c).Error; err != nil {
 		// Not found, or error.
