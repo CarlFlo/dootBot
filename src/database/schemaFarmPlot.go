@@ -22,12 +22,14 @@ func (FarmPlot) TableName() string {
 	return "userFarmPlots"
 }
 
+// Only triggers on DB.Create(...)
 func (fp *FarmPlot) BeforeCreate(tx *gorm.DB) error {
 
 	fp.PlantedAt = time.Now()
 	return nil
 }
 
+// Only triggers on DB.Create(...)
 func (fp *FarmPlot) AfterCreate(tx *gorm.DB) error {
 	// Save to debug
 	return nil

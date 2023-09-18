@@ -36,7 +36,7 @@ func (Farm) TableName() string {
 	return "userFarms"
 }
 
-// Does not trigger normaly.
+// Only triggers on DB.Create(...)
 func (f *Farm) BeforeCreate(tx *gorm.DB) error {
 
 	f.HighestPlantedCropIndex = 1
@@ -69,9 +69,8 @@ func (f *Farm) QueryUserFarmData(u *User) {
 	if f.ID == 0 { // Meaning there is no data, so we initialize it
 		f.ID = u.ID // The farms index is the same as the user
 		f.OwnedPlots = config.CONFIG.Farm.DefaultOwnedFarmPlots
-		f.HighestPlantedCropIndex = 1
-		f.ResetLastWatered()
 
+		DB.Create(f)
 		f.Save()
 	}
 }
