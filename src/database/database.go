@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-const resetDatabaseOnStart = true
+const resetDatabaseOnStart = false
 
 func Connect() {
 	if err := connectToDB(); err != nil {
@@ -39,7 +39,7 @@ func connectToDB() error {
 		&Farm{},
 		&FarmPlot{},
 		&FarmCrop{},
-		&Notify{},
+		&YoutubeCache{},
 		&Debug{},
 	}
 

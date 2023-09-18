@@ -13,6 +13,7 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/database"
 	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -76,6 +77,69 @@ type contentDetails struct {
 
 func isMusicEnabled() bool {
 	return youtubeAPIKeysValid
+}
+
+func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
+
+	var title, thumbnail, channelName, videoID, duration string
+	var err error
+
+	ytRegex := regexp.MustCompile(youtubePattern)
+	urlRegex := regexp.MustCompile(urlPattern)
+
+	if ytRegex.MatchString(input) {
+		// Youtube link
+
+		parsedURL, err := url.Parse(input)
+		if err != nil {
+			return err
+		}
+
+		query := parsedURL.Query()
+		videoID = query.Get("v")
+
+		// Cache
+		var cache database.YoutubeCache
+		// "Will attempt to load the values into the pointers"
+		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &duration)
+
+		if !exists {
+			title, thumbnail, channelName, duration, err = youtubeFindByVideoID(videoID)
+			if err != nil {
+				return err
+			}
+			// Save results to cache
+			cache.Cache(videoID, title, thumbnail, channelName, duration)
+		}
+
+	} else if urlRegex.MatchString(input) {
+		// URL from another source than Youtube
+		parsedURL, err := url.Parse(input)
+		if err != nil {
+			return err
+		}
+
+		malm.Debug("%s", parsedURL.Host)
+		return errDetectedNonYTURL
+	} else {
+		// Presumably a song name. Search Youtube
+		title, thumbnail, channelName, videoID, duration, err = youtubeFindBySearch(input)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Update the song object
+	song.ChannelID = m.ChannelID
+	song.User = m.Author.ID
+	song.Title = title
+	song.Thumbnail = thumbnail
+	song.ChannelName = channelName
+	song.YoutubeVideoID = videoID
+	song.duration = duration
+
+	// Returns 'nil' if everything is ok
+	return checkDurationCompliance(song.duration)
 }
 
 // Returns the title, thumbnail and channel of a youtube video
@@ -195,60 +259,6 @@ func leaveVoice(vi *VoiceInstance) {
 	musicMutex.Lock()
 	delete(instances, vi.GetGuildID())
 	musicMutex.Unlock()
-}
-
-func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
-
-	var title, thumbnail, channelName, videoID, duration string
-	var err error
-
-	ytRegex := regexp.MustCompile(youtubePattern)
-	urlRegex := regexp.MustCompile(urlPattern)
-
-	if ytRegex.MatchString(input) {
-		// Youtube link
-
-		parsedURL, err := url.Parse(input)
-		if err != nil {
-			return err
-		}
-
-		query := parsedURL.Query()
-		videoID = query.Get("v")
-
-		title, thumbnail, channelName, duration, err = youtubeFindByVideoID(videoID)
-		if err != nil {
-			return err
-		}
-
-	} else if urlRegex.MatchString(input) {
-		// URL from another source than Youtube
-		parsedURL, err := url.Parse(input)
-		if err != nil {
-			return err
-		}
-
-		malm.Debug("%s", parsedURL.Host)
-		return errDetectedNonYTURL
-	} else {
-		// Presumably a song name. Search Youtube
-		title, thumbnail, channelName, videoID, duration, err = youtubeFindBySearch(input)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Update the song object
-	song.ChannelID = m.ChannelID
-	song.User = m.Author.ID
-	song.Title = title
-	song.Thumbnail = thumbnail
-	song.ChannelName = channelName
-	song.YoutubeVideoID = videoID
-	song.duration = duration
-
-	// Returns 'nil' if everything is ok
-	return checkDurationCompliance(song.duration)
 }
 
 // formatYoutubeDuration formats the youtube duration string
