@@ -2,6 +2,7 @@ package music
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/CarlFlo/dootBot/src/database"
@@ -16,7 +17,7 @@ type Song struct {
 	Title          string
 	YoutubeVideoID string
 	StreamURL      string
-	duration       time.Duration
+	Duration       time.Duration
 }
 
 func (s *Song) FetchStreamURL() error {
@@ -76,7 +77,13 @@ func (s *Song) FetchStreamURL() error {
 // GetDuration returns the duration of the song
 func (s *Song) GetDuration() string {
 
-	return fmt.Sprintf("%s", s.duration)
+	output := fmt.Sprintf("%s", s.Duration)
+
+	output = strings.Replace(output, "h", "h ", 1)
+	output = strings.Replace(output, "m", "m ", 1)
+	// no need to do seconds
+
+	return output
 }
 
 // GetYoutubeURL returns the full youtube url of the song

@@ -230,6 +230,7 @@ func (vi *VoiceInstance) Skip() bool {
 }
 
 // Prev will go back to the previous song. If there is no song to go back to so will the song be restarted
+// Running this command, if nothing is playing, should start playing the song
 func (vi *VoiceInstance) Prev() bool {
 	if !vi.playing {
 		// Music is not playing

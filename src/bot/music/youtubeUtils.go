@@ -137,11 +137,11 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.Thumbnail = thumbnail
 	song.ChannelName = channelName
 	song.YoutubeVideoID = videoID
-	song.duration = duration
+	song.Duration = duration
 	song.StreamURL = streamURL
 
 	// Returns 'nil' if everything is ok
-	return checkDurationCompliance(song.duration)
+	return checkDurationCompliance(song.Duration)
 }
 
 // Returns the title, thumbnail and channel of a youtube video

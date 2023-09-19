@@ -135,7 +135,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	go song.FetchStreamURL()
 	// Spamming the same song over and over will casue the song to be fetched until the first song is cached
 
-	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.duration))
+	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
 
 	go func() {
 		for range time.After(time.Second * 5) {
