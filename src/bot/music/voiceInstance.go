@@ -109,7 +109,7 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 	// Custom settings
 	settings.RawOutput = true
 	settings.Bitrate = 64
-	//settings.Application = "lowdelay"
+	settings.Application = "lowdelay"
 
 	song, err := vi.GetFirstInQueue()
 	if err != nil {
@@ -125,6 +125,7 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 	if err != nil {
 		return err
 	}
+	defer vi.encoder.Cleanup()
 
 	vi.done = make(chan error)
 	vi.stream = dca.NewStream(vi.encoder, vi.voice, vi.done)
@@ -151,7 +152,6 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 			if err != nil && err != io.EOF {
 				return err
 			}
-			vi.encoder.Cleanup()
 			return nil
 		}
 	}

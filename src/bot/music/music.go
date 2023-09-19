@@ -25,10 +25,7 @@ var instances = map[string]*VoiceInstance{}
 	playlist: dropdown menu with selections of playlists in the guild
 
 	Save stats in DB for songs played, skiped
-	Only save:
 
-	https://www.youtube.com/watch?v=5qap5aO4i9A -> 5qap5aO4i9A
-	To save storage, in DB
 */
 
 var (
