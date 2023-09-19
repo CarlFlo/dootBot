@@ -17,6 +17,7 @@ func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
 		return &Song{}, errEmptyQueue
 	} else if vi.isEndOfQueue() {
 		// TODO: Change
+
 		return &Song{}, errNoNextSong
 	}
 
