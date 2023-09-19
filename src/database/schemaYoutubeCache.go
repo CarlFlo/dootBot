@@ -56,7 +56,7 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, stre
 			} else {
 				if resp.StatusCode != http.StatusOK {
 					malm.Info("Video loaded from cache has expired. Statuscode: %d", resp.StatusCode)
-					// Todo: Invalidate the cache. Only 'URLCache' and 'URLCacheExpire'
+					// TODO: Invalidate the cache. Only 'URLCache' and 'URLCacheExpire'
 				} else {
 					// We only set the streamURL if we can validate that it is ok.
 					*streamURL = c.URLCache

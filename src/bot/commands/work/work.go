@@ -31,7 +31,6 @@ func Work(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdIn
 	work.StreakPreMsgAction()
 
 	// TODO: Change to how farm was reworked
-
 	complexMessage := &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
 			{

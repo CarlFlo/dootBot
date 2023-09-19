@@ -111,6 +111,7 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 	settings.Bitrate = 64
 	settings.Application = "lowdelay"
 
+	// TODO: Wait for next song. Currently will just exit the voice instance and will force the user to run the 'play' again
 	song, err := vi.GetFirstInQueue()
 	if err != nil {
 		return err
@@ -159,7 +160,7 @@ func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
 }
 
 // Call once the song has finished playing, or you want to skip to the next song
-// Todo, add check for if the user wants to play the song again. i.e. previous command
+// TODO: add check for if the user wants to play the song again. i.e. previous command
 func (vi *VoiceInstance) FinishedPlayingSong() {
 
 	// Indicates the user wants to go back and play the previous song

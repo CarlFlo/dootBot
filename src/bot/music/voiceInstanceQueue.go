@@ -12,9 +12,11 @@ var (
 func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
+
 	if vi.GetQueueLength() == 0 {
 		return &Song{}, errEmptyQueue
 	} else if vi.isEndOfQueue() {
+		// TODO: Change
 		return &Song{}, errNoNextSong
 	}
 
