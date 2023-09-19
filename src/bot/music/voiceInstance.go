@@ -71,6 +71,9 @@ func (vi *VoiceInstance) PlayQueue() {
 	defer vi.playbackStopped()
 
 	for {
+
+		//TODO: move check to see if there is a new song next in queue. If no song is in the queue. Then wait for n minutes until there is on. Else leave vc
+
 		vi.playbackStarted()
 
 		if err := vi.voice.Speaking(true); err != nil {
