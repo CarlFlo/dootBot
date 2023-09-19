@@ -54,8 +54,8 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, dura
 			*streamURL = c.URLCache
 		}
 	} else {
-		// Cache is invalid or missing. Remove
-		// Will be overwritten automatically
+		// Cache is invalid or missing. Remove the old cache, or wait for it to be overwritten?
+		// Will be overwritten automatically when the song is being fetched
 	}
 
 	*title = c.Title
