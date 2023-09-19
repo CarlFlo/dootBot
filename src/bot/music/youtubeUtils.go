@@ -1,7 +1,6 @@
 package music
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/config"
@@ -81,7 +81,8 @@ func isMusicEnabled() bool {
 
 func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
 
-	var title, thumbnail, channelName, videoID, duration, streamURL string
+	var title, thumbnail, channelName, videoID, streamURL string
+	var duration time.Duration
 	var err error
 
 	ytRegex := regexp.MustCompile(youtubePattern)
@@ -101,7 +102,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 		// Cache
 		var cache database.YoutubeCache
 		// "Will attempt to load the values into the pointers"
-		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &duration, &streamURL)
+		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &streamURL, &duration)
 
 		if !exists {
 			title, thumbnail, channelName, duration, err = youtubeFindByVideoID(videoID)
@@ -145,14 +146,16 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 
 // Returns the title, thumbnail and channel of a youtube video
 // error if there was any problem
-func youtubeFindByVideoID(videoID string) (string, string, string, string, error) {
+func youtubeFindByVideoID(videoID string) (string, string, string, time.Duration, error) {
+
+	var emptyDuration time.Duration
 
 	apiKey := utils.GetYoutubeAPIKey()
 	res, err := http.Get(fmt.Sprintf(youtubeFindEndpoint, apiKey, videoID))
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", emptyDuration, err
 	} else if res.StatusCode != 200 {
-		return "", "", "", "", fmt.Errorf(errStatusYTSearchVideoID, res.StatusCode, videoID)
+		return "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchVideoID, res.StatusCode, videoID)
 	}
 	defer res.Body.Close()
 
@@ -160,30 +163,33 @@ func youtubeFindByVideoID(videoID string) (string, string, string, string, error
 
 	err = json.NewDecoder(res.Body).Decode(&page)
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", emptyDuration, err
 	}
 
 	if len(page.Items) == 0 {
-		return "", "", "", "", errEmptyYTResult
+		return "", "", "", emptyDuration, errEmptyYTResult
 	}
 
 	title := page.Items[0].Snippet.Title
 	thumbnail := page.Items[0].Snippet.Thumbnails.Standard.Url
 	channelName := page.Items[0].Snippet.ChannelTitle
-	duration := formatYoutubeDuration(page.Items[0].ContentDetails.Duration)
+	//duration := formatYoutubeDuration(page.Items[0].ContentDetails.Duration)
+	duration := youtubeTimeToDuration(page.Items[0].ContentDetails.Duration)
 
 	return title, thumbnail, channelName, duration, nil
 }
 
-func youtubeFindBySearch(query string) (string, string, string, string, string, error) {
+func youtubeFindBySearch(query string) (string, string, string, string, time.Duration, error) {
+
+	var emptyDuration time.Duration
 
 	query = url.QueryEscape(query)
 	apiKey := utils.GetYoutubeAPIKey()
 	res, err := http.Get(fmt.Sprintf(youtubeSearchEndpoint, apiKey, query))
 	if err != nil {
-		return "", "", "", "", "", err
+		return "", "", "", "", emptyDuration, err
 	} else if res.StatusCode != 200 {
-		return "", "", "", "", "", fmt.Errorf(errStatusYTSearchQuery, res.StatusCode, query)
+		return "", "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchQuery, res.StatusCode, query)
 	}
 	defer res.Body.Close()
 
@@ -191,18 +197,18 @@ func youtubeFindBySearch(query string) (string, string, string, string, string, 
 
 	err = json.NewDecoder(res.Body).Decode(&page)
 	if err != nil {
-		return "", "", "", "", "", err
+		return "", "", "", "", emptyDuration, err
 	}
 
 	if len(page.Items) == 0 {
-		return "", "", "", "", "", errEmptyYTResult
+		return "", "", "", "", emptyDuration, errEmptyYTResult
 	}
 
 	videoID := page.Items[0].ID.VideoId
 
 	title, thumbnail, channelName, duration, err := youtubeFindByVideoID(videoID)
 	if err != nil {
-		return "", "", "", "", "", err
+		return "", "", "", "", emptyDuration, err
 	}
 
 	return title, thumbnail, channelName, videoID, duration, nil
@@ -262,12 +268,11 @@ func leaveVoice(vi *VoiceInstance) {
 	musicMutex.Unlock()
 }
 
-// formatYoutubeDuration formats the youtube duration string
+// youtubeTimeToDuration turns the youtube duration string into a time.Time object
 // PT1H24M47S -> 1h 24m 47s
-func formatYoutubeDuration(input string) string {
-	// example string: PT1H24M47S
+func youtubeTimeToDuration(input string) time.Duration {
 
-	var buffer bytes.Buffer
+	var duration time.Duration
 
 	// Removes the prefix
 	input = strings.TrimPrefix(input, "PT")
@@ -275,50 +280,42 @@ func formatYoutubeDuration(input string) string {
 	// Split the string into hours, minutes and seconds
 	split := strings.Split(input, "H")
 	if len(split) != 1 {
-		buffer.WriteString(split[0] + "h ")
+		if val, err := strconv.Atoi(split[0]); err == nil {
+			duration += time.Hour * time.Duration(val)
+		} else {
+			malm.Warn("Unable to format time for input %v. Reason: %s", split, err)
+		}
 		input = split[1]
 	}
 
 	split = strings.Split(input, "M")
 	if len(split) != 1 {
-		buffer.WriteString(split[0] + "m ")
+		if val, err := strconv.Atoi(split[0]); err == nil {
+			duration += time.Minute * time.Duration(val)
+		} else {
+			malm.Warn("Unable to format time for input %v. Reason: %s", split, err)
+		}
 		input = split[1]
 	}
 
 	split = strings.Split(input, "S")
 	if len(split) != 1 {
-		buffer.WriteString(split[0] + "s")
-	}
-
-	return buffer.String()
-}
-
-func checkDurationCompliance(duration string) error {
-	// MaxSongLengthMinutes
-
-	parts := strings.Split(duration, " ")
-
-	totalMinutes := 0
-
-	for _, part := range parts {
-		if strings.HasSuffix(part, "h") {
-			hoursStr := strings.TrimSuffix(part, "h")
-			hours, err := strconv.Atoi(hoursStr)
-			if err != nil {
-				return err
-			}
-			totalMinutes += hours * 60
-		} else if strings.HasSuffix(part, "m") {
-			minutesStr := strings.TrimSuffix(part, "m")
-			minutes, err := strconv.Atoi(minutesStr)
-			if err != nil {
-				return err
-			}
-			totalMinutes += minutes
+		if val, err := strconv.Atoi(split[0]); err == nil {
+			duration += time.Second * time.Duration(val)
+		} else {
+			malm.Warn("Unable to format time for input %v. Reason: %s", split, err)
 		}
 	}
 
-	if totalMinutes > int(config.CONFIG.Music.MaxSongLengthMinutes) {
+	return duration
+}
+
+func checkDurationCompliance(duration time.Duration) error {
+
+	maxSongDuration := time.Minute * config.CONFIG.Music.MaxSongLengthMinutes
+
+	// If the song duration is longer than the maximum allowed duration,
+	if duration > maxSongDuration {
 		return fmt.Errorf(errSongLengthLimitExceeded, config.CONFIG.Music.MaxSongLengthMinutes)
 	}
 

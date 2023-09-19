@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -12,11 +13,11 @@ import (
 
 type YoutubeCache struct {
 	Model
-	VideoID        string `gorm:"uniqueIndex"`
-	Title          string `gorm:"not null"`
-	Thumbnail      string `gorm:"not null"`
-	ChannelName    string `gorm:"not null"`
-	Duration       string `gorm:"not null"`
+	VideoID        string        `gorm:"uniqueIndex"`
+	Title          string        `gorm:"not null"`
+	Thumbnail      string        `gorm:"not null"`
+	ChannelName    string        `gorm:"not null"`
+	Duration       time.Duration `gorm:"not null"`
 	URLCache       string
 	URLCacheExpire time.Time
 }
@@ -33,7 +34,7 @@ func (c *YoutubeCache) Save() {
 // Check checks if the videoID exists in the cache
 // Populates the values if the video is found
 // Returns true if it exists
-func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, duration, streamURL *string) bool {
+func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, streamURL *string, duration *time.Duration) bool {
 	if err := DB.Table("youtubeCache").Where("video_id = ?", videoID).First(c).Error; err != nil {
 		// Not found, or error.
 		return false
@@ -46,11 +47,22 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, dura
 	// Expire time is not zero and now has not passed the expireTime
 	if !c.URLCacheExpire.IsZero() && !time.Now().After(expireTime) {
 		if len(c.URLCache) != 0 {
-			*streamURL = c.URLCache
+			// Check url?
+			// Status code 403 or not 200 if it failed
+
+			resp, err := http.Get(c.URLCache)
+			if err != nil {
+				malm.Info("Unable to check the statuscode on cached streamURL. Reason: %s", err)
+			} else {
+				if resp.StatusCode != http.StatusOK {
+					malm.Info("Video loaded from cache has expired. Statuscode: %d", resp.StatusCode)
+					// Todo: Invalidate the cache. Only 'URLCache' and 'URLCacheExpire'
+				} else {
+					// We only set the streamURL if we can validate that it is ok.
+					*streamURL = c.URLCache
+				}
+			}
 		}
-	} else {
-		// Cache is invalid or missing. Remove the old cache, or wait for it to be overwritten?
-		// Will be overwritten automatically when the song is being fetched
 	}
 
 	*title = c.Title
@@ -61,7 +73,7 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, dura
 	return true
 }
 
-func (c *YoutubeCache) Cache(videoID, title, thumbnail, channelName, duration string) {
+func (c *YoutubeCache) Cache(videoID, title, thumbnail, channelName string, duration time.Duration) {
 
 	c = &YoutubeCache{
 		VideoID:        videoID,
