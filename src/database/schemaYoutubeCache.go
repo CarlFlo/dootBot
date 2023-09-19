@@ -8,7 +8,6 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
-	"gorm.io/gorm"
 )
 
 type YoutubeCache struct {
@@ -24,10 +23,6 @@ type YoutubeCache struct {
 
 func (YoutubeCache) TableName() string {
 	return "youtubeCache"
-}
-
-func (c *YoutubeCache) AfterCreate(tx *gorm.DB) error {
-	return nil
 }
 
 // Saves the data to the database

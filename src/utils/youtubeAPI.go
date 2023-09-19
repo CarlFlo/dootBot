@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/CarlFlo/dootBot/src/config"
-	"github.com/CarlFlo/malm"
 )
 
 var keyIndex = 0
@@ -17,14 +16,13 @@ func GetYoutubeAPIKey() string {
 	apiMutex.Lock()
 	defer apiMutex.Unlock()
 
-	// Increment the counter
-	defer func() {
-		keyIndex = (keyIndex + 1) % len(config.CONFIG.Music.YoutubeAPIKeys)
-	}()
+	// Make a copy of the index to be used
+	indexCopy := keyIndex
 
-	malm.Info("using api key: %s", config.CONFIG.Music.YoutubeAPIKeys[keyIndex])
+	// Update the index. Increment by 1
+	keyIndex = (keyIndex + 1) % len(config.CONFIG.Music.YoutubeAPIKeys)
 
-	return config.CONFIG.Music.YoutubeAPIKeys[keyIndex]
+	return config.CONFIG.Music.YoutubeAPIKeys[indexCopy]
 }
 
 func ValidateYoutubeAPIKey() error {
