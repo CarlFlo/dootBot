@@ -13,13 +13,13 @@ import (
 
 type YoutubeCache struct {
 	Model
-	VideoID        string        `gorm:"uniqueIndex"`
-	Title          string        `gorm:"not null"`
-	Thumbnail      string        `gorm:"not null"`
-	ChannelName    string        `gorm:"not null"`
-	Duration       time.Duration `gorm:"not null"`
-	URLCache       string
-	URLCacheExpire time.Time
+	VideoID           string        `gorm:"uniqueIndex"`
+	Title             string        `gorm:"not null"`
+	Thumbnail         string        `gorm:"not null"`
+	ChannelName       string        `gorm:"not null"`
+	Duration          time.Duration `gorm:"not null"`
+	URLCache          string
+	URLCacheExpiresAt time.Time
 }
 
 func (YoutubeCache) TableName() string {
@@ -42,10 +42,10 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, stre
 
 	// Has cache URL expired?
 	// Adds the max lenght min time to ensure the link does not expire when playing
-	expireTime := c.URLCacheExpire.Add(time.Minute * config.CONFIG.Music.MaxSongLengthMinutes)
+	expireTime := c.URLCacheExpiresAt.Add(time.Minute * config.CONFIG.Music.MaxSongLengthMinutes)
 
 	// Expire time is not zero and now has not passed the expireTime
-	if !c.URLCacheExpire.IsZero() && !time.Now().After(expireTime) {
+	if !c.URLCacheExpiresAt.IsZero() && !time.Now().After(expireTime) {
 		if len(c.URLCache) != 0 {
 			// Check url?
 			// Status code 403 or not 200 if it failed
@@ -76,12 +76,12 @@ func (c *YoutubeCache) Check(videoID string, title, thumbnail, channelName, stre
 func (c *YoutubeCache) Cache(videoID, title, thumbnail, channelName string, duration time.Duration) {
 
 	c = &YoutubeCache{
-		VideoID:        videoID,
-		Title:          title,
-		Thumbnail:      thumbnail,
-		ChannelName:    channelName,
-		Duration:       duration,
-		URLCacheExpire: time.Time{}, // CacheURL is added when the song object fetches the URL
+		VideoID:           videoID,
+		Title:             title,
+		Thumbnail:         thumbnail,
+		ChannelName:       channelName,
+		Duration:          duration,
+		URLCacheExpiresAt: time.Time{}, // CacheURL is added when the song object fetches the URL
 	}
 
 	if err := DB.Create(c).Error; err != nil {
@@ -97,12 +97,13 @@ func (c *YoutubeCache) UpdateStreamURL(videoID, streamURL string) error {
 		return err
 	}
 
+	// Needs to match the 'YoutubeCache' struct
 	updates := struct {
-		URLCache       string
-		URLCacheExpire time.Time
+		URLCache          string
+		URLCacheExpiresAt time.Time
 	}{
-		URLCache:       streamURL,
-		URLCacheExpire: expiresAt,
+		URLCache:          streamURL,
+		URLCacheExpiresAt: expiresAt,
 	}
 
 	// Update the table
