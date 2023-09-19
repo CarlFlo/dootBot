@@ -81,7 +81,7 @@ func isMusicEnabled() bool {
 
 func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
 
-	var title, thumbnail, channelName, videoID, duration string
+	var title, thumbnail, channelName, videoID, duration, streamURL string
 	var err error
 
 	ytRegex := regexp.MustCompile(youtubePattern)
@@ -101,7 +101,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 		// Cache
 		var cache database.YoutubeCache
 		// "Will attempt to load the values into the pointers"
-		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &duration)
+		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &duration, &streamURL)
 
 		if !exists {
 			title, thumbnail, channelName, duration, err = youtubeFindByVideoID(videoID)
@@ -137,6 +137,7 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.ChannelName = channelName
 	song.YoutubeVideoID = videoID
 	song.duration = duration
+	song.StreamURL = streamURL
 
 	// Returns 'nil' if everything is ok
 	return checkDurationCompliance(song.duration)
@@ -317,7 +318,7 @@ func checkDurationCompliance(duration string) error {
 		}
 	}
 
-	if totalMinutes > config.CONFIG.Music.MaxSongLengthMinutes {
+	if totalMinutes > int(config.CONFIG.Music.MaxSongLengthMinutes) {
 		return fmt.Errorf(errSongLengthLimitExceeded, config.CONFIG.Music.MaxSongLengthMinutes)
 	}
 

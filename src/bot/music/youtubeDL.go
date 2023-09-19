@@ -9,6 +9,7 @@ import (
 )
 
 func execYoutubeDL(song *Song) error {
+	// Stream URL it returns should be valid for 6 hours
 	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--get-url", "--flat-playlist")
 	var out bytes.Buffer
 	cmd.Stdout = &out

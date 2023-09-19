@@ -40,8 +40,7 @@ type botInfo struct {
 type music struct {
 	EnableMusic          bool          `json:"enableMusic"`
 	YoutubeAPIKeys       []string      `json:"youtubeAPIKeys"`
-	MaxSongLengthMinutes int           `json:"maxSongLengthMinutes"`
-	MaxCacheAgeMin       time.Duration `json:"maxCacheAgeMin"`
+	MaxSongLengthMinutes time.Duration `json:"maxSongLengthMinutes"`
 }
 
 type messageProcessing struct {
@@ -168,8 +167,7 @@ func createConfig() error {
 		},
 		Music: music{
 			YoutubeAPIKeys:       []string{},
-			MaxSongLengthMinutes: 60,
-			MaxCacheAgeMin:       90,
+			MaxSongLengthMinutes: 120,
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.

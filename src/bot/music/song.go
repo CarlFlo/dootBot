@@ -3,6 +3,7 @@ package music
 import (
 	"fmt"
 
+	"github.com/CarlFlo/dootBot/src/database"
 	"github.com/CarlFlo/malm"
 )
 
@@ -19,6 +20,36 @@ type Song struct {
 
 func (s *Song) FetchStreamURL() error {
 
+	// Todo. Move cache to the DB.
+	// if streamURL was valid. Then URL should be in the object
+
+	// We have a song in the cache
+	if len(s.StreamURL) != 0 {
+		return nil
+	}
+
+	// song.StreamURL contains the URL to the stream.
+
+	// This function is slow. Takes a bit over 2 seconds
+	if err := execYoutubeDL(s); err != nil {
+		return err
+	}
+
+	var cache database.YoutubeCache
+	err := cache.UpdateStreamURL(s.YoutubeVideoID, s.StreamURL)
+	if err != nil {
+		malm.Error("%s", err)
+	}
+
+	return nil
+}
+
+/*
+func (s *Song) FetchStreamURL() error {
+
+	// Todo. Move cache to the DB.
+	// if streamURL was valid. Then URL should be in the object
+
 	// song.StreamURL contains the URL to the stream.
 	if streamURL := songCache.Check(s.YoutubeVideoID); len(streamURL) == 0 {
 		// This function is slow. Takes a bit over 2 seconds
@@ -27,12 +58,17 @@ func (s *Song) FetchStreamURL() error {
 		}
 		songCache.Add(s)
 		malm.Debug("[%s] cached - %s", s.Title, s.YoutubeVideoID)
+
+		// Call:
+		// func (c *YoutubeCache) UpdateStreamURL(videoID, streamURL string) {
+
 	} else {
 		s.StreamURL = streamURL
 	}
 
 	return nil
 }
+*/
 
 /* SONG */
 
