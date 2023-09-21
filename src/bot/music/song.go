@@ -22,7 +22,6 @@ type Song struct {
 
 func (s *Song) FetchStreamURL() error {
 
-	// Todo. Move cache to the DB.
 	// if streamURL was valid. Then URL should be in the object
 
 	// We have a song in the cache
@@ -49,7 +48,6 @@ func (s *Song) FetchStreamURL() error {
 /*
 func (s *Song) FetchStreamURL() error {
 
-	// Todo. Move cache to the DB.
 	// if streamURL was valid. Then URL should be in the object
 
 	// song.StreamURL contains the URL to the stream.

@@ -80,7 +80,7 @@ func (f *Farm) QueryFarmPlots() {
 	DB.Raw("SELECT * FROM userFarmPlots WHERE userFarmPlots.Farm_ID = ? LIMIT ?", f.ID, f.OwnedPlots).Find(&f.Plots)
 }
 
-// TODO
+// TODO:
 
 // Peek looks at the farm and updates it to reflect the current state
 // Always run before doing anything with the farm
