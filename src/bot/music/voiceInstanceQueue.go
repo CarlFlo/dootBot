@@ -109,3 +109,15 @@ func (vi *VoiceInstance) GetSongByIndex(i int) *Song {
 
 	return vi.queue[i]
 }
+
+func (vi *VoiceInstance) GetNextInQueue() (*Song, bool) {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+
+	nextIndex := vi.queueIndex + 1
+	if nextIndex < 0 || nextIndex >= len(vi.queue) {
+		return nil, false
+	}
+
+	return vi.queue[nextIndex], true
+}

@@ -3,6 +3,7 @@ package music
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/CarlFlo/dootBot/src/database"
@@ -18,23 +19,53 @@ type Song struct {
 	YoutubeVideoID string
 	StreamURL      string
 	Duration       time.Duration
+
+	streamFetchMu      sync.Mutex
+	streamFetchRunning bool
+	streamFetchErr     error
+	streamFetchWait    chan struct{}
 }
 
 func (s *Song) FetchStreamURL() error {
+	s.streamFetchMu.Lock()
+
 	if s.StreamURL != "" {
+		s.streamFetchMu.Unlock()
 		return nil
 	}
 
-	if err := execYoutubeDL(s); err != nil {
-		return err
+	if s.streamFetchRunning {
+		wait := s.streamFetchWait
+		s.streamFetchMu.Unlock()
+
+		<-wait
+
+		s.streamFetchMu.Lock()
+		defer s.streamFetchMu.Unlock()
+		return s.streamFetchErr
 	}
 
-	var cache database.YoutubeCache
-	if err := cache.UpdateStreamURL(s.YoutubeVideoID, s.StreamURL); err != nil {
-		malm.Error("%s", err)
+	s.streamFetchRunning = true
+	s.streamFetchErr = nil
+	s.streamFetchWait = make(chan struct{})
+	wait := s.streamFetchWait
+	s.streamFetchMu.Unlock()
+
+	err := execYoutubeDL(s)
+	if err == nil {
+		var cache database.YoutubeCache
+		if cacheErr := cache.UpdateStreamURL(s.YoutubeVideoID, s.StreamURL); cacheErr != nil {
+			malm.Error("%s", cacheErr)
+		}
 	}
 
-	return nil
+	s.streamFetchMu.Lock()
+	s.streamFetchErr = err
+	s.streamFetchRunning = false
+	close(wait)
+	s.streamFetchMu.Unlock()
+
+	return err
 }
 
 func (s *Song) GetDuration() string {

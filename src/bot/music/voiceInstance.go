@@ -111,6 +111,8 @@ func (vi *VoiceInstance) prepareCurrentSong() (*Song, error) {
 		malm.Error("unable to refresh music overview: %s", err)
 	}
 
+	vi.preloadNextSong()
+
 	return song, nil
 }
 
@@ -315,4 +317,17 @@ func (vi *VoiceInstance) clearStreamSession() {
 	vi.stream = nil
 	vi.done = nil
 	vi.mu.Unlock()
+}
+
+func (vi *VoiceInstance) preloadNextSong() {
+	nextSong, ok := vi.GetNextInQueue()
+	if !ok || nextSong == nil {
+		return
+	}
+
+	go func(song *Song) {
+		if err := song.FetchStreamURL(); err != nil {
+			malm.Warn("unable to preload next song '%s': %s", song.Title, err)
+		}
+	}(nextSong)
 }

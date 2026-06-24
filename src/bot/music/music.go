@@ -90,6 +90,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	vi.AddToQueue(&song)
+	vi.preloadNextSong()
 	if err := updateOverviewMessageForQueue(m.ChannelID, vi); err != nil {
 		malm.Error("unable to update music overview: %s", err)
 	}

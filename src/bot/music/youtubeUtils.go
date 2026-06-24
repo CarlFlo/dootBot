@@ -219,10 +219,13 @@ func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, e
 
 	voice, err := context.SESSION.ChannelVoiceJoin(guildID, voiceChannelID, false, true)
 	if err != nil {
-		return nil, errors.New("failed to join voice channel")
+		delete(instances, guildID)
+		return nil, fmt.Errorf("failed to join voice channel: %w", err)
 	}
 
 	if err := voice.Speaking(false); err != nil {
+		_ = voice.Disconnect()
+		delete(instances, guildID)
 		return nil, err
 	}
 
