@@ -91,7 +91,7 @@ func (f *Farm) Peek() bool {
 	anyCropsPerished := false
 
 	// Checks if the user has watered their crops in the last x hours
-	if float64(config.CONFIG.Farm.CropsPreishAfter) > time.Since(f.LastWateredAt).Hours() {
+	if float64(config.CONFIG.Farm.CropsPerishAfterHours) > time.Since(f.LastWateredAt).Hours() {
 		return anyCropsPerished
 	}
 
@@ -110,7 +110,7 @@ func (f *Farm) Peek() bool {
 			fullyGrownAt := plot.PlantedAt.Add(crop.DurationToGrow)
 
 			// Calc the time when the crop would have had to be watered
-			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPreishAfter * -1)
+			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPerishAfterHours * -1)
 
 			// If the last time the plant was watered is after the deadline
 			// Then the crop is ok, lse it will perish
@@ -180,7 +180,7 @@ func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUse
 		Description: f.CreateEmbedDescription(),
 		Fields:      f.CreateEmbedFields(),
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Crops will perish if not watered every day!\nYou can own up to %d farm plots!", config.CONFIG.Farm.MaxPlots),
+			Text: fmt.Sprintf("Crops will perish if not watered every %d hours!\nYou can own up to %d farm plots!", config.CONFIG.Farm.CropsPerishAfterHours, config.CONFIG.Farm.MaxPlots),
 		},
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: fmt.Sprintf("%s#%s", discordUser.AvatarURL("256"), discordUser.ID),
@@ -286,6 +286,16 @@ func (f *Farm) overviewCreateButtons(msgCompondents *[]discordgo.MessageComponen
 			Name: config.CONFIG.Emojis.ComponentEmojiNames.Help,
 		},
 		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information regarding farming
+	})
+
+	btnComponents = append(btnComponents, &discordgo.Button{
+		Label:    "",
+		Style:    1, // Default purple
+		Disabled: false,
+		Emoji: &discordgo.ComponentEmoji{
+			Name: config.CONFIG.Emojis.ComponentEmojiNames.Refresh,
+		},
+		CustomID: "FR", // 'FR' is code for 'Farm Refresh'
 	})
 
 	*msgCompondents = append(*msgCompondents, discordgo.ActionsRow{
@@ -399,7 +409,7 @@ func (f *Farm) SuccessfulHarvest() bool {
 }
 
 func (f *Farm) MissedWaterDeadline() bool {
-	return time.Since(f.LastWateredAt).Hours() > float64(config.CONFIG.Farm.CropsPreishAfter)
+	return time.Since(f.LastWateredAt).Hours() > float64(config.CONFIG.Farm.CropsPerishAfterHours)
 }
 
 // Will return the amount of crops that have perished from plots
@@ -430,7 +440,7 @@ func (f *Farm) CropsPerishedCheck() []string {
 			fullyGrownAt := plot.PlantedAt.Add(crop.DurationToGrow)
 
 			// Calc the time when the crop would have had to be watered
-			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPreishAfter * -1)
+			waterDeadline := fullyGrownAt.Add(time.Hour * config.CONFIG.Farm.CropsPerishAfterHours * -1)
 
 			// If the last time the plant was watered is after the deadline
 			// Then the crop is ok, lse it will perish

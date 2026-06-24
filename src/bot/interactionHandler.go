@@ -56,6 +56,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		farming.WaterInteraction(commandIssuerID, &response, s, msgEdit)
 	case "FHELP":
 		farming.FarmHelpInteractionEmbedCreate(&responseEmbed)
+	case "FR": // FR: Refresh Farm
+		farming.RefreshInteraction(commandIssuerID, i.Interaction.Member.User, msgEdit)
 		// Profile
 	case "RP": // RP: Refresh Profile
 		commands.ProfileRefreshInteraction(commandIssuerID, i.Interaction.Member.User, msgEdit)

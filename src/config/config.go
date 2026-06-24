@@ -93,13 +93,13 @@ type daily struct {
 
 type farm struct {
 	DefaultOwnedFarmPlots       uint8         `json:"defaultOwnedFarmPlots"`
-	CropSeedPrice               int           `json:"cropSeedPrice"`
+	CropSeedPrice               int           `json:"cropSeedPrice"` // Fixed price per seed
 	FarmPlotPrice               int           `json:"farmPlotPrice"`
 	FarmPlotCostMultiplier      float64       `json:"farmPlotCostMultiplier"`
 	MaxPlots                    uint8         `json:"maxPlots"`
 	WaterCooldown               time.Duration `json:"waterCooldown"`
 	WaterCropTimeReductionHours time.Duration `json:"waterCropTimeReductionHours"`
-	CropsPreishAfter            time.Duration `json:"cropsPreishAfter"`
+	CropsPerishAfterHours       time.Duration `json:"cropsPerishAfterHours"`
 }
 
 type colors struct {
@@ -194,8 +194,8 @@ func createConfig() error {
 			MinMoney:                100,
 			MaxMoney:                250,
 			ToolBonus:               45,
-			ToolBasePrice:           50,
-			ToolBasePriceMultiplier: 1.25,
+			ToolBasePrice:           150,
+			ToolBasePriceMultiplier: 1.28,
 			MaxTools:                20,
 			StreakOutput:            []string{":regional_indicator_b:", ":regional_indicator_o:", ":regional_indicator_n:", ":regional_indicator_u:", ":regional_indicator_s:"},
 			StreakBonus:             350,
@@ -207,17 +207,17 @@ func createConfig() error {
 			MaxMoney:         800,
 			StreakOutput:     []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:"},
 			StreakBonus:      2000,
-			StreakResetHours: 24,
+			StreakResetHours: 48,
 		},
 		Farm: farm{
 			DefaultOwnedFarmPlots:       1,
 			CropSeedPrice:               50,
-			FarmPlotPrice:               5000,
-			FarmPlotCostMultiplier:      1.4,
+			FarmPlotPrice:               2500,
+			FarmPlotCostMultiplier:      1.3,
 			MaxPlots:                    12,
 			WaterCooldown:               2,
 			WaterCropTimeReductionHours: 1,
-			CropsPreishAfter:            24,
+			CropsPerishAfterHours:       48,
 		},
 		Colors: colors{
 			Success: 0x198754,
