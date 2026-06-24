@@ -1,83 +1,82 @@
-<h1 align="center">
-  DootBot
-</h1>
-
-<p align="center">
-  <a href="#about">About</a>
-  •
-  <a href="#features">Features</a>
-  •
-  <a href="#commands">Commands</a>
-  •
-  <a href="#setup">Setup</a>
-  •
-  <a href="#todo">Todo</a>
-  
-</p>
-
-![Tests](https://github.com/CarlFlo/dootBot/actions/workflows/go.yml/badge.svg)
+# DootBot
 
 ## About
 
-This project is made for and is intended to be a fun learning exercise.
-
-The purpose of the bot is to allow members of a Discord channel to engage with the bot and earn *money*. This bot is inspired by and is very similar to idle games. The user can interact with the bot to earn and spend fake money. Actions as well as rewards are locked behind a cooldown/timer, some of which require the user to interact with the bot daily to receive their reward.
+DootBot is a Discord bot focused on progression-style commands like work, daily rewards, farming, and music playback.
 
 ## Features
 
-- Easy to use! Uses buttons, emojis and color-coding in conjunction with updating messages to provide a clear and user-friendly experience 
-
-- Engaging the users by providing daily tasks 
-
-- User activities with progression
-
-- Music player with queue with cache system to reduce YouTube API calls
+- Economy commands with cooldowns and progression
+- Button-driven interactions for profile, farming, and music controls
+- Music playback with queue support powered by Lavalink
 
 ## Commands
 
-- Work - Allows the user to earn a random amount of money [6 hour cooldown]
-- Daily - Gives the user a random amount of money daily [24 hour cooldown]
-- Farm - Allows the user to plant crops with can be harvested for a monetary reward. Crops must be watered within a timeframe for them to not perish. Includes crop unlocking system.
-- Play - Plays a youtube song in the voice channel. Provide an url or search for a song.
+- `work` earns a random amount of money every 6 hours
+- `daily` gives a daily reward every 24 hours
+- `farm` lets users manage crops and plots
+- `play` plays a track from a URL or search query in the user's voice channel
 
 ## Setup
 
-The first time the bot is run, a config.json file is created. This JSON file requires some information in order to make the bot function.
+The first time the bot runs it creates `config.json`.
 
-1. The bot token [Token]
-2. The owners (your) Discord ID [OwnerID]
-3. The bots Discord ID [AppID]
-4. (optional) Youtube API key(s) if you want to use music [youtubeAPIKeys] 
+Required config values:
 
+1. `token`
+2. `ownerID`
+3. `botInfo.appID`
 
-Note: If multiple YouTube API keys are provided, the program will alternate between them.
+Optional music config lives under `music.lavalink` and can also be overridden with environment variables:
 
-### Requirements 
+- `LAVALINK_HOST`
+- `LAVALINK_PORT`
+- `LAVALINK_PASSWORD`
+- `LAVALINK_SECURE`
 
-Needs to be available in the PATH
+Example config block:
 
-**For the music**
-* [**ffmpeg**](https://ffmpeg.org/download.html)
-* [**yt-dlp**](https://github.com/yt-dlp/yt-dlp/releases)
+```json
+"music": {
+  "enableMusic": true,
+  "maxSongLengthMinutes": 120,
+  "lavalink": {
+    "host": "127.0.0.1",
+    "port": 2333,
+    "password": "youshallnotpass",
+    "secure": false
+  }
+}
+```
 
-**Additional requirements**
-* [**GCC**](https://gcc.gnu.org/)
+## Lavalink
 
-### Configuration
+The bot no longer streams audio directly. DiscordGo is only used for the normal gateway, commands, and text interactions. Voice playback is delegated to Lavalink and must run separately.
 
-The bot is fully customizable through the config.json file, where most if not all variables can be customised.
+For Discord's current DAVE/E2EE voice requirement:
 
-### Running
+- Use Lavalink `4.2.0` or newer
+- Use a DAVE-capable disgolink release (`3.1.0` or newer; this project currently uses a newer `v4` module build)
+- Do not reintroduce DCA, `OpusSend`, `dgvoice`, or manual Opus streaming
 
-You're able to build and run the bot with the included `makefile`.
+The bot bridges Discord voice gateway events into disgolink/Lavalink, including the `channelId`-carrying voice state required by Lavalink `4.2.0+`.
 
-Run `make` or `make build` or `make b` to build the bot
+Quick start:
 
-Run `make run` or `make r` to just run the bot
+1. Copy `.env.example` if you want environment-based config.
+2. Start Lavalink `4.2.0+` with `docker compose up -d`.
+3. Start the bot after Lavalink is healthy.
 
-The `makefile` can also be used to build/run the bot for different operating systems such as **Windows**, **Mac**, and **Linux**
+If you expect YouTube playback, enable a YouTube source plugin in Lavalink. A minimal example is included in `lavalink/application.yml`.
 
-It is also possible to build or run it yourself with the `go run main.go` and `go build main.go` command, respectively.
+## Requirements
 
-## Todo
+- Go
+- GCC for `go-sqlite3`
+- A running Lavalink `4.2.0+` server for music playback
 
+## Running
+
+- `make build` builds the bot
+- `make run` runs the bot
+- `go build ./...` and `go run main.go` also work

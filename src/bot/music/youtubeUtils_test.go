@@ -1,40 +1,33 @@
 package music
 
 import (
-	"net/url"
 	"testing"
-	"time"
 
 	"github.com/CarlFlo/dootBot/src/test"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 )
 
-func TestYoutubeTimeToDuration(t *testing.T) {
+func TestNewSongFromTrackPreservesMetadata(t *testing.T) {
+	url := "https://example.com/track"
+	artwork := "https://example.com/image.jpg"
+	track := testTrack(url, artwork)
 
-	input := "PT1H24M47S"
-	duration := youtubeTimeToDuration(input)
+	song := NewSongFromTrack(track, "channel", "user")
 
-	answer := time.Hour*1 + time.Minute*24 + time.Second*47
-
-	test.Validate(t, duration, answer, "The durations should match")
+	test.Validate(t, song.Title, "test track", "title should come from the lavalink track")
+	test.Validate(t, song.URL, url, "url should come from the lavalink track")
+	test.Validate(t, song.Thumbnail, artwork, "artwork should come from the lavalink track")
 }
 
-func TestExtractVideoID(t *testing.T) {
-	testCases := map[string]string{
-		"https://www.youtube.com/watch?v=abc123": "abc123",
-		"https://youtu.be/xyz987":                "xyz987",
-	}
-
-	for rawURL, expectedVideoID := range testCases {
-		parsedURL, err := url.Parse(rawURL)
-		if err != nil {
-			t.Fatalf("unable to parse test url %q: %s", rawURL, err)
-		}
-
-		videoID, err := extractVideoID(parsedURL)
-		if err != nil {
-			t.Fatalf("extractVideoID returned unexpected error for %q: %s", rawURL, err)
-		}
-
-		test.Validate(t, videoID, expectedVideoID, "the video IDs should match")
+func testTrack(url, artwork string) lavalink.Track {
+	return lavalink.Track{
+		Encoded: "encoded",
+		Info: lavalink.TrackInfo{
+			Title:      "test track",
+			Author:     "test author",
+			Length:     5000,
+			URI:        &url,
+			ArtworkURL: &artwork,
+		},
 	}
 }

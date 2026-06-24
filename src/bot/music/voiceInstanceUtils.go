@@ -9,7 +9,6 @@ func (vi *VoiceInstance) startWorker() bool {
 	}
 
 	vi.workerRunning = true
-	vi.stopRequested = false
 	vi.loading = false
 	vi.paused = false
 	return true
@@ -20,22 +19,7 @@ func (vi *VoiceInstance) finishWorker() {
 	vi.workerRunning = false
 	vi.loading = false
 	vi.paused = false
-	vi.stopRequested = false
-	vi.previous = false
 	vi.mu.Unlock()
-}
-
-func (vi *VoiceInstance) requestStop() {
-	vi.mu.Lock()
-	vi.stopRequested = true
-	vi.mu.Unlock()
-	vi.signalDone(nil)
-}
-
-func (vi *VoiceInstance) shouldStop() bool {
-	vi.mu.RLock()
-	defer vi.mu.RUnlock()
-	return vi.stopRequested
 }
 
 func (vi *VoiceInstance) ToggleLooping() {
@@ -46,14 +30,21 @@ func (vi *VoiceInstance) ToggleLooping() {
 
 func (vi *VoiceInstance) PauseToggle() bool {
 	vi.mu.Lock()
-	defer vi.mu.Unlock()
-
-	if vi.stream == nil || !vi.workerRunning {
+	if !vi.workerRunning {
+		vi.mu.Unlock()
 		return false
 	}
 
-	vi.paused = !vi.paused
-	vi.stream.SetPaused(vi.paused)
+	nextPaused := !vi.paused
+	vi.mu.Unlock()
+
+	if err := manager.setPaused(vi.guildID, nextPaused); err != nil {
+		return false
+	}
+
+	vi.mu.Lock()
+	vi.paused = nextPaused
+	vi.mu.Unlock()
 	return true
 }
 
@@ -132,23 +123,5 @@ func (vi *VoiceInstance) setLoading(loading bool) {
 func (vi *VoiceInstance) setPaused(paused bool) {
 	vi.mu.Lock()
 	vi.paused = paused
-	if vi.stream != nil {
-		vi.stream.SetPaused(paused)
-	}
 	vi.mu.Unlock()
-}
-
-func (vi *VoiceInstance) signalDone(err error) {
-	vi.mu.RLock()
-	done := vi.done
-	vi.mu.RUnlock()
-
-	if done == nil {
-		return
-	}
-
-	select {
-	case done <- err:
-	default:
-	}
 }

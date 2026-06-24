@@ -38,8 +38,15 @@ type botInfo struct {
 }
 type music struct {
 	EnableMusic          bool          `json:"enableMusic"`
-	YoutubeAPIKeys       []string      `json:"youtubeAPIKeys"`
 	MaxSongLengthMinutes time.Duration `json:"maxSongLengthMinutes"`
+	Lavalink             lavalink      `json:"lavalink"`
+}
+
+type lavalink struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Password string `json:"password"`
+	Secure   bool   `json:"secure"`
 }
 
 type messageProcessing struct {
@@ -164,8 +171,14 @@ func createConfig() error {
 			DepositURL: "https://github.com/CarlFlo/dootBot",
 		},
 		Music: music{
-			YoutubeAPIKeys:       []string{},
+			EnableMusic:          false,
 			MaxSongLengthMinutes: 120,
+			Lavalink: lavalink{
+				Host:     "127.0.0.1",
+				Port:     2333,
+				Password: "youshallnotpass",
+				Secure:   false,
+			},
 		},
 		MessageProcessing: messageProcessing{
 			MessageLengthLimit:    1850, // The meximum length a send message can be before it will be split.

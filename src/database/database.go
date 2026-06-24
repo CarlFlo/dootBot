@@ -6,7 +6,7 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

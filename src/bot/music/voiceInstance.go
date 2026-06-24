@@ -1,25 +1,20 @@
 package music
 
 import (
+	"context"
 	"errors"
-	"io"
-	"log"
+	"fmt"
 	"sync"
 
-	"github.com/CarlFlo/dootBot/src/bot/context"
-	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
-	"github.com/jung-m/dca"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 )
 
 type VoiceInstance struct {
-	voice            *discordgo.VoiceConnection
-	encoder          *dca.EncodeSession
-	stream           *dca.StreamingSession
 	mu               sync.RWMutex
 	queue            []*Song
 	guildID          string
-	done             chan error
+	voiceChannelID   string
 	messageID        string
 	messageChannelID string
 	PlaybackState
@@ -30,8 +25,6 @@ type PlaybackState struct {
 	loading       bool
 	paused        bool
 	looping       bool
-	stopRequested bool
-	previous      bool
 	queueIndex    int
 }
 
@@ -41,121 +34,13 @@ func (vi *VoiceInstance) New(guildID string) error {
 }
 
 func (vi *VoiceInstance) Close() {
-	vi.requestStop()
 	vi.PurgeQueue()
 	vi.deleteOverviewMessage()
-}
-
-func (vi *VoiceInstance) PlayQueue() {
-	if !vi.startWorker() {
-		return
-	}
-
-	dca.Logger = log.New(io.Discard, "", 0)
-	defer vi.finishWorker()
-
-	for {
-		song, err := vi.prepareCurrentSong()
-		if err != nil {
-			if errors.Is(err, errEmptyQueue) || errors.Is(err, errNoNextSong) {
-				return
-			}
-			malm.Error("music playback preparation failed: %s", err)
-			return
-		}
-
-		if err := vi.setSpeaking(true); err != nil {
-			malm.Error("%s", err)
-			return
-		}
-
-		if err := vi.streamSong(song); err != nil {
-			_ = vi.setSpeaking(false)
-			malm.Error("music stream failed: %s", err)
-			return
-		}
-
-		if err := vi.setSpeaking(false); err != nil {
-			malm.Error("%s", err)
-			return
-		}
-
-		if vi.shouldStop() {
-			vi.PurgeQueue()
-			return
-		}
-
-		vi.FinishedPlayingSong()
-	}
-}
-
-func (vi *VoiceInstance) prepareCurrentSong() (*Song, error) {
-	vi.setLoading(true)
-	vi.setPaused(false)
-
-	song, err := vi.GetFirstInQueue()
-	if err != nil {
-		vi.setLoading(false)
-		_ = vi.refreshOverviewMessage()
-		return nil, err
-	}
-
-	if err := song.FetchStreamURL(); err != nil {
-		vi.setLoading(false)
-		_ = vi.refreshOverviewMessage()
-		return nil, err
-	}
-
-	vi.setLoading(false)
-	if err := vi.refreshOverviewMessage(); err != nil {
-		malm.Error("unable to refresh music overview: %s", err)
-	}
-
-	vi.preloadNextSong()
-
-	return song, nil
-}
-
-func (vi *VoiceInstance) streamSong(song *Song) error {
-	settings := dca.StdEncodeOptions
-	settings.RawOutput = true
-	settings.Bitrate = 64
-	settings.Application = "lowdelay"
-
-	encoder, err := dca.EncodeFile(song.StreamURL, settings)
-	if err != nil {
-		return err
-	}
-	defer encoder.Cleanup()
-
-	done := make(chan error, 1)
-	stream := dca.NewStream(encoder, vi.voice, done)
-
-	vi.mu.Lock()
-	vi.encoder = encoder
-	vi.stream = stream
-	vi.done = done
-	vi.mu.Unlock()
-
-	defer vi.clearStreamSession()
-
-	for {
-		err := <-done
-		if err != nil && err != io.EOF {
-			return err
-		}
-		return nil
-	}
 }
 
 func (vi *VoiceInstance) FinishedPlayingSong() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
-
-	if vi.previous {
-		vi.previous = false
-		return
-	}
 
 	if vi.looping {
 		return
@@ -197,65 +82,84 @@ func (vi *VoiceInstance) isEndOfQueue() bool {
 }
 
 func (vi *VoiceInstance) Disconnect() {
-	vi.requestStop()
-
 	vi.mu.RLock()
-	voice := vi.voice
+	voiceChannelID := vi.voiceChannelID
 	vi.mu.RUnlock()
 
-	if voice == nil {
+	if voiceChannelID == "" {
 		return
 	}
 
-	if err := voice.Disconnect(); err != nil {
-		malm.Error("%s", err)
-	}
+	manager.disconnectVoice(context.Background(), vi.guildID)
+
+	vi.mu.Lock()
+	vi.voiceChannelID = ""
+	vi.workerRunning = false
+	vi.loading = false
+	vi.paused = false
+	vi.mu.Unlock()
 }
 
 func (vi *VoiceInstance) Skip() bool {
-	vi.mu.Lock()
+	vi.mu.RLock()
 	running := vi.workerRunning
-	vi.looping = false
-	vi.mu.Unlock()
-
+	vi.mu.RUnlock()
 	if !running {
 		return false
 	}
 
-	vi.signalDone(nil)
+	vi.mu.Lock()
+	hasNext := vi.queueIndex+1 < len(vi.queue)
+	if hasNext {
+		vi.queueIndex++
+	} else {
+		vi.queueIndex = len(vi.queue)
+		vi.workerRunning = false
+		vi.paused = false
+	}
+	vi.mu.Unlock()
+
+	if hasNext {
+		return manager.playCurrentSong(context.Background(), vi) == nil
+	}
+
+	if err := manager.stopPlayback(context.Background(), vi.guildID); err != nil {
+		return false
+	}
+
+	_ = vi.refreshOverviewMessage()
 	return true
 }
 
 func (vi *VoiceInstance) Prev() bool {
-	vi.mu.Lock()
-	if !vi.workerRunning {
-		vi.mu.Unlock()
-		return false
-	}
-
-	if vi.queueIndex > 0 {
-		vi.queueIndex--
-	}
-	vi.previous = true
-	vi.mu.Unlock()
-
-	vi.signalDone(nil)
-	return true
-}
-
-func (vi *VoiceInstance) Stop() bool {
-	vi.mu.Lock()
+	vi.mu.RLock()
 	running := vi.workerRunning
-	if running {
-		vi.stopRequested = true
-	}
-	vi.mu.Unlock()
-
+	vi.mu.RUnlock()
 	if !running {
 		return false
 	}
 
-	vi.signalDone(nil)
+	vi.DecrementQueueIndex()
+	return manager.playCurrentSong(context.Background(), vi) == nil
+}
+
+func (vi *VoiceInstance) Stop() bool {
+	vi.mu.RLock()
+	running := vi.workerRunning
+	vi.mu.RUnlock()
+	if !running {
+		return false
+	}
+
+	if err := manager.stopPlayback(context.Background(), vi.guildID); err != nil {
+		return false
+	}
+
+	vi.mu.Lock()
+	vi.workerRunning = false
+	vi.paused = false
+	vi.loading = false
+	vi.mu.Unlock()
 	return true
 }
 
@@ -271,17 +175,14 @@ func (vi *VoiceInstance) refreshOverviewMessage() error {
 
 	components := []discordgo.MessageComponent{}
 	embeds := []*discordgo.MessageEmbed{}
-
 	msgEdit := &discordgo.MessageEdit{
 		Channel:    channelID,
 		ID:         messageID,
 		Components: &components,
 		Embeds:     &embeds,
 	}
-
 	CreateMusicOverviewMessage(channelID, msgEdit)
-	_, err := context.SESSION.ChannelMessageEditComplex(msgEdit)
-	return err
+	return manager.editOverviewMessage(msgEdit)
 }
 
 func (vi *VoiceInstance) deleteOverviewMessage() {
@@ -294,40 +195,75 @@ func (vi *VoiceInstance) deleteOverviewMessage() {
 		return
 	}
 
-	if err := context.SESSION.ChannelMessageDelete(channelID, messageID); err != nil {
-		malm.Debug("unable to delete music overview message: %s", err)
-	}
+	manager.deleteOverviewMessage(channelID, messageID)
 }
 
-func (vi *VoiceInstance) setSpeaking(speaking bool) error {
-	vi.mu.RLock()
-	voice := vi.voice
-	vi.mu.RUnlock()
-
-	if voice == nil {
-		return errors.New("voice connection is not initialized")
-	}
-
-	return voice.Speaking(speaking)
-}
-
-func (vi *VoiceInstance) clearStreamSession() {
+func (vi *VoiceInstance) handleTrackStarted() {
 	vi.mu.Lock()
-	vi.encoder = nil
-	vi.stream = nil
-	vi.done = nil
+	vi.workerRunning = true
+	vi.loading = false
+	vi.paused = false
 	vi.mu.Unlock()
 }
 
-func (vi *VoiceInstance) preloadNextSong() {
-	nextSong, ok := vi.GetNextInQueue()
-	if !ok || nextSong == nil {
-		return
+func (vi *VoiceInstance) handleTrackEnded(reason lavalink.TrackEndReason) (bool, error) {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
+
+	if vi.looping && reason.MayStartNext() {
+		return true, nil
 	}
 
-	go func(song *Song) {
-		if err := song.FetchStreamURL(); err != nil {
-			malm.Warn("unable to preload next song '%s': %s", song.Title, err)
-		}
-	}(nextSong)
+	if !reason.MayStartNext() {
+		return false, nil
+	}
+
+	if vi.queueIndex < len(vi.queue) {
+		vi.queueIndex++
+	}
+
+	if vi.queueIndex >= len(vi.queue) {
+		vi.workerRunning = false
+		vi.loading = false
+		vi.paused = false
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (vi *VoiceInstance) currentSong() (*Song, error) {
+	song, err := vi.GetFirstInQueue()
+	if err != nil {
+		return nil, err
+	}
+	if song.Track.Encoded == "" {
+		return nil, errors.New("song is missing an encoded lavalink track")
+	}
+	return song, nil
+}
+
+func (vi *VoiceInstance) markLoading(loading bool) {
+	vi.mu.Lock()
+	vi.loading = loading
+	vi.mu.Unlock()
+}
+
+func (vi *VoiceInstance) setVoiceChannelID(channelID string) {
+	vi.mu.Lock()
+	vi.voiceChannelID = channelID
+	vi.mu.Unlock()
+}
+
+func (vi *VoiceInstance) VoiceChannelID() string {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+	return vi.voiceChannelID
+}
+
+func (vi *VoiceInstance) ensureQueuePlayable() error {
+	if _, err := vi.currentSong(); err != nil {
+		return fmt.Errorf("there is no song to play: %w", err)
+	}
+	return nil
 }

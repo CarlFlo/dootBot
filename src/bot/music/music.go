@@ -8,7 +8,6 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
-	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -17,31 +16,33 @@ import (
 var instances = map[string]*VoiceInstance{}
 
 var (
-	musicMutex          sync.Mutex
-	youtubeAPIKeysValid bool
+	musicMutex sync.Mutex
+	manager    = NewMusicManager()
 )
 
 func Initialize() {
-	if !config.CONFIG.Music.EnableMusic {
+	if !isMusicEnabled() {
 		malm.Info("Music disabled")
 		return
 	}
 
-	if youtubeAPIKeysValid = initializeMusic(); !youtubeAPIKeysValid {
-		malm.Info("Music disabled")
-		return
-	}
-
-	malm.Info("Music initialized")
+	malm.Info("Music configured for Lavalink")
 }
 
-func initializeMusic() bool {
-	if err := utils.ValidateYoutubeAPIKey(); err != nil {
-		malm.Error("%s", err)
-		return false
+func AttachSession(session *discordgo.Session) {
+	if !isMusicEnabled() || session == nil {
+		return
 	}
 
-	return true
+	manager.AttachSession(session)
+}
+
+func ForwardVoiceStateUpdate(vs *discordgo.VoiceStateUpdate) {
+	manager.ForwardVoiceStateUpdate(vs)
+}
+
+func ForwardVoiceServerUpdate(vs *discordgo.VoiceServerUpdate) {
+	manager.ForwardVoiceServerUpdate(vs)
 }
 
 func Close() {
@@ -53,6 +54,8 @@ func Close() {
 		vi.Close()
 		delete(instances, guildID)
 	}
+
+	manager.Close()
 }
 
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -83,14 +86,15 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	var song Song
-	if err := parseMusicInput(m, strings.Join(input.GetArgs(), " "), &song); err != nil {
+	vi.markLoading(true)
+	song, err := parseMusicInput(m, strings.Join(input.GetArgs(), " "))
+	vi.markLoading(false)
+	if err != nil {
 		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nReason: %s", err))
 		return
 	}
 
-	vi.AddToQueue(&song)
-	vi.preloadNextSong()
+	vi.AddToQueue(song)
 	if err := updateOverviewMessageForQueue(m.ChannelID, vi); err != nil {
 		malm.Error("unable to update music overview: %s", err)
 	}
@@ -104,7 +108,13 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}()
 
 	if !vi.IsWorkerRunning() {
-		go vi.PlayQueue()
+		if err := manager.playCurrentSongWithSession(s, vi); err != nil {
+			utils.SendMessageFailure(m, fmt.Sprintf("Unable to start playback.\nReason: %s", err))
+			return
+		}
+		if err := vi.refreshOverviewMessage(); err != nil {
+			malm.Error("unable to refresh music overview: %s", err)
+		}
 	}
 }
 

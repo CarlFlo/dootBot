@@ -6,18 +6,12 @@ import (
 	"github.com/CarlFlo/dootBot/src/test"
 )
 
-func TestParseStreamURL(t *testing.T) {
-	streamURL, err := parseStreamURL("\nhttps://stream.example/audio\n")
-	if err != nil {
-		t.Fatalf("parseStreamURL returned unexpected error: %s", err)
-	}
-
-	test.Validate(t, streamURL, "https://stream.example/audio", "expected the first non-empty line to be used")
+func TestLooksLikeURL(t *testing.T) {
+	test.Validate(t, looksLikeURL("https://example.com/audio"), true, "https URLs should be detected")
+	test.Validate(t, looksLikeURL("plain search query"), false, "plain text should not be treated as a URL")
 }
 
-func TestParseStreamURLEmpty(t *testing.T) {
-	_, err := parseStreamURL("  \n\t\n")
-	if err == nil {
-		t.Fatal("parseStreamURL should fail for empty output")
-	}
+func TestBuildTrackIdentifier(t *testing.T) {
+	test.Validate(t, buildTrackIdentifier("https://example.com/audio"), "https://example.com/audio", "urls should pass through unchanged")
+	test.Validate(t, buildTrackIdentifier("never gonna give you up"), "ytsearch:never gonna give you up", "searches should use Lavalink's default source prefix")
 }

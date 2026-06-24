@@ -3,69 +3,41 @@ package music
 import (
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/CarlFlo/dootBot/src/database"
-	"github.com/CarlFlo/malm"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 )
 
 type Song struct {
-	ChannelID      string
-	User           string
-	Thumbnail      string
-	ChannelName    string
-	Title          string
-	YoutubeVideoID string
-	StreamURL      string
-	Duration       time.Duration
-
-	streamFetchMu      sync.Mutex
-	streamFetchRunning bool
-	streamFetchErr     error
-	streamFetchWait    chan struct{}
+	ChannelID   string
+	User        string
+	Thumbnail   string
+	ChannelName string
+	Title       string
+	URL         string
+	Duration    time.Duration
+	Track       lavalink.Track
 }
 
-func (s *Song) FetchStreamURL() error {
-	s.streamFetchMu.Lock()
-
-	if s.StreamURL != "" {
-		s.streamFetchMu.Unlock()
-		return nil
+func NewSongFromTrack(track lavalink.Track, channelID, userID string) *Song {
+	song := &Song{
+		ChannelID:   channelID,
+		User:        userID,
+		Title:       track.Info.Title,
+		ChannelName: track.Info.Author,
+		Duration:    time.Duration(track.Info.Length.Milliseconds()) * time.Millisecond,
+		Track:       track,
 	}
 
-	if s.streamFetchRunning {
-		wait := s.streamFetchWait
-		s.streamFetchMu.Unlock()
-
-		<-wait
-
-		s.streamFetchMu.Lock()
-		defer s.streamFetchMu.Unlock()
-		return s.streamFetchErr
+	if track.Info.URI != nil {
+		song.URL = *track.Info.URI
 	}
 
-	s.streamFetchRunning = true
-	s.streamFetchErr = nil
-	s.streamFetchWait = make(chan struct{})
-	wait := s.streamFetchWait
-	s.streamFetchMu.Unlock()
-
-	err := execYoutubeDL(s)
-	if err == nil {
-		var cache database.YoutubeCache
-		if cacheErr := cache.UpdateStreamURL(s.YoutubeVideoID, s.StreamURL); cacheErr != nil {
-			malm.Error("%s", cacheErr)
-		}
+	if track.Info.ArtworkURL != nil {
+		song.Thumbnail = *track.Info.ArtworkURL
 	}
 
-	s.streamFetchMu.Lock()
-	s.streamFetchErr = err
-	s.streamFetchRunning = false
-	close(wait)
-	s.streamFetchMu.Unlock()
-
-	return err
+	return song
 }
 
 func (s *Song) GetDuration() string {
@@ -76,5 +48,5 @@ func (s *Song) GetDuration() string {
 }
 
 func (s *Song) GetYoutubeURL() string {
-	return fmt.Sprintf("https://www.youtube.com/watch?v=%s", s.YoutubeVideoID)
+	return s.URL
 }
