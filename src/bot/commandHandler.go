@@ -9,13 +9,16 @@ import (
 	"github.com/CarlFlo/dootBot/src/bot/commands/work"
 	"github.com/CarlFlo/dootBot/src/bot/music"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
+	"github.com/CarlFlo/dootBot/src/permissions"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 const (
-	enumUser uint8 = iota
+	enumUser permissions.Level = iota
+	enumRequester
+	enumController
 	enumAdmin
 )
 
@@ -30,7 +33,7 @@ const (
 
 type command struct {
 	function           func(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput)
-	requiredPermission uint8
+	requiredPermission permissions.Level
 	helpSyntax         string
 	commandType        uint8
 }
@@ -70,7 +73,7 @@ func mapValidCommands() {
 	validCommands["promote"] = command{
 		function:           commands.AdminAdd,
 		requiredPermission: enumAdmin,
-		helpSyntax:         "[user ID or mention]",
+		helpSyntax:         "[requester/controller/admin] [user ID or mention]",
 		commandType:        typeGeneral}
 
 	validCommands["demote"] = command{
@@ -82,6 +85,23 @@ func mapValidCommands() {
 	validCommands["admins"] = command{
 		function:           commands.AdminList,
 		requiredPermission: enumAdmin,
+		commandType:        typeGeneral}
+
+	validCommands["permissions"] = command{
+		function:           commands.AdminList,
+		requiredPermission: enumAdmin,
+		commandType:        typeGeneral}
+
+	validCommands["linkrole"] = command{
+		function:           commands.AdminLinkRole,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[requester/controller/admin] [role ID or mention]",
+		commandType:        typeGeneral}
+
+	validCommands["unlinkrole"] = command{
+		function:           commands.AdminUnlinkRole,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[role ID or mention]",
 		commandType:        typeGeneral}
 
 	// Perm User - General commands
@@ -105,38 +125,48 @@ func mapValidCommands() {
 	// Music
 	validCommands["play"] = command{
 		function:           music.PlayMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumRequester,
 		helpSyntax:         "[youtube url/search query]",
 		commandType:        typeMusic}
 
 	validCommands["pause"] = command{
 		function:           music.PauseMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	validCommands["stop"] = command{ // Will also leave the voice channel
 		function:           music.StopMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	validCommands["skip"] = command{ // Same as next
 		function:           music.SkipMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	validCommands["next"] = command{ // Same as skip
 		function:           music.SkipMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
+		commandType:        typeMusic}
+
+	validCommands["loop"] = command{
+		function:           music.LoopMusic,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	validCommands["previous"] = command{ // Goes back one song or restarts the current one
 		function:           music.MusicPrevious,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
+		commandType:        typeMusic}
+
+	validCommands["restart"] = command{
+		function:           music.MusicPrevious,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	validCommands["clearqueue"] = command{ // Clears the queue
 		function:           music.ClearQueueMusic,
-		requiredPermission: enumUser,
+		requiredPermission: enumController,
 		commandType:        typeMusic}
 
 	// Perm User - Economy commands

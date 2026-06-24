@@ -1,14 +1,19 @@
 package bot
 
 import (
-	"github.com/CarlFlo/dootBot/src/config"
-	"github.com/CarlFlo/dootBot/src/database"
+	"github.com/CarlFlo/dootBot/src/bot/structs"
+	"github.com/CarlFlo/dootBot/src/permissions"
 )
 
-func isOwner(discordID string) bool {
-	return discordID == config.CONFIG.OwnerID
-}
-
-func isAdmin(discordID string) bool {
-	return isOwner(discordID) || database.IsStoredAdmin(discordID)
+func hasCommandPermission(required permissions.Level, input *structs.CmdInput) bool {
+	switch required {
+	case enumAdmin:
+		return input.HasGuildPermission(permissions.LevelAdmin)
+	case enumController:
+		return input.HasGuildPermission(permissions.LevelController)
+	case enumRequester:
+		return input.HasGuildPermission(permissions.LevelRequester)
+	default:
+		return true
+	}
 }

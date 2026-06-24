@@ -39,7 +39,8 @@ func connectToDB() error {
 	}
 
 	var modelList = []interface{}{
-		&Admin{},
+		&GuildPermissionAssignment{},
+		&GuildPermissionRole{},
 		&User{},
 		&Work{},
 		&Daily{},

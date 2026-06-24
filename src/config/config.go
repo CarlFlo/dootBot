@@ -15,7 +15,6 @@ var CONFIG *configStruct
 type configStruct struct {
 	Token               string            `json:"token"`
 	BotPrefix           string            `json:"botPrefix"`
-	OwnerID             string            `json:"ownerID"`
 	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
@@ -162,7 +161,6 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		OwnerID:             "",
 		BoundChannels:       []string{},
 		AllowDirectMessages: true,
 		BotInfo: botInfo{
@@ -296,11 +294,6 @@ func requiredVariableCheck() {
 
 	if len(CONFIG.BotInfo.AppID) == 0 {
 		malm.Error("No AppID provided in the config file! (The bot's Discord ID)")
-		problem = true
-	}
-
-	if len(CONFIG.OwnerID) == 0 {
-		malm.Error("No OwnerID provided in the config file! (This should be your Discord ID)")
 		problem = true
 	}
 

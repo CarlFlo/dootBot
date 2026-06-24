@@ -4,6 +4,7 @@ import (
 	stdcontext "context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"strconv"
@@ -107,7 +108,11 @@ func (m *MusicManager) EnsureReady(ctx stdcontext.Context) error {
 	if client != nil && m.node != nil {
 		client.RemoveNode(m.node.Config.Name)
 	}
-	lavalinkClient := disgolink.New(botID, disgolink.WithListeners(m))
+	lavalinkClient := disgolink.New(
+		botID,
+		disgolink.WithListeners(m),
+		disgolink.WithLogger(newDisgolinkLogger()),
+	)
 	m.client = lavalinkClient
 	m.node = nil
 	m.mu.Unlock()
@@ -487,4 +492,10 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func newDisgolinkLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelWarn,
+	}))
 }

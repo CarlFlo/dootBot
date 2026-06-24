@@ -4,19 +4,20 @@ import (
 	"strings"
 
 	"github.com/CarlFlo/dootBot/src/config"
+	"github.com/CarlFlo/dootBot/src/permissions"
 )
 
 // CmdInput holds a command
 type CmdInput struct {
-	command         string
-	args            []string
-	argsLowercase   []string
-	adminPermission bool
+	command       string
+	args          []string
+	argsLowercase []string
+	permissionCtx permissions.Context
 }
 
 // ParseInput parses a input string from the user
 // It creates the CmdInput struct with the required data
-func (I *CmdInput) ParseInput(input string, adminPerm bool) {
+func (I *CmdInput) ParseInput(input string, permissionCtx permissions.Context) {
 	// Remove prefix
 	prefixLen := len(config.CONFIG.BotPrefix)
 	input = input[prefixLen:]
@@ -32,7 +33,7 @@ func (I *CmdInput) ParseInput(input string, adminPerm bool) {
 	I.command = strings.ToLower(args[0])
 	I.args = args[1:]
 	I.argsLowercase = argsLowercase[1:]
-	I.adminPermission = adminPerm
+	I.permissionCtx = permissionCtx
 }
 
 func (I *CmdInput) NumberOfArgsAreAtleast(n int) bool {
@@ -60,7 +61,15 @@ func (I *CmdInput) GetArgsLowercase() []string {
 
 // IsAdmin returns true of command issuer is an admin to the bot
 func (I *CmdInput) IsAdmin() bool {
-	return I.adminPermission
+	return I.permissionCtx.IsAdmin()
+}
+
+func (I *CmdInput) HasGuildPermission(level permissions.Level) bool {
+	return I.permissionCtx.Has(level)
+}
+
+func (I *CmdInput) PermissionContext() permissions.Context {
+	return I.permissionCtx
 }
 
 // ArgsContains looks for and returns a bool depending on if the

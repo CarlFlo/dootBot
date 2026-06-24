@@ -1,10 +1,17 @@
 package music
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/CarlFlo/dootBot/src/permissions"
+	"github.com/bwmarrin/discordgo"
+)
 
-func PlayMusicInteraction(guildID string, author *discordgo.User, response *string) {
+func PlayMusicInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to resume playback"
 		return
 	}
 
@@ -34,9 +41,13 @@ func PlayMusicInteraction(guildID string, author *discordgo.User, response *stri
 	}
 }
 
-func StopMusicInteraction(guildID string, author *discordgo.User, response *string) {
+func StopMusicInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to stop playback"
 		return
 	}
 
@@ -55,9 +66,13 @@ func StopMusicInteraction(guildID string, author *discordgo.User, response *stri
 	leaveVoice(vi)
 }
 
-func ClearMusicQueueInteraction(guildID string, author *discordgo.User, response *string) {
+func ClearMusicQueueInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to clear the queue"
 		return
 	}
 
@@ -78,9 +93,13 @@ func ClearMusicQueueInteraction(guildID string, author *discordgo.User, response
 	}
 }
 
-func SongLoopInteraction(guildID string, author *discordgo.User, response *string) {
+func SongLoopInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to toggle looping"
 		return
 	}
 
@@ -101,9 +120,13 @@ func SongLoopInteraction(guildID string, author *discordgo.User, response *strin
 	}
 }
 
-func PreviousSongInteraction(guildID string, author *discordgo.User, response *string) {
+func PreviousSongInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to restart the song"
 		return
 	}
 
@@ -124,9 +147,13 @@ func PreviousSongInteraction(guildID string, author *discordgo.User, response *s
 	}
 }
 
-func NextSongInteraction(guildID string, author *discordgo.User, response *string) {
+func NextSongInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
+		return
+	}
+	if !permissionCtx.Has(permissions.LevelController) {
+		*response = "You need Controller permission to skip songs"
 		return
 	}
 

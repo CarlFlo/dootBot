@@ -8,6 +8,7 @@ import (
 	"github.com/CarlFlo/dootBot/src/bot/commands/farming"
 	"github.com/CarlFlo/dootBot/src/bot/commands/work"
 	"github.com/CarlFlo/dootBot/src/bot/music"
+	"github.com/CarlFlo/dootBot/src/permissions"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
@@ -39,6 +40,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
+	permissionCtx := permissions.ResolveInteraction(s, i)
+
 	switch i.MessageComponentData().CustomID {
 	case "BWT": // BWT: Buy Work Tool
 		work.BuyToolInteraction(commandIssuerID, &response, i.Interaction, msgEdit)
@@ -61,17 +64,17 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "PD": // PD: Profile Daily - User did their daily from the profile message
 		daily.DoDailyInteraction(commandIssuerID, &response, i.Interaction.Member.User, msgEdit)
 	case "toggleSong":
-		music.PlayMusicInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.PlayMusicInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "stopSong":
-		music.StopMusicInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.StopMusicInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "loopSong":
-		music.SongLoopInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.SongLoopInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "clearQueue":
-		music.ClearMusicQueueInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.ClearMusicQueueInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "nextSong":
-		music.NextSongInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.NextSongInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "prevSong":
-		music.PreviousSongInteraction(i.GuildID, i.Interaction.Member.User, &response)
+		music.PreviousSongInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	default:
 		malm.Error("Invalid interaction: '%s'", i.MessageComponentData().CustomID)
 		return

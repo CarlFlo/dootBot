@@ -8,6 +8,7 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
+	"github.com/CarlFlo/dootBot/src/permissions"
 	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
@@ -76,6 +77,10 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	if input.NumberOfArgsAre(0) {
+		if !input.HasGuildPermission(permissions.LevelController) {
+			utils.SendMessageFailure(m, "You need Controller permission to resume playback")
+			return
+		}
 		if !vi.PauseToggle() {
 			utils.SendMessageFailure(m, "There is no active song to resume")
 			return
@@ -184,6 +189,23 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
+	if err := vi.refreshOverviewMessage(); err != nil {
+		malm.Error("unable to refresh music overview: %s", err)
+	}
+}
+
+func LoopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !isMusicEnabled() {
+		utils.SendMessageNeutral(m, "Music is currently disabled")
+		return
+	}
+
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
+		return
+	}
+
+	vi.ToggleLooping()
 	if err := vi.refreshOverviewMessage(); err != nil {
 		malm.Error("unable to refresh music overview: %s", err)
 	}

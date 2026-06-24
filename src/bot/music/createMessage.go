@@ -97,9 +97,9 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 			Style:    4,
 		})
 
-		loopLabel := "Loop (is off)"
+		loopLabel := "➡️ Loop: Off"
 		if vi.IsLooping() {
-			loopLabel = "Loop (is on)"
+			loopLabel = "🔁 Loop: On"
 		}
 
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{

@@ -1,11 +1,14 @@
 package bot
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/CarlFlo/dootBot/src/bot/structs"
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/dootBot/src/database"
+	"github.com/CarlFlo/dootBot/src/permissions"
+	"github.com/CarlFlo/dootBot/src/utils"
 	"github.com/CarlFlo/malm"
 
 	"github.com/bwmarrin/discordgo"
@@ -35,15 +38,17 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		// Turns the input string to a struct
+		permissionCtx := permissions.ResolveMessage(s, m)
 		data := &structs.CmdInput{}
-		data.ParseInput(m.Message.Content, isAdmin(m.Author.ID))
+		data.ParseInput(m.Message.Content, permissionCtx)
 
 		// validCommands is a map containing all commands
 		if command, ok := validCommands[data.GetCommand()]; ok {
 
 			// Checks if the user has permission to run the command
-			if command.requiredPermission == enumAdmin && !data.IsAdmin() {
+			if !hasCommandPermission(command.requiredPermission, data) {
 				malm.Info("(%s) '%s' tried to run command: '%s'", m.Author.ID, m.Author.Username, data.GetCommand())
+				utils.SendMessageFailure(m, fmt.Sprintf("You do not have permission to run `%s` here", data.GetCommand()))
 				return
 			}
 
