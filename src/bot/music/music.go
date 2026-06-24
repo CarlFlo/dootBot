@@ -23,16 +23,16 @@ var (
 
 func Initialize() {
 	if !config.CONFIG.Music.EnableMusic {
-		malm.Info("Music Disabled")
+		malm.Info("Music disabled")
 		return
 	}
 
 	if youtubeAPIKeysValid = initializeMusic(); !youtubeAPIKeysValid {
-		malm.Info("Music Disabled")
+		malm.Info("Music disabled")
 		return
 	}
 
-	malm.Info("Music Initialized")
+	malm.Info("Music initialized")
 }
 
 func initializeMusic() bool {
