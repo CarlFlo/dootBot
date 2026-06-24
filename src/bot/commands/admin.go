@@ -101,7 +101,11 @@ func AdminList(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 	ensureAdminIdentityCache(s, adminIDs)
 
-	lines := []string{fmt.Sprintf("Owner: %s", formatAdminIdentity(s, config.CONFIG.OwnerID))}
+	lines := []string{}
+
+	lines = append(lines, "**DootBot admins**")
+	lines = append(lines, fmt.Sprintf("Owner: %s", formatAdminIdentity(s, config.CONFIG.OwnerID)))
+
 	if len(admins) == 0 {
 		lines = append(lines, "Admins: none")
 	} else {
