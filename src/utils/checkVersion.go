@@ -21,10 +21,10 @@ func CheckVersion(currentVersion string) {
 	if upToDate {
 		malm.Debug("Version %s", currentVersion)
 	} else {
-		malm.Info("New version available at '%s'! New version: '%s'. Your version: '%s'",
+		malm.Info("New version available at '%s'. '%s' --> '%s'",
 			depositURL,
-			githubVersion,
-			currentVersion)
+			currentVersion,
+			githubVersion)
 	}
 }
 
