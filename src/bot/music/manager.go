@@ -41,12 +41,14 @@ func (m *MusicManager) AttachSession(session *discordgo.Session) {
 	m.session = session
 	m.mu.Unlock()
 
-	ctx, cancel := stdcontext.WithTimeout(stdcontext.Background(), 10*time.Second)
-	defer cancel()
+	go func() {
+		ctx, cancel := stdcontext.WithTimeout(stdcontext.Background(), 10*time.Second)
+		defer cancel()
 
-	if err := m.EnsureReady(ctx); err != nil {
-		malm.Warn("Lavalink unavailable during startup: %s", err)
-	}
+		if err := m.EnsureReady(ctx); err != nil {
+			malm.Warn("Lavalink unavailable during startup: %s", err)
+		}
+	}()
 }
 
 func (m *MusicManager) Close() {

@@ -1,0 +1,15 @@
+# Last updated: 2026-06-24
+
+services:
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4-alpine # https://lavalink.dev/getting-started/docker.html
+    container_name: lavalink
+    restart: unless-stopped
+    user: 1003:1003
+    environment: # https://lavalink.dev/configuration/config/file.html#example-applicationyml
+      - _JAVA_OPTIONS=-Xmx3G #3gb max
+    ports:
+      - "2333:2333"
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+      - ./lavalink/plugins/:/opt/Lavalink/plugins/

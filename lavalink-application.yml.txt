@@ -1,0 +1,37 @@
+server:
+  port: 2333
+
+lavalink:
+  plugins:
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.1"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+  server:
+    password: "youshallnotpass"
+    sources:
+      youtube: false
+      bandcamp: true
+      http: true
+      local: false
+      soundcloud: true
+      twitch: true
+      vimeo: true
+
+plugins:
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - TVHTML5EMBEDDED
+      - WEBEMBEDDED
+      - IOS
+      - ANDROID_VR
+      - MUSIC
+
+logging:
+  level:
+    root: INFO
+    lavalink: INFO
