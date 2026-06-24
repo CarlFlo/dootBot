@@ -1,50 +1,39 @@
-fNameSrc = main.go
-fNameOut = dootbot.exe
+FNAME_SRC := main.go
 
-# 64 bit x86 setting
-.64Bitx86:
-	go env -w GOARCH=amd64
+APP_NAME := dootBot
+CGO_ENABLED := 0
 
-# Windows settings
-.windows:
-	go env -w GOOS=windows
-	$(eval fNameOut = dootbot.exe)
+export GOOS
+export GOARCH
+export CGO_ENABLED
 
-# Linux settings
-.linux:
-	go env -w GOOS=linux
-	$(eval fNameOut = dootbot)
+.PHONY: windows linux rpi mac docker build run b r clean
 
-# Mac OS X 10.8 and above
-.mac:
-	go env -w GOOS=darwin
-	$(eval fNameOut = dootbot.app)
+# Windows 64-bit
+windows: GOOS := windows
+windows: GOARCH := amd64
+windows: FNAME_OUT := $(APP_NAME).exe
+windows: build
 
-# Default value, change for your needs
-.default: .64Bitx86 .windows
+# Raspberry Pi 64-bit -- Change arm64 to amd64 for other linux systems
+linux: GOOS := linux
+linux: GOARCH := arm64
+linux: FNAME_OUT := $(APP_NAME)
+linux: build
 
-
-# Build for 64 bit windows (default)
-windows: .default build
-
-# Build for 64 bit linux
-linux: .64Bitx86 .linux build .default
-
-# Build for 64 bit mac
-mac: .64Bitx86 .mac build .default
+build:
+	$(info Building $(FNAME_OUT) for $(GOOS)/$(GOARCH))
+	go build -o ./$(FNAME_OUT) ./$(FNAME_SRC)
 
 docker:
 	docker build -t discord-bot .
 
-# Builder command
-build: .default
-	set CGO_ENABLED=1
-	go build -o ./${fNameOut} ./${fNameSrc}
+run:
+	go run ./$(FNAME_SRC)
 
-b: build
-
-# Runs go.main
-run: .default
-	go run ./${fNameSrc}
+b: windows
 
 r: run
+
+clean:
+	del /Q $(APP_NAME).exe $(APP_NAME) 2>NUL || exit 0
