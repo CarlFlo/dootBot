@@ -39,6 +39,7 @@ func connectToDB() error {
 	}
 
 	var modelList = []interface{}{
+		&Admin{},
 		&User{},
 		&Work{},
 		&Daily{},

@@ -29,7 +29,7 @@ func (I *CmdInput) ParseInput(input string, adminPerm bool) {
 	argsLowercase := strings.Split(inputLower, " ")
 
 	// Saves the data in the struct
-	I.command = args[0]
+	I.command = strings.ToLower(args[0])
 	I.args = args[1:]
 	I.argsLowercase = argsLowercase[1:]
 	I.adminPermission = adminPerm

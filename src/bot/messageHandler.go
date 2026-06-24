@@ -36,7 +36,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		// Turns the input string to a struct
 		data := &structs.CmdInput{}
-		data.ParseInput(m.Message.Content, isOwner(m.Author.ID))
+		data.ParseInput(m.Message.Content, isAdmin(m.Author.ID))
 
 		// validCommands is a map containing all commands
 		if command, ok := validCommands[data.GetCommand()]; ok {

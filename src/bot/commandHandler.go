@@ -67,6 +67,23 @@ func mapValidCommands() {
 		helpSyntax:         "[server/guild ID]",
 		commandType:        typeGeneral}
 
+	validCommands["promote"] = command{
+		function:           commands.AdminAdd,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[user ID or mention]",
+		commandType:        typeGeneral}
+
+	validCommands["demote"] = command{
+		function:           commands.AdminRemove,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[user ID or mention]",
+		commandType:        typeGeneral}
+
+	validCommands["admins"] = command{
+		function:           commands.AdminList,
+		requiredPermission: enumAdmin,
+		commandType:        typeGeneral}
+
 	// Perm User - General commands
 	validCommands["help"] = command{
 		function:           help,
@@ -78,27 +95,13 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
-	validCommands["farm"] = command{
-		function:           farming.Farming,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
-	validCommands["work"] = command{
-		function:           work.Work,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
-	validCommands["daily"] = command{
-		function:           daily.Daily,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
 	/*
 		validCommands["mine"] = command{
 			function:           mine.Dwarvenkeep,
 			requiredPermission: enumUser,
 			commandType:        typeGeneral}
 	*/
+
 	// Music
 	validCommands["play"] = command{
 		function:           music.PlayMusic,
@@ -139,6 +142,21 @@ func mapValidCommands() {
 	// Perm User - Economy commands
 	validCommands["balance"] = command{
 		function:           commands.Balance,
+		requiredPermission: enumUser,
+		commandType:        typeEconomy}
+
+	validCommands["farm"] = command{
+		function:           farming.Farming,
+		requiredPermission: enumUser,
+		commandType:        typeEconomy}
+
+	validCommands["work"] = command{
+		function:           work.Work,
+		requiredPermission: enumUser,
+		commandType:        typeEconomy}
+
+	validCommands["daily"] = command{
+		function:           daily.Daily,
 		requiredPermission: enumUser,
 		commandType:        typeEconomy}
 
