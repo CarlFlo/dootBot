@@ -86,16 +86,8 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 			Style:    3,
 		})
 
-		previousOrRestart := "Previous"
-
-		if vi.HasPreviousSong() {
-			previousOrRestart = "Previous"
-		} else {
-			previousOrRestart = "Restart"
-		}
-
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    previousOrRestart,
+			Label:    vi.previousButtonLabel(),
 			CustomID: "prevSong",
 			Style:    2,
 		})

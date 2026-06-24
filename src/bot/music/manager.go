@@ -212,11 +212,14 @@ func (m *MusicManager) playCurrentSong(ctx stdcontext.Context, vi *VoiceInstance
 
 	vi.mu.Lock()
 	vi.workerRunning = true
-	vi.loading = false
+	vi.loading = true
 	vi.paused = false
 	vi.mu.Unlock()
 
 	if err := player.Update(ctx, disgolink.WithTrack(song.Track), disgolink.WithPaused(false)); err != nil {
+		vi.mu.Lock()
+		vi.loading = false
+		vi.mu.Unlock()
 		return fmt.Errorf("unable to start track: %w", err)
 	}
 

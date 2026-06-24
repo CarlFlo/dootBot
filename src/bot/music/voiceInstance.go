@@ -31,6 +31,9 @@ type PlaybackState struct {
 	queueIndex    int
 }
 
+const previousSongThreshold = 10 * time.Second
+const songTimeElapsedThreshold = 10 * time.Second // How often the music player updates its time elapsed for the current song
+
 func (vi *VoiceInstance) New(guildID string) error {
 	vi.guildID = guildID
 	return nil
@@ -149,14 +152,13 @@ func (vi *VoiceInstance) Prev() bool {
 		return false
 	}
 
+	goToPrevious := vi.shouldGoToPreviousSong()
+
 	vi.mu.Lock()
 	if queueIndex >= queueLen {
 		vi.queueIndex = queueLen - 1
-	} else if queueIndex > 0 {
+	} else if goToPrevious && queueIndex > 0 {
 		vi.queueIndex--
-	} else {
-		vi.mu.Unlock()
-		return false
 	}
 	vi.mu.Unlock()
 
@@ -282,6 +284,13 @@ func (vi *VoiceInstance) currentSong() (*Song, error) {
 }
 
 func (vi *VoiceInstance) currentSongElapsed() (time.Duration, error) {
+	vi.mu.RLock()
+	loading := vi.loading
+	vi.mu.RUnlock()
+	if loading {
+		return 0, nil
+	}
+
 	player, err := manager.playerForGuild(vi.guildID)
 	if err != nil {
 		return 0, err
@@ -330,7 +339,7 @@ func (vi *VoiceInstance) startOverviewRefreshLoop() {
 		return
 	}
 
-	ticker := time.NewTicker(10 * time.Second) // How often the music player updates its time elapsed for the current song
+	ticker := time.NewTicker(songTimeElapsedThreshold)
 	stop := make(chan struct{})
 	vi.refreshTicker = ticker
 	vi.refreshStop = stop
@@ -387,4 +396,25 @@ func (vi *VoiceInstance) ensureQueuePlayable() error {
 		return fmt.Errorf("there is no song to play: %w", err)
 	}
 	return nil
+}
+
+func (vi *VoiceInstance) previousButtonLabel() string {
+	if vi.shouldGoToPreviousSong() {
+		return "Previous"
+	}
+
+	return "Restart"
+}
+
+func (vi *VoiceInstance) shouldGoToPreviousSong() bool {
+	if !vi.HasPreviousSong() {
+		return false
+	}
+
+	elapsed, err := vi.currentSongElapsed()
+	if err != nil {
+		return false
+	}
+
+	return elapsed < previousSongThreshold
 }
