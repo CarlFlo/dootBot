@@ -5,9 +5,7 @@ import (
 
 	"github.com/CarlFlo/dootBot/src/bot/commands"
 	"github.com/CarlFlo/dootBot/src/bot/commands/daily"
-	"github.com/CarlFlo/dootBot/src/bot/commands/dungeon"
 	"github.com/CarlFlo/dootBot/src/bot/commands/farming"
-	"github.com/CarlFlo/dootBot/src/bot/commands/mine"
 	"github.com/CarlFlo/dootBot/src/bot/commands/work"
 	"github.com/CarlFlo/dootBot/src/bot/music"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
@@ -95,16 +93,12 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeGeneral}
 
-	validCommands["dungeon"] = command{
-		function:           dungeon.Dungeon,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
-	validCommands["mine"] = command{
-		function:           mine.Dwarvenkeep,
-		requiredPermission: enumUser,
-		commandType:        typeGeneral}
-
+	/*
+		validCommands["mine"] = command{
+			function:           mine.Dwarvenkeep,
+			requiredPermission: enumUser,
+			commandType:        typeGeneral}
+	*/
 	// Music
 	validCommands["play"] = command{
 		function:           music.PlayMusic,

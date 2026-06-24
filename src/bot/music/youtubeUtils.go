@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -25,12 +24,13 @@ var (
 	errSongLengthLimitExceeded = "song duration exceeds the limit (%s min) in the config file"
 	errStatusYTSearchQuery     = "youtube search error - status code: %d - query: %s"
 	errStatusYTSearchVideoID   = "youtube search error - status code: %d - videoID: %s"
+	httpClient                 = &http.Client{Timeout: 15 * time.Second}
 )
 
 const (
-	youtubeFindEndpoint     string = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&key=%s&id=%s"
-	youtubeSearchEndpoint   string = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=%s&q=%s&fields=items(id)"
-	youtubePlaylistEndpoint string = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&key=%s&playlistId=%s&maxResults=50&fields=items(snippet)"
+	youtubeFindEndpoint     = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&key=%s&id=%s"
+	youtubeSearchEndpoint   = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=%s&q=%s&fields=items(id)"
+	youtubePlaylistEndpoint = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&key=%s&playlistId=%s&maxResults=50&fields=items(snippet)"
 )
 
 type youtubeResponseFind struct {
@@ -80,57 +80,38 @@ func isMusicEnabled() bool {
 }
 
 func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error {
-
 	var title, thumbnail, channelName, videoID, streamURL string
 	var duration time.Duration
 	var err error
 
-	ytRegex := regexp.MustCompile(youtubePattern)
-	urlRegex := regexp.MustCompile(urlPattern)
+	input = strings.TrimSpace(input)
 
-	if ytRegex.MatchString(input) {
-		// Youtube link
+	if parsedURL, ok := parseURLInput(input); ok {
+		if !isYoutubeURL(parsedURL) {
+			return errDetectedNonYTURL
+		}
 
-		parsedURL, err := url.Parse(input)
+		videoID, err = extractVideoID(parsedURL)
 		if err != nil {
 			return err
 		}
 
-		query := parsedURL.Query()
-		videoID = query.Get("v")
-
-		// Cache
 		var cache database.YoutubeCache
-		// "Will attempt to load the values into the pointers"
 		exists := cache.Check(videoID, &title, &thumbnail, &channelName, &streamURL, &duration)
-
 		if !exists {
 			title, thumbnail, channelName, duration, err = youtubeFindByVideoID(videoID)
 			if err != nil {
 				return err
 			}
-			// Save results to cache
 			cache.Cache(videoID, title, thumbnail, channelName, duration)
 		}
-
-	} else if urlRegex.MatchString(input) {
-		// URL from another source than Youtube
-		parsedURL, err := url.Parse(input)
-		if err != nil {
-			return err
-		}
-
-		malm.Debug("%s", parsedURL.Host)
-		return errDetectedNonYTURL
 	} else {
-		// Presumably a song name. Search Youtube
 		title, thumbnail, channelName, videoID, duration, err = youtubeFindBySearch(input)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Update the song object
 	song.ChannelID = m.ChannelID
 	song.User = m.Author.ID
 	song.Title = title
@@ -140,29 +121,25 @@ func parseMusicInput(m *discordgo.MessageCreate, input string, song *Song) error
 	song.Duration = duration
 	song.StreamURL = streamURL
 
-	// Returns 'nil' if everything is ok
 	return checkDurationCompliance(song.Duration)
 }
 
-// Returns the title, thumbnail and channel of a youtube video
-// error if there was any problem
 func youtubeFindByVideoID(videoID string) (string, string, string, time.Duration, error) {
-
 	var emptyDuration time.Duration
 
 	apiKey := utils.GetYoutubeAPIKey()
-	res, err := http.Get(fmt.Sprintf(youtubeFindEndpoint, apiKey, videoID))
+	res, err := httpClient.Get(fmt.Sprintf(youtubeFindEndpoint, apiKey, videoID))
 	if err != nil {
 		return "", "", "", emptyDuration, err
-	} else if res.StatusCode != 200 {
-		return "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchVideoID, res.StatusCode, videoID)
 	}
 	defer res.Body.Close()
 
-	var page youtubeResponseFind
+	if res.StatusCode != http.StatusOK {
+		return "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchVideoID, res.StatusCode, videoID)
+	}
 
-	err = json.NewDecoder(res.Body).Decode(&page)
-	if err != nil {
+	var page youtubeResponseFind
+	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		return "", "", "", emptyDuration, err
 	}
 
@@ -173,30 +150,28 @@ func youtubeFindByVideoID(videoID string) (string, string, string, time.Duration
 	title := page.Items[0].Snippet.Title
 	thumbnail := page.Items[0].Snippet.Thumbnails.Standard.Url
 	channelName := page.Items[0].Snippet.ChannelTitle
-	//duration := formatYoutubeDuration(page.Items[0].ContentDetails.Duration)
 	duration := youtubeTimeToDuration(page.Items[0].ContentDetails.Duration)
 
 	return title, thumbnail, channelName, duration, nil
 }
 
 func youtubeFindBySearch(query string) (string, string, string, string, time.Duration, error) {
-
 	var emptyDuration time.Duration
 
 	query = url.QueryEscape(query)
 	apiKey := utils.GetYoutubeAPIKey()
-	res, err := http.Get(fmt.Sprintf(youtubeSearchEndpoint, apiKey, query))
+	res, err := httpClient.Get(fmt.Sprintf(youtubeSearchEndpoint, apiKey, query))
 	if err != nil {
 		return "", "", "", "", emptyDuration, err
-	} else if res.StatusCode != 200 {
-		return "", "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchQuery, res.StatusCode, query)
 	}
 	defer res.Body.Close()
 
-	var page youtubeResponseSearch
+	if res.StatusCode != http.StatusOK {
+		return "", "", "", "", emptyDuration, fmt.Errorf(errStatusYTSearchQuery, res.StatusCode, query)
+	}
 
-	err = json.NewDecoder(res.Body).Decode(&page)
-	if err != nil {
+	var page youtubeResponseSearch
+	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		return "", "", "", "", emptyDuration, err
 	}
 
@@ -205,7 +180,6 @@ func youtubeFindBySearch(query string) (string, string, string, string, time.Dur
 	}
 
 	videoID := page.Items[0].ID.VideoId
-
 	title, thumbnail, channelName, duration, err := youtubeFindByVideoID(videoID)
 	if err != nil {
 		return "", "", "", "", emptyDuration, err
@@ -214,51 +188,55 @@ func youtubeFindBySearch(query string) (string, string, string, string, time.Dur
 	return title, thumbnail, channelName, videoID, duration, nil
 }
 
-func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, string) {
-
+func joinVoice(vi *VoiceInstance, authorID, channelID string) (*VoiceInstance, error) {
 	voiceChannelID := utils.FindVoiceChannel(authorID)
-	if len(voiceChannelID) == 0 {
-		return nil, "You are not in a voice channel"
+	if voiceChannelID == "" {
+		return nil, errors.New("you are not in a voice channel")
 	}
+
+	guildID, err := utils.GetGuild(channelID)
+	if err != nil {
+		return nil, errors.New("internal error")
+	}
+
+	musicMutex.Lock()
+	defer musicMutex.Unlock()
 
 	if vi == nil {
-		// Instance not initialized
-		musicMutex.Lock()
-		defer musicMutex.Unlock()
-
 		vi = &VoiceInstance{}
-
-		guildID, err := utils.GetGuild(channelID)
-		if err != nil {
-			vi = nil
-			return nil, "Internal error"
-		}
-
 		if err := vi.New(guildID); err != nil {
-			return nil, ""
+			return nil, err
 		}
-
-		instances[vi.guildID] = vi
+		instances[guildID] = vi
 	}
 
-	var err error
-	vi.voice, err = context.SESSION.ChannelVoiceJoin(vi.GetGuildID(), voiceChannelID, false, true)
+	vi.mu.RLock()
+	alreadyConnected := vi.voice != nil && vi.voice.ChannelID == voiceChannelID
+	vi.mu.RUnlock()
+	if alreadyConnected {
+		return vi, nil
+	}
 
+	voice, err := context.SESSION.ChannelVoiceJoin(guildID, voiceChannelID, false, true)
 	if err != nil {
-		vi.Stop()
-		return nil, "Failed to join voice channel"
+		return nil, errors.New("failed to join voice channel")
 	}
 
-	err = vi.voice.Speaking(false)
-	if err != nil {
-		malm.Error("%s", err)
-		return nil, ""
+	if err := voice.Speaking(false); err != nil {
+		return nil, err
 	}
 
-	return vi, ""
+	vi.mu.Lock()
+	vi.voice = voice
+	vi.mu.Unlock()
+
+	return vi, nil
 }
 
 func leaveVoice(vi *VoiceInstance) {
+	if vi == nil {
+		return
+	}
 
 	vi.Disconnect()
 	vi.Close()
@@ -268,16 +246,70 @@ func leaveVoice(vi *VoiceInstance) {
 	musicMutex.Unlock()
 }
 
-// youtubeTimeToDuration turns the youtube duration string into a time.Time object
-// PT1H24M47S -> 1h 24m 47s
-func youtubeTimeToDuration(input string) time.Duration {
+func validateSameVoiceChannel(vi *VoiceInstance, authorID string) error {
+	voiceChannelID := utils.FindVoiceChannel(authorID)
+	if voiceChannelID == "" {
+		return errors.New("you are not in a voice channel")
+	}
 
+	vi.mu.RLock()
+	currentChannelID := ""
+	if vi.voice != nil {
+		currentChannelID = vi.voice.ChannelID
+	}
+	vi.mu.RUnlock()
+
+	if currentChannelID == "" || currentChannelID != voiceChannelID {
+		return errors.New("you are not in the same voice channel as the bot")
+	}
+
+	return nil
+}
+
+func parseURLInput(input string) (*url.URL, bool) {
+	if !strings.HasPrefix(input, "http://") && !strings.HasPrefix(input, "https://") {
+		return nil, false
+	}
+
+	parsedURL, err := url.Parse(input)
+	if err != nil {
+		return nil, false
+	}
+
+	return parsedURL, true
+}
+
+func isYoutubeURL(parsedURL *url.URL) bool {
+	host := strings.ToLower(strings.TrimPrefix(parsedURL.Host, "www."))
+	return host == "youtube.com" || host == "m.youtube.com" || host == "youtu.be"
+}
+
+func extractVideoID(parsedURL *url.URL) (string, error) {
+	host := strings.ToLower(strings.TrimPrefix(parsedURL.Host, "www."))
+
+	switch host {
+	case "youtu.be":
+		videoID := strings.Trim(parsedURL.Path, "/")
+		if videoID == "" {
+			return "", errors.New("youtube url is missing a video id")
+		}
+		return videoID, nil
+	case "youtube.com", "m.youtube.com":
+		videoID := parsedURL.Query().Get("v")
+		if videoID == "" {
+			return "", errors.New("youtube url is missing a video id")
+		}
+		return videoID, nil
+	default:
+		return "", errDetectedNonYTURL
+	}
+}
+
+func youtubeTimeToDuration(input string) time.Duration {
 	var duration time.Duration
 
-	// Removes the prefix
 	input = strings.TrimPrefix(input, "PT")
 
-	// Split the string into hours, minutes and seconds
 	split := strings.Split(input, "H")
 	if len(split) != 1 {
 		if val, err := strconv.Atoi(split[0]); err == nil {
@@ -311,10 +343,7 @@ func youtubeTimeToDuration(input string) time.Duration {
 }
 
 func checkDurationCompliance(duration time.Duration) error {
-
 	maxSongDuration := time.Minute * config.CONFIG.Music.MaxSongLengthMinutes
-
-	// If the song duration is longer than the maximum allowed duration,
 	if duration > maxSongDuration {
 		return fmt.Errorf(errSongLengthLimitExceeded, config.CONFIG.Music.MaxSongLengthMinutes)
 	}

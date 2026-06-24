@@ -16,13 +16,20 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Check if the user that clicked the button is allowed to interact. e.i. the user that "created" the message
 
-	msgEdit := &discordgo.MessageEdit{Channel: i.ChannelID, ID: i.Message.ID}
+	embeds := []*discordgo.MessageEmbed{}
+	components := []discordgo.MessageComponent{}
+	msgEdit := &discordgo.MessageEdit{
+		Channel:    i.ChannelID,
+		ID:         i.Message.ID,
+		Embeds:     &embeds,
+		Components: &components,
+	}
 	var response string
 	var responseEmbed []*discordgo.MessageEmbed
 	var commandIssuerID string
 
 	// Some messages, like music, does not have a user thumbnail (with their ID)
-	if strings.Contains(i.Message.Embeds[0].Thumbnail.URL, "#") {
+	if len(i.Message.Embeds) > 0 && i.Message.Embeds[0].Thumbnail != nil && strings.Contains(i.Message.Embeds[0].Thumbnail.URL, "#") {
 
 		commandIssuerID = strings.Split(i.Message.Embeds[0].Thumbnail.URL, "#")[1]
 		if interactionValidateInteractor(i, commandIssuerID) {
@@ -62,7 +69,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "clearQueue":
 		music.ClearMusicQueueInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "nextSong":
-		malm.Info("Next song")
+		music.NextSongInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	case "prevSong":
 		music.PreviousSongInteraction(i.GuildID, i.Interaction.Member.User, &response)
 	default:
@@ -70,7 +77,7 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	if msgEdit.Embeds != nil {
+	if msgEdit.Embeds != nil && msgEdit.Components != nil && (len(*msgEdit.Embeds) > 0 || len(*msgEdit.Components) > 0) {
 		if _, err := s.ChannelMessageEditComplex(msgEdit); err != nil {
 			malm.Error("cannot create message edit, error: %s", err)
 		}

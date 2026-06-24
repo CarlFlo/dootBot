@@ -2,61 +2,42 @@ package music
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/CarlFlo/malm"
 )
 
+var errEmptyStreamURL = errors.New("yt-dlp did not return a stream url")
+
 func execYoutubeDL(song *Song) error {
-	// Stream URL it returns should be valid for 6 hours
-	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--get-url", "--flat-playlist")
-	var out bytes.Buffer
-	cmd.Stdout = &out
+	cmd := exec.Command("yt-dlp", song.GetYoutubeURL(), "--skip-download", "--get-url", "--no-playlist")
 
-	err := cmd.Run()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("yt-dlp failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	streamURL, err := parseStreamURL(stdout.String())
 	if err != nil {
 		return err
 	}
 
-	lines := strings.Split(out.String(), "\n")
-
-	if len(lines) >= 2 {
-		song.StreamURL = lines[1]
-	} else {
-		malm.Error("youtube DL - There are not enough lines of output.")
-	}
-
+	song.StreamURL = streamURL
 	return nil
 }
 
-/*
-type videoResponse struct {
-	Formats []struct {
-		Url string `json:"url"`
-	} `json:"formats"`
-}
-
-func execYoutubeDLOld(song *Song) error {
-
-	cmd := exec.Command("yt-dlp", song.YoutubeVideoID, "--skip-download", "--print-json", "--flat-playlist")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	err := cmd.Run()
-	if err != nil {
-		return err
+func parseStreamURL(output string) (string, error) {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			return line, nil
+		}
 	}
 
-	var videoRes videoResponse
-	err = json.NewDecoder(&out).Decode(&videoRes)
-	if err != nil {
-		return err
-	}
-
-	// The URL directly to the audio. Expires after 6 hours
-	// yt-dlp uses index 3. Youtube-dl uses index 0
-	song.StreamURL = videoRes.Formats[3].Url
-	return nil
+	return "", errEmptyStreamURL
 }
-*/

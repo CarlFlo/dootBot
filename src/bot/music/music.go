@@ -14,33 +14,14 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// GuildID is the key
 var instances = map[string]*VoiceInstance{}
-
-/*
-	Play songs in a voice channel
-	Commands:
-	play (plays a song or adds the song to the queue if something is playing), resume, skip, stop, pause, playlist (ability to create a personal playlist, adds songs with buttons etc)
-
-	playlist: dropdown menu with selections of playlists in the guild
-
-	Save stats in DB for songs played, skiped
-
-*/
 
 var (
 	musicMutex          sync.Mutex
-	songSignal          chan *VoiceInstance
 	youtubeAPIKeysValid bool
 )
 
-const (
-	youtubePattern string = `(youtube\.com\/watch\?v=)`
-	urlPattern     string = `[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`
-)
-
 func Initialize() {
-
 	if !config.CONFIG.Music.EnableMusic {
 		malm.Info("Music Disabled")
 		return
@@ -54,120 +35,75 @@ func Initialize() {
 	malm.Info("Music Initialized")
 }
 
-// initializeMusic initializes the music goroutine and channel signal
 func initializeMusic() bool {
-
 	if err := utils.ValidateYoutubeAPIKey(); err != nil {
 		malm.Error("%s", err)
 		return false
 	}
 
-	songSignal = make(chan *VoiceInstance)
-
-	go func() {
-		for vi := range songSignal {
-			go vi.PlayQueue()
-		}
-	}()
 	return true
 }
 
-// Close - clean-up for the music
 func Close() {
-	for _, vi := range instances {
+	musicMutex.Lock()
+	defer musicMutex.Unlock()
+
+	for guildID, vi := range instances {
+		vi.Disconnect()
 		vi.Close()
+		delete(instances, guildID)
 	}
 }
 
-// Same as resume
-// TODO: Crashes when "play" command is run multiple times before the instance has been able to initialize - invalid memory address or nil pointer dereference
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-
 	if !isMusicEnabled() {
 		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
+	vi, err := getOrCreateVoiceInstance(m.Author.ID, m.ChannelID)
 	if err != nil {
-		malm.Error("Error getting guild ID: %s", err)
+		utils.SendMessageFailure(m, err.Error())
 		return
 	}
 
-	vi := instances[guildID]
-	var errStr string
-	if vi == nil {
-		// Not initialized
-		vi, errStr = joinVoice(vi, m.Author.ID, m.ChannelID)
-		if vi == nil {
-			utils.SendMessageFailure(m, errStr)
-			return
-		}
-	}
-
-	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(m.Author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		utils.SendMessageFailure(m, "You are not in the same voice channel as the bot")
+	if err := validateSameVoiceChannel(vi, m.Author.ID); err != nil {
+		utils.SendMessageFailure(m, err.Error())
 		return
 	}
 
 	if input.NumberOfArgsAre(0) {
-		// User want to resume a song
-		if !vi.playing {
-			vi.playing = true
-			vi.stream.SetPaused(vi.playing)
+		if !vi.PauseToggle() {
+			utils.SendMessageFailure(m, "There is no active song to resume")
+			return
+		}
+		if err := vi.refreshOverviewMessage(); err != nil {
+			malm.Error("unable to refresh music overview: %s", err)
 		}
 		return
 	}
 
 	var song Song
-	inputText := strings.Join(input.GetArgs(), " ")
-
-	err = parseMusicInput(m, inputText, &song)
-	if err != nil {
+	if err := parseMusicInput(m, strings.Join(input.GetArgs(), " "), &song); err != nil {
 		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nReason: %s", err))
 		return
 	}
 
-	// Add the song to the queue
 	vi.AddToQueue(&song)
-	go song.FetchStreamURL()
-	// Spamming the same song over and over will casue the song to be fetched until the first song is cached
+	if err := updateOverviewMessageForQueue(m.ChannelID, vi); err != nil {
+		malm.Error("unable to update music overview: %s", err)
+	}
 
 	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
-
 	go func() {
-		for range time.After(time.Second * 5) {
-			context.SESSION.ChannelMessageDelete(m.ChannelID, addedSongMsg.ID)
+		time.Sleep(5 * time.Second)
+		if addedSongMsg != nil {
+			_ = context.SESSION.ChannelMessageDelete(m.ChannelID, addedSongMsg.ID)
 		}
 	}()
 
-	complexMessage := &discordgo.MessageSend{}
-
-	if !vi.IsPlaying() {
-		vi.loading = true
-	}
-
-	CreateMusicOverviewMessage(m.ChannelID, complexMessage)
-
-	msg, err := context.SESSION.ChannelMessageSendComplex(m.ChannelID, complexMessage)
-	if err != nil {
-		malm.Error("Could not send message! %s", err)
-		return
-	}
-
-	// Delete the old message
-	if len(vi.GetMessageID()) != 0 {
-		context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), vi.GetMessageID())
-	}
-
-	vi.SetMessageID(msg.ID)
-	vi.SetMessageChannelID(msg.ChannelID)
-
-	// The bot is already playing music so we dont send the start signal
-	if !vi.IsPlaying() {
-		songSignal <- vi
+	if !vi.IsWorkerRunning() {
+		go vi.PlayQueue()
 	}
 }
 
@@ -177,16 +113,8 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
-	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
-		return
-	}
-
-	vi := instances[guildID]
-
-	if vi == nil {
-		// Nothing is playing
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
 		return
 	}
 
@@ -199,90 +127,120 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
-	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
-		return
-	}
-	vi := instances[guildID]
-
-	if vi == nil {
-		// Nothing is playing
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
 		return
 	}
 
 	if vi.Skip() {
 		utils.SendMessageSuccess(m, "Skipped the song")
-	} else {
-		utils.SendMessageFailure(m, "There is no song to skip")
+		return
 	}
+
+	utils.SendMessageFailure(m, "There is no song to skip")
 }
 
-// ClearQueueMusic clears the queue. Does not include the current song or previus songs
 func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
 		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
-	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
-		return
-	}
-	vi := instances[guildID]
-
-	if vi == nil {
-		// Nothing is playing
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
 		return
 	}
 
 	vi.ClearQueueAfter()
-	//vi.Stop() // Should it stop the bot?
+	if err := vi.refreshOverviewMessage(); err != nil {
+		malm.Error("unable to refresh music overview: %s", err)
+	}
 }
 
-// PauseMusic toggles the music from playing to pausing
 func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
 		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
-	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
-		return
-	}
-	vi := instances[guildID]
-
-	if vi == nil {
-		// Nothing is playing
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
 		return
 	}
 
-	vi.PauseToggle()
+	if !vi.PauseToggle() {
+		utils.SendMessageFailure(m, "There is no song to pause")
+		return
+	}
+
+	if err := vi.refreshOverviewMessage(); err != nil {
+		malm.Error("unable to refresh music overview: %s", err)
+	}
 }
 
 func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-
 	if !isMusicEnabled() {
 		utils.SendMessageNeutral(m, "Music is currently disabled")
 		return
 	}
 
-	guildID, err := utils.GetGuild(m.ChannelID)
-	if err != nil {
-		malm.Error("Error getting guild ID: %s", err.Error())
-		return
-	}
-
-	vi := instances[guildID]
-
-	if vi == nil { // Nothing is playing
+	vi, err := getExistingVoiceInstanceByChannel(m.ChannelID)
+	if err != nil || vi == nil {
 		return
 	}
 
 	if !vi.Prev() {
-		utils.SendMessageNeutral(m, "You are at the start of the queue")
+		utils.SendMessageNeutral(m, "There is no song to restart")
+		return
 	}
+
+	utils.SendMessageNeutral(m, "Restarted the current song")
+}
+
+func getExistingVoiceInstanceByChannel(channelID string) (*VoiceInstance, error) {
+	guildID, err := utils.GetGuild(channelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err)
+		return nil, err
+	}
+
+	musicMutex.Lock()
+	defer musicMutex.Unlock()
+	return instances[guildID], nil
+}
+
+func getOrCreateVoiceInstance(authorID, channelID string) (*VoiceInstance, error) {
+	guildID, err := utils.GetGuild(channelID)
+	if err != nil {
+		malm.Error("Error getting guild ID: %s", err)
+		return nil, fmt.Errorf("internal error")
+	}
+
+	musicMutex.Lock()
+	vi := instances[guildID]
+	musicMutex.Unlock()
+
+	return joinVoice(vi, authorID, channelID)
+}
+
+func updateOverviewMessageForQueue(channelID string, vi *VoiceInstance) error {
+	complexMessage := &discordgo.MessageSend{}
+	if !vi.IsWorkerRunning() {
+		vi.setLoading(true)
+	}
+
+	CreateMusicOverviewMessage(channelID, complexMessage)
+
+	msg, err := context.SESSION.ChannelMessageSendComplex(channelID, complexMessage)
+	if err != nil {
+		return err
+	}
+
+	if oldMessageID := vi.GetMessageID(); oldMessageID != "" {
+		_ = context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), oldMessageID)
+	}
+
+	vi.SetMessageID(msg.ID)
+	vi.SetMessageChannelID(msg.ChannelID)
+	return nil
 }

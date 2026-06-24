@@ -130,15 +130,24 @@ func (f *Farm) Peek() bool {
 }
 
 func (f *Farm) UpdateInteractionOverview(discordUser *discordgo.User, me *discordgo.MessageEdit) {
+	if me.Embeds == nil {
+		embeds := []*discordgo.MessageEmbed{}
+		me.Embeds = &embeds
+	}
 
-	f.overviewCreateEmbed(&me.Embeds, discordUser)
+	if me.Components == nil {
+		components := []discordgo.MessageComponent{}
+		me.Components = &components
+	}
+
+	f.overviewCreateEmbed(me.Embeds, discordUser)
 
 	var user User
 	user.QueryUserByDiscordID(discordUser.ID)
 
 	// Handle message components
-	f.overviewCreateButtons(&me.Components, &user)
-	f.overviewCreateCropMenu(&me.Components, &user)
+	f.overviewCreateButtons(me.Components, &user)
+	f.overviewCreateCropMenu(me.Components, &user)
 }
 
 // CreateFarmOverview creates the message that will be sent to the user
@@ -158,6 +167,11 @@ func (f *Farm) CreateFarmOverview(msg *discordgo.MessageSend, m *discordgo.Messa
 }
 
 func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUser *discordgo.User) {
+	if embeds == nil {
+		return
+	}
+
+	*embeds = (*embeds)[:0]
 
 	*embeds = append(*embeds, &discordgo.MessageEmbed{
 		Type:        discordgo.EmbedTypeRich,
@@ -175,6 +189,9 @@ func (f *Farm) overviewCreateEmbed(embeds *[]*discordgo.MessageEmbed, discordUse
 }
 
 func (f *Farm) overviewCreateCropMenu(msgCompondents *[]discordgo.MessageComponent, user *User) {
+	if msgCompondents == nil {
+		return
+	}
 
 	// User can't afford to plant so no need to create the menu
 	if !user.CanAfford(uint64(config.CONFIG.Farm.CropSeedPrice)) {
@@ -212,7 +229,7 @@ func (f *Farm) createCropOptions() []discordgo.SelectMenuOption {
 		options = append(options, discordgo.SelectMenuOption{
 			Label: fmt.Sprintf("%s | %s | %s %s", crop.Name, crop.GetDuration(), utils.HumanReadableNumber(crop.HarvestReward), config.CONFIG.Economy.Name),
 			Value: crop.Name,
-			Emoji: discordgo.ComponentEmoji{
+			Emoji: &discordgo.ComponentEmoji{
 				Name: crop.Emoji,
 			},
 		})
@@ -222,6 +239,11 @@ func (f *Farm) createCropOptions() []discordgo.SelectMenuOption {
 }
 
 func (f *Farm) overviewCreateButtons(msgCompondents *[]discordgo.MessageComponent, user *User) {
+	if msgCompondents == nil {
+		return
+	}
+
+	*msgCompondents = (*msgCompondents)[:0]
 
 	// Create the buttons
 	btnComponents := []discordgo.MessageComponent{}
@@ -249,7 +271,7 @@ func (f *Farm) overviewCreateButtons(msgCompondents *[]discordgo.MessageComponen
 			Label:    fmt.Sprintf("Buy Farm Plot (%s)", utils.HumanReadableNumber(plotPrice)),
 			Style:    3, // Green color style
 			Disabled: !canAffordPlot,
-			Emoji: discordgo.ComponentEmoji{
+			Emoji: &discordgo.ComponentEmoji{
 				Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
 			},
 			CustomID: "BFP", // 'BFP' is code for 'Buy Farm Plot'
@@ -260,7 +282,7 @@ func (f *Farm) overviewCreateButtons(msgCompondents *[]discordgo.MessageComponen
 		Label:    "Help",
 		Style:    2, // Gray color style
 		Disabled: false,
-		Emoji: discordgo.ComponentEmoji{
+		Emoji: &discordgo.ComponentEmoji{
 			Name: config.CONFIG.Emojis.ComponentEmojiNames.Help,
 		},
 		CustomID: "FHELP", // 'FHELP' is code for 'Farm Help'; Provies commands and information regarding farming

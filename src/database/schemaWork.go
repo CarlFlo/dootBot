@@ -119,7 +119,7 @@ func (w *Work) CreateMessageComponents() []discordgo.MessageComponent {
 			Label:    fmt.Sprintf("Buy Tool (%s)", priceString),
 			Style:    3, // Green color style
 			Disabled: false,
-			Emoji: discordgo.ComponentEmoji{
+			Emoji: &discordgo.ComponentEmoji{
 				Name: config.CONFIG.Emojis.ComponentEmojiNames.MoneyBag,
 			},
 			CustomID: "BWT", // 'BWT' is code for 'Buy Work Tool'

@@ -63,6 +63,6 @@ func connectToDB() error {
 		}
 	}
 
-	// Remeber to add new tables to the tableList and not just here!
+	// Remeber to add new tables to the 'modelList' and not just here!
 	return DB.AutoMigrate(modelList...)
 }

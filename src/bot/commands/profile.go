@@ -19,7 +19,7 @@ func Profile(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.Cm
 	daily.GetDailyInfo(&user)
 
 	complexMessage := &discordgo.MessageSend{
-		Components: user.CreateProfileComponents(&work, &daily),
+		Components: *user.CreateProfileComponents(&work, &daily),
 	}
 
 	user.CreateProfileEmbeds(m.Author, &work, &daily, &complexMessage.Embeds)
@@ -52,7 +52,12 @@ func ProfileRefreshInteraction(authorID string, author *discordgo.User, me *disc
 }
 
 func ProfileUpdateMessageEdit(user *database.User, work *database.Work, daily *database.Daily, author *discordgo.User, me *discordgo.MessageEdit) {
-	user.CreateProfileEmbeds(author, work, daily, &me.Embeds)
+	if me.Embeds == nil {
+		embeds := []*discordgo.MessageEmbed{}
+		me.Embeds = &embeds
+	}
+
+	user.CreateProfileEmbeds(author, work, daily, me.Embeds)
 
 	me.Components = user.CreateProfileComponents(work, daily)
 

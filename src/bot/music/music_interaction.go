@@ -1,12 +1,8 @@
 package music
 
-import (
-	"github.com/CarlFlo/dootBot/src/utils"
-	"github.com/bwmarrin/discordgo"
-)
+import "github.com/bwmarrin/discordgo"
 
 func PlayMusicInteraction(guildID string, author *discordgo.User, response *string) {
-
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
 		return
@@ -18,23 +14,27 @@ func PlayMusicInteraction(guildID string, author *discordgo.User, response *stri
 		return
 	}
 
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
+		return
+	}
+
 	if vi.IsLoading() {
 		*response = "Hold on! The bot is loading the song"
 		return
 	}
 
-	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		*response = "You are not in the same voice channel as the bot"
+	if !vi.PauseToggle() {
+		*response = "There is no active song to pause or resume"
 		return
 	}
 
-	vi.PauseToggle()
+	if err := vi.refreshOverviewMessage(); err != nil {
+		*response = "Unable to refresh the music message"
+	}
 }
 
 func StopMusicInteraction(guildID string, author *discordgo.User, response *string) {
-
 	if !isMusicEnabled() {
 		*response = "Music is currently disabled"
 		return
@@ -46,14 +46,12 @@ func StopMusicInteraction(guildID string, author *discordgo.User, response *stri
 		return
 	}
 
-	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		*response = "You are not in the same voice channel as the bot"
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
 		return
 	}
 
-	*response = "-1" // Meaning do not send a response
+	*response = "-1"
 	leaveVoice(vi)
 }
 
@@ -69,17 +67,15 @@ func ClearMusicQueueInteraction(guildID string, author *discordgo.User, response
 		return
 	}
 
-	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		*response = "You are not in the same voice channel as the bot"
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
 		return
 	}
 
 	vi.ClearQueueAfter()
-
-	// TODO: update the 'Music Player' message
-	// music.CreateMusicOverviewMessage(vi.channelID, i)
+	if err := vi.refreshOverviewMessage(); err != nil {
+		*response = "Unable to refresh the music message"
+	}
 }
 
 func SongLoopInteraction(guildID string, author *discordgo.User, response *string) {
@@ -94,14 +90,15 @@ func SongLoopInteraction(guildID string, author *discordgo.User, response *strin
 		return
 	}
 
-	// Check if the user is in the voice channel before playing
-	voiceChannelID := utils.FindVoiceChannel(author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		*response = "You are not in the same voice channel as the bot"
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
 		return
 	}
 
 	vi.ToggleLooping()
+	if err := vi.refreshOverviewMessage(); err != nil {
+		*response = "Unable to refresh the music message"
+	}
 }
 
 func PreviousSongInteraction(guildID string, author *discordgo.User, response *string) {
@@ -116,12 +113,36 @@ func PreviousSongInteraction(guildID string, author *discordgo.User, response *s
 		return
 	}
 
-	// Check if the user is in the same voice channel as the bot
-	voiceChannelID := utils.FindVoiceChannel(author.ID)
-	if vi.voice.ChannelID != voiceChannelID {
-		*response = "You are not in the same voice channel as the bot"
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
 		return
 	}
 
-	vi.Prev()
+	if !vi.Prev() {
+		*response = "There is no song to restart"
+		return
+	}
+}
+
+func NextSongInteraction(guildID string, author *discordgo.User, response *string) {
+	if !isMusicEnabled() {
+		*response = "Music is currently disabled"
+		return
+	}
+
+	vi := instances[guildID]
+	if vi == nil {
+		*response = "No music is currently playing"
+		return
+	}
+
+	if err := validateSameVoiceChannel(vi, author.ID); err != nil {
+		*response = err.Error()
+		return
+	}
+
+	if !vi.Skip() {
+		*response = "There is no song to skip"
+		return
+	}
 }

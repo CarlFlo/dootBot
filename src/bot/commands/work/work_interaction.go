@@ -11,6 +11,17 @@ import (
 )
 
 func BuyToolInteraction(authorID string, response *string, i *discordgo.Interaction, me *discordgo.MessageEdit) {
+	if me.Embeds == nil {
+		embeds := []*discordgo.MessageEmbed{}
+		me.Embeds = &embeds
+	}
+
+	if me.Components == nil {
+		components := []discordgo.MessageComponent{}
+		me.Components = &components
+	}
+
+	*me.Embeds = (*me.Embeds)[:0]
 
 	// Check if the user has enough money
 	var user database.User
@@ -42,7 +53,7 @@ func BuyToolInteraction(authorID string, response *string, i *discordgo.Interact
 	pattern := regexp.MustCompile(patternString)
 	modifiedMsg := pattern.ReplaceAllString(i.Message.Embeds[0].Description, generateToolTooltip(&work))
 
-	me.Embeds = append(me.Embeds, &discordgo.MessageEmbed{
+	*me.Embeds = append(*me.Embeds, &discordgo.MessageEmbed{
 		Title:       i.Message.Embeds[0].Title,
 		Description: modifiedMsg,
 		Color:       i.Message.Embeds[0].Color,
@@ -51,7 +62,7 @@ func BuyToolInteraction(authorID string, response *string, i *discordgo.Interact
 		Thumbnail:   i.Message.Embeds[0].Thumbnail,
 	})
 
-	me.Components = work.CreateMessageComponents()
+	*me.Components = work.CreateMessageComponents()
 	/*
 		if components := work.CreateMessageComponents(); components != nil {
 			me.Components = components

@@ -70,6 +70,11 @@ func (u *User) CanAfford(number uint64) bool {
 }
 
 func (u *User) CreateProfileEmbeds(du *discordgo.User, work *Work, daily *Daily, embeds *[]*discordgo.MessageEmbed) {
+	if embeds == nil {
+		return
+	}
+
+	*embeds = (*embeds)[:0]
 
 	*embeds = append(*embeds, &discordgo.MessageEmbed{
 		Type:        discordgo.EmbedTypeRich,
@@ -83,23 +88,21 @@ func (u *User) CreateProfileEmbeds(du *discordgo.User, work *Work, daily *Daily,
 	})
 }
 
-func (u *User) CreateProfileComponents(work *Work, daily *Daily) []discordgo.MessageComponent {
+func (u *User) CreateProfileComponents(work *Work, daily *Daily) *[]discordgo.MessageComponent {
 
 	components := []discordgo.MessageComponent{}
 
-	// Only create if the daily can be done
 	components = append(components, &discordgo.Button{
 		Label:    "Collect Daily",
 		Style:    1, // Default purple
-		Disabled: false,
+		Disabled: !daily.CanDoDaily(),
 		CustomID: "PD", // 'PD' is code for 'Profile Daily'
 	})
 
-	// Only create if the work can be done
 	components = append(components, &discordgo.Button{
 		Label:    "Work",
 		Style:    1, // Default purple
-		Disabled: false,
+		Disabled: !work.CanDoWork(),
 		CustomID: "PW", // 'PW' is code for 'Profile Work'
 	})
 
@@ -107,7 +110,7 @@ func (u *User) CreateProfileComponents(work *Work, daily *Daily) []discordgo.Mes
 		Label:    "",
 		Style:    1, // Default purple
 		Disabled: false,
-		Emoji: discordgo.ComponentEmoji{
+		Emoji: &discordgo.ComponentEmoji{
 			Name: config.CONFIG.Emojis.ComponentEmojiNames.Refresh,
 		},
 		CustomID: "RP", // 'RP' is code for 'Refresh Profile'
@@ -117,7 +120,7 @@ func (u *User) CreateProfileComponents(work *Work, daily *Daily) []discordgo.Mes
 		return nil
 	}
 
-	return []discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
+	return &[]discordgo.MessageComponent{discordgo.ActionsRow{Components: components}}
 }
 
 // CreateProfileFields generates the profile fields for message

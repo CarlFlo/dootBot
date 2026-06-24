@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/malm"
 )
+
+const depositURL = "https://github.com/CarlFlo/dootBot"
+const versionURL = "https://raw.githubusercontent.com/CarlFlo/dootBot/master/main.go"
 
 func CheckVersion(currentVersion string) {
 	// Handles checking if there is an update available for the bot
@@ -19,8 +21,8 @@ func CheckVersion(currentVersion string) {
 	if upToDate {
 		malm.Debug("Version %s", currentVersion)
 	} else {
-		malm.Info("New version available at '%s'! New version: '%s'; Your version: '%s'",
-			config.CONFIG.BotInfo.DepositURL,
+		malm.Info("New version available at '%s'! New version: '%s'. Your version: '%s'",
+			depositURL,
 			githubVersion,
 			currentVersion)
 	}
@@ -47,7 +49,7 @@ func botVersonHandler(current string) (bool, string, error) {
 func githubVersion() (string, error) {
 
 	// get URL
-	resp, err := http.Get(config.CONFIG.BotInfo.VersionURL)
+	resp, err := http.Get(versionURL)
 	if err != nil {
 		return "", err
 	}

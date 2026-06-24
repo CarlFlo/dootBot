@@ -1,10 +1,10 @@
 package music
 
 import (
+	"errors"
 	"io"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/malm"
@@ -12,186 +12,173 @@ import (
 	"github.com/jung-m/dca"
 )
 
-/*
-	todo
-	Fix message update (rewrite)
-	What to do once the last song has played
-*/
-
 type VoiceInstance struct {
 	voice            *discordgo.VoiceConnection
 	encoder          *dca.EncodeSession
 	stream           *dca.StreamingSession
-	mu               sync.Mutex
+	mu               sync.RWMutex
 	queue            []*Song
 	guildID          string
-	done             chan error // Used to interrupt the stream
+	done             chan error
 	messageID        string
 	messageChannelID string
 	PlaybackState
 }
 
-// The variables keeping track of the playback state
 type PlaybackState struct {
-	playing    bool
-	loading    bool
-	stop       bool // stopping the music bot, removing the queue etc
-	looping    bool
-	previous   bool // indicates the user wants to go back and play the previous song
-	queueIndex int
+	workerRunning bool
+	loading       bool
+	paused        bool
+	looping       bool
+	stopRequested bool
+	previous      bool
+	queueIndex    int
 }
 
-// New creates a new VoiceInstance. Remember to call 'vi.Close()' before deleting the object
 func (vi *VoiceInstance) New(guildID string) error {
 	vi.guildID = guildID
 	return nil
 }
 
-// Close acts as the destructor for the object
 func (vi *VoiceInstance) Close() {
-
-	// Clean-up here
+	vi.requestStop()
 	vi.PurgeQueue()
-	vi.stop = true
-	go func() {
-		vi.done <- nil
-	}()
-
-	// For now will delete the message
-	context.SESSION.ChannelMessageDelete(vi.GetMessageChannelID(), vi.GetMessageID())
+	vi.deleteOverviewMessage()
 }
 
-// Plays the Queue
 func (vi *VoiceInstance) PlayQueue() {
+	if !vi.startWorker() {
+		return
+	}
 
-	// This suppresses the warning from dca:
-	// 'Error parsing ffmpeg stats: strconv.ParseFloat: parsing "N": invalid syntax'
 	dca.Logger = log.New(io.Discard, "", 0)
-
-	defer vi.playbackStopped()
+	defer vi.finishWorker()
 
 	for {
+		song, err := vi.prepareCurrentSong()
+		if err != nil {
+			if errors.Is(err, errEmptyQueue) || errors.Is(err, errNoNextSong) {
+				return
+			}
+			malm.Error("music playback preparation failed: %s", err)
+			return
+		}
 
-		//TODO: move check to see if there is a new song next in queue. If no song is in the queue. Then wait for n minutes until there is on. Else leave vc
-
-		vi.playbackStarted()
-
-		if err := vi.voice.Speaking(true); err != nil {
+		if err := vi.setSpeaking(true); err != nil {
 			malm.Error("%s", err)
 			return
 		}
 
-		if err := vi.StreamAudioToVoiceChannel(); err != nil {
+		if err := vi.streamSong(song); err != nil {
+			_ = vi.setSpeaking(false)
+			malm.Error("music stream failed: %s", err)
+			return
+		}
+
+		if err := vi.setSpeaking(false); err != nil {
 			malm.Error("%s", err)
 			return
 		}
 
-		if vi.stop {
+		if vi.shouldStop() {
 			vi.PurgeQueue()
 			return
 		}
 
 		vi.FinishedPlayingSong()
-
-		vi.playbackStopped()
-
-		if err := vi.voice.Speaking(false); err != nil {
-			malm.Error("%s", err)
-			return
-		}
-
-		if vi.QueueIsEmpty() {
-			return
-		}
 	}
 }
 
-func (vi *VoiceInstance) StreamAudioToVoiceChannel() error {
+func (vi *VoiceInstance) prepareCurrentSong() (*Song, error) {
+	vi.setLoading(true)
+	vi.setPaused(false)
 
+	song, err := vi.GetFirstInQueue()
+	if err != nil {
+		vi.setLoading(false)
+		_ = vi.refreshOverviewMessage()
+		return nil, err
+	}
+
+	if err := song.FetchStreamURL(); err != nil {
+		vi.setLoading(false)
+		_ = vi.refreshOverviewMessage()
+		return nil, err
+	}
+
+	vi.setLoading(false)
+	if err := vi.refreshOverviewMessage(); err != nil {
+		malm.Error("unable to refresh music overview: %s", err)
+	}
+
+	return song, nil
+}
+
+func (vi *VoiceInstance) streamSong(song *Song) error {
 	settings := dca.StdEncodeOptions
-	// Custom settings
 	settings.RawOutput = true
 	settings.Bitrate = 64
 	settings.Application = "lowdelay"
 
-	// TODO: Wait for next song. Currently will just exit the voice instance and will force the user to run the 'play' again
-	song, err := vi.GetFirstInQueue()
+	encoder, err := dca.EncodeFile(song.StreamURL, settings)
 	if err != nil {
 		return err
 	}
+	defer encoder.Cleanup()
 
-	// Waiting until the song has a streamURL
-	for song.StreamURL == "" {
-		time.Sleep(100 * time.Millisecond)
-	}
+	done := make(chan error, 1)
+	stream := dca.NewStream(encoder, vi.voice, done)
 
-	vi.encoder, err = dca.EncodeFile(song.StreamURL, settings)
-	if err != nil {
-		return err
-	}
-	defer vi.encoder.Cleanup()
+	vi.mu.Lock()
+	vi.encoder = encoder
+	vi.stream = stream
+	vi.done = done
+	vi.mu.Unlock()
 
-	vi.done = make(chan error)
-	vi.stream = dca.NewStream(vi.encoder, vi.voice, vi.done)
+	defer vi.clearStreamSession()
 
-	// Update the message to reflect that the song is playing
-
-	vi.loading = false
-	msgEdit := &discordgo.MessageEdit{
-		Channel: vi.GetMessageChannelID(),
-		ID:      vi.GetMessageID(),
-	}
-
-	CreateMusicOverviewMessage(vi.GetMessageChannelID(), msgEdit)
-
-	if _, err := context.SESSION.ChannelMessageEditComplex(msgEdit); err != nil {
-		malm.Error("cannot create message edit, error: %s", err)
-	}
-
-	// This code streams the audio
-	// Once the song is finished, stopped or skipped so will this function return
-	for { // (Do not use a range here as it does not work for this purpose)
-		select {
-		case err := <-vi.done:
-			if err != nil && err != io.EOF {
-				return err
-			}
-			return nil
+	for {
+		err := <-done
+		if err != nil && err != io.EOF {
+			return err
 		}
+		return nil
 	}
-
 }
 
-// Call once the song has finished playing, or you want to skip to the next song
-// TODO: add check for if the user wants to play the song again. i.e. previous command
 func (vi *VoiceInstance) FinishedPlayingSong() {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 
-	// Indicates the user wants to go back and play the previous song
 	if vi.previous {
 		vi.previous = false
 		return
 	}
 
-	if vi.IsLooping() {
+	if vi.looping {
 		return
 	}
 
-	vi.IncrementQueueIndex()
+	if vi.queueIndex < len(vi.queue) {
+		vi.queueIndex++
+	}
 }
 
-// TODO: When at the end of queue. Should increment one more
 func (vi *VoiceInstance) IncrementQueueIndex() bool {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 
-	// Do not increment past the end of the queue
-	if vi.isEndOfQueue() {
+	if vi.queueIndex >= len(vi.queue) {
 		return false
 	}
+
 	vi.queueIndex++
 	return true
 }
 
-// Returns true if the index could be decremented
 func (vi *VoiceInstance) DecrementQueueIndex() bool {
+	vi.mu.Lock()
+	defer vi.mu.Unlock()
 
 	if vi.queueIndex == 0 {
 		return false
@@ -202,68 +189,130 @@ func (vi *VoiceInstance) DecrementQueueIndex() bool {
 }
 
 func (vi *VoiceInstance) isEndOfQueue() bool {
-	return vi.GetQueueLength() == vi.queueIndex
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+	return vi.queueIndex >= len(vi.queue)
 }
 
-// Disconnect dissconnects the bot from the voice connection
 func (vi *VoiceInstance) Disconnect() {
-	vi.Stop()
-	time.Sleep(200 * time.Millisecond)
+	vi.requestStop()
 
-	err := vi.voice.Disconnect()
-	if err != nil {
-		malm.Error("%s", err)
+	vi.mu.RLock()
+	voice := vi.voice
+	vi.mu.RUnlock()
+
+	if voice == nil {
 		return
 	}
+
+	if err := voice.Disconnect(); err != nil {
+		malm.Error("%s", err)
+	}
 }
 
-// Skip skipps the song. returns true of success, else false
-// Will also disable looping (if enabled)
 func (vi *VoiceInstance) Skip() bool {
-
-	if !vi.playing {
-		return false
-	}
-
+	vi.mu.Lock()
+	running := vi.workerRunning
 	vi.looping = false
+	vi.mu.Unlock()
 
-	// This will interupt and stop the stream
-	vi.done <- nil
+	if !running {
+		return false
+	}
 
+	vi.signalDone(nil)
 	return true
 }
 
-// Prev will go back to the previous song. If there is no song to go back to so will the song be restarted
-// Running this command, if nothing is playing, should start playing the song
 func (vi *VoiceInstance) Prev() bool {
-
-	// TODO: Remove?
-	if !vi.playing {
-		// Music is not playing
+	vi.mu.Lock()
+	if !vi.workerRunning {
+		vi.mu.Unlock()
 		return false
 	}
 
-	vi.DecrementQueueIndex()
-
+	if vi.queueIndex > 0 {
+		vi.queueIndex--
+	}
 	vi.previous = true
+	vi.mu.Unlock()
 
-	// This will interupt and stop the stream
-	vi.done <- nil
-
+	vi.signalDone(nil)
 	return true
 }
 
-// Stops the current song and clears the queue. returns true of success, else false
 func (vi *VoiceInstance) Stop() bool {
+	vi.mu.Lock()
+	running := vi.workerRunning
+	if running {
+		vi.stopRequested = true
+	}
+	vi.mu.Unlock()
 
-	if !vi.playing {
+	if !running {
 		return false
 	}
 
-	vi.stop = true
-
-	// This will interupt and stop the stream
-	vi.done <- nil
-
+	vi.signalDone(nil)
 	return true
+}
+
+func (vi *VoiceInstance) refreshOverviewMessage() error {
+	vi.mu.RLock()
+	channelID := vi.messageChannelID
+	messageID := vi.messageID
+	vi.mu.RUnlock()
+
+	if channelID == "" || messageID == "" {
+		return nil
+	}
+
+	components := []discordgo.MessageComponent{}
+	embeds := []*discordgo.MessageEmbed{}
+
+	msgEdit := &discordgo.MessageEdit{
+		Channel:    channelID,
+		ID:         messageID,
+		Components: &components,
+		Embeds:     &embeds,
+	}
+
+	CreateMusicOverviewMessage(channelID, msgEdit)
+	_, err := context.SESSION.ChannelMessageEditComplex(msgEdit)
+	return err
+}
+
+func (vi *VoiceInstance) deleteOverviewMessage() {
+	vi.mu.RLock()
+	channelID := vi.messageChannelID
+	messageID := vi.messageID
+	vi.mu.RUnlock()
+
+	if channelID == "" || messageID == "" {
+		return
+	}
+
+	if err := context.SESSION.ChannelMessageDelete(channelID, messageID); err != nil {
+		malm.Debug("unable to delete music overview message: %s", err)
+	}
+}
+
+func (vi *VoiceInstance) setSpeaking(speaking bool) error {
+	vi.mu.RLock()
+	voice := vi.voice
+	vi.mu.RUnlock()
+
+	if voice == nil {
+		return errors.New("voice connection is not initialized")
+	}
+
+	return voice.Speaking(speaking)
+}
+
+func (vi *VoiceInstance) clearStreamSession() {
+	vi.mu.Lock()
+	vi.encoder = nil
+	vi.stream = nil
+	vi.done = nil
+	vi.mu.Unlock()
 }

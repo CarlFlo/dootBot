@@ -1,8 +1,6 @@
 package music
 
-import (
-	"errors"
-)
+import "errors"
 
 var (
 	errEmptyQueue = errors.New("the queue is empty")
@@ -10,88 +8,104 @@ var (
 )
 
 func (vi *VoiceInstance) GetFirstInQueue() (*Song, error) {
-	vi.mu.Lock()
-	defer vi.mu.Unlock()
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
 
-	if vi.GetQueueLength() == 0 {
+	if len(vi.queue) == 0 {
 		return &Song{}, errEmptyQueue
-	} else if vi.isEndOfQueue() {
-		// TODO: Change
+	}
 
+	if vi.queueIndex >= len(vi.queue) {
 		return &Song{}, errNoNextSong
 	}
 
 	return vi.queue[vi.queueIndex], nil
 }
 
-// AddToQueue - adds the song to the queue, and also prepares the song and caches it
 func (vi *VoiceInstance) AddToQueue(s *Song) {
 	vi.mu.Lock()
 	vi.queue = append(vi.queue, s)
 	vi.mu.Unlock()
 }
 
-// Purges the queue
 func (vi *VoiceInstance) PurgeQueue() {
 	vi.mu.Lock()
-	defer vi.mu.Unlock()
 	vi.queueIndex = 0
 	vi.queue = []*Song{}
+	vi.mu.Unlock()
 }
 
-// Removes all songs in the queue. Except the current song.
-// Use 'PurgeQueue' to clear everything
 func (vi *VoiceInstance) ClearQueue() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
 
-	// Bounds check
-	if !(vi.queueIndex >= len(vi.queue)) {
-		vi.queue = vi.queue[vi.queueIndex : vi.queueIndex+1]
+	if vi.queueIndex >= len(vi.queue) {
+		return
 	}
+
+	vi.queue = vi.queue[vi.queueIndex : vi.queueIndex+1]
+	vi.queueIndex = 0
 }
 
-// Removes all songs in the queue after the current song.
 func (vi *VoiceInstance) ClearQueueAfter() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
 
-	// Bounds check
-	if !(vi.queueIndex >= len(vi.queue)) {
-		vi.queue = vi.queue[:vi.queueIndex+1]
+	if vi.queueIndex >= len(vi.queue) {
+		return
 	}
+
+	vi.queue = vi.queue[:vi.queueIndex+1]
 }
 
-// Removes all songs in the queue before the current song.
 func (vi *VoiceInstance) ClearQueuePrev() {
 	vi.mu.Lock()
 	defer vi.mu.Unlock()
 
-	// Bounds check
-	if !(vi.queueIndex >= len(vi.queue)) {
-		vi.queue = vi.queue[vi.queueIndex:]
-		vi.queueIndex = 0
+	if vi.queueIndex >= len(vi.queue) {
+		return
 	}
+
+	vi.queue = vi.queue[vi.queueIndex:]
+	vi.queueIndex = 0
 }
 
 func (vi *VoiceInstance) QueueIsEmpty() bool {
-	return vi.GetQueueLength() == 0
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+	return len(vi.queue) == 0
 }
 
 func (vi *VoiceInstance) GetQueueIndex() int {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
 	return vi.queueIndex
 }
 
 func (vi *VoiceInstance) GetQueueLength() int {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
 	return len(vi.queue)
 }
 
-// Takes into account the current queue index
 func (vi *VoiceInstance) GetQueueLengthRelative() int {
-	return len(vi.queue) - vi.queueIndex
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+
+	length := len(vi.queue) - vi.queueIndex
+	if length < 0 {
+		return 0
+	}
+	return length
 }
 
-// Returns the song from the queue with the given index
 func (vi *VoiceInstance) GetSongByIndex(i int) *Song {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+
+	if i < 0 || i >= len(vi.queue) {
+		return nil
+	}
+
 	return vi.queue[i]
 }

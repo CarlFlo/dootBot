@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/CarlFlo/malm v1.1.0
-	github.com/bwmarrin/discordgo v0.27.1
+	github.com/bwmarrin/discordgo v0.29.0
 	github.com/jung-m/dca v0.0.0-20210605195325-e8853e6e48db
 	golang.org/x/text v0.13.0
 	gorm.io/driver/sqlite v1.5.3
