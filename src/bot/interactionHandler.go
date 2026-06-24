@@ -67,6 +67,8 @@ func interactionHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		music.PlayMusicInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "stopSong":
 		music.StopMusicInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
+	case "skipSong":
+		music.NextSongInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "loopSong":
 		music.SongLoopInteraction(i.GuildID, i.Interaction.Member.User, permissionCtx, &response)
 	case "clearQueue":

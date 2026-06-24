@@ -170,7 +170,7 @@ func createConfig() error {
 		},
 		Music: music{
 			EnableMusic:          false,
-			MaxSongLengthMinutes: 120,
+			MaxSongLengthMinutes: 720,
 			Lavalink: lavalink{
 				Host:     "127.0.0.1",
 				Port:     2333,

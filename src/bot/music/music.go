@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/bot/structs"
@@ -61,28 +60,28 @@ func Close() {
 
 func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
 	vi, err := getOrCreateVoiceInstance(m.Author.ID, m.ChannelID)
 	if err != nil {
-		utils.SendMessageFailure(m, err.Error())
+		utils.SendMessageFailureTemporary(m, err.Error())
 		return
 	}
 
 	if err := validateSameVoiceChannel(vi, m.Author.ID); err != nil {
-		utils.SendMessageFailure(m, err.Error())
+		utils.SendMessageFailureTemporary(m, err.Error())
 		return
 	}
 
 	if input.NumberOfArgsAre(0) {
 		if !input.HasGuildPermission(permissions.LevelController) {
-			utils.SendMessageFailure(m, "You need Controller permission to resume playback")
+			utils.SendMessageFailureTemporary(m, "You need Controller permission to resume playback")
 			return
 		}
 		if !vi.PauseToggle() {
-			utils.SendMessageFailure(m, "There is no active song to resume")
+			utils.SendMessageFailureTemporary(m, "There is no active song to resume")
 			return
 		}
 		if err := vi.refreshOverviewMessage(); err != nil {
@@ -95,7 +94,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	song, err := parseMusicInput(m, strings.Join(input.GetArgs(), " "))
 	vi.markLoading(false)
 	if err != nil {
-		utils.SendMessageFailure(m, fmt.Sprintf("Something went wrong when getting the song.\nReason: %s", err))
+		utils.SendMessageFailureTemporary(m, fmt.Sprintf("Something went wrong when getting the song.\nReason: %s", err))
 		return
 	}
 
@@ -104,17 +103,11 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		malm.Error("unable to update music overview: %s", err)
 	}
 
-	addedSongMsg, _ := utils.SendMessageNeutral(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
-	go func() {
-		time.Sleep(5 * time.Second)
-		if addedSongMsg != nil {
-			_ = context.SESSION.ChannelMessageDelete(m.ChannelID, addedSongMsg.ID)
-		}
-	}()
+	_, _ = utils.SendMessageNeutralTemporary(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
 
 	if !vi.IsWorkerRunning() {
 		if err := manager.playCurrentSongWithSession(s, vi); err != nil {
-			utils.SendMessageFailure(m, fmt.Sprintf("Unable to start playback.\nReason: %s", err))
+			utils.SendMessageFailureTemporary(m, fmt.Sprintf("Unable to start playback.\nReason: %s", err))
 			return
 		}
 		if err := vi.refreshOverviewMessage(); err != nil {
@@ -125,7 +118,7 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -139,7 +132,7 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -149,16 +142,16 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 	}
 
 	if vi.Skip() {
-		utils.SendMessageSuccess(m, "Skipped the song")
+		_, _ = utils.SendMessageSuccessTemporary(m, "Skipped the song")
 		return
 	}
 
-	utils.SendMessageFailure(m, "There is no song to skip")
+	utils.SendMessageFailureTemporary(m, "There is no song to skip")
 }
 
 func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -175,7 +168,7 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 
 func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -185,7 +178,7 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 	}
 
 	if !vi.PauseToggle() {
-		utils.SendMessageFailure(m, "There is no song to pause")
+		utils.SendMessageFailureTemporary(m, "There is no song to pause")
 		return
 	}
 
@@ -196,7 +189,7 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 
 func LoopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -213,7 +206,7 @@ func LoopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 
 func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !isMusicEnabled() {
-		utils.SendMessageNeutral(m, "Music is currently disabled")
+		utils.SendMessageNeutralTemporary(m, "Music is currently disabled")
 		return
 	}
 
@@ -223,11 +216,11 @@ func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *stru
 	}
 
 	if !vi.Prev() {
-		utils.SendMessageNeutral(m, "There is no song to restart")
+		utils.SendMessageNeutralTemporary(m, "There is no song to restart")
 		return
 	}
 
-	utils.SendMessageNeutral(m, "Restarted the current song")
+	utils.SendMessageNeutralTemporary(m, "Restarted the current song")
 }
 
 func getExistingVoiceInstanceByChannel(channelID string) (*VoiceInstance, error) {

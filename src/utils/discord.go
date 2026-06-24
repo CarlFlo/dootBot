@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"time"
+
 	"github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/bwmarrin/discordgo"
 )
 
-// SendDirectMessage will send a direct messag to a user
+// SendDirectMessage will send a direct message to a user
 func SendDirectMessage(m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
 	ch, err := context.SESSION.UserChannelCreate(m.Author.ID)
 	if err != nil {
@@ -25,6 +27,36 @@ func SendMessageFailure(m *discordgo.MessageCreate, content string) (*discordgo.
 
 func SendMessageNeutral(m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
 	return sendMessageEmbed(m, content, config.CONFIG.Colors.Neutral)
+}
+
+func SendMessageSuccessTemporary(m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbedAndDelete(m, content, config.CONFIG.Colors.Success, 5*time.Second)
+}
+
+func SendMessageFailureTemporary(m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbedAndDelete(m, content, config.CONFIG.Colors.Failure, 5*time.Second)
+}
+
+func SendMessageNeutralTemporary(m *discordgo.MessageCreate, content string) (*discordgo.Message, error) {
+	return sendMessageEmbedAndDelete(m, content, config.CONFIG.Colors.Neutral, 5*time.Second)
+}
+
+func sendMessageEmbedAndDelete(m *discordgo.MessageCreate, content string, color int, deleteAfter time.Duration) (*discordgo.Message, error) {
+	msg, err := sendMessageEmbed(m, content, color)
+	if err != nil {
+		return nil, err
+	}
+
+	if msg == nil {
+		return nil, nil
+	}
+
+	go func(channelID, messageID string) {
+		time.Sleep(deleteAfter)
+		_ = context.SESSION.ChannelMessageDelete(channelID, messageID)
+	}(m.ChannelID, msg.ID)
+
+	return msg, nil
 }
 
 func sendMessageEmbed(m *discordgo.MessageCreate, content string, color int) (*discordgo.Message, error) {

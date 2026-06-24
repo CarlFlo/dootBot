@@ -3,6 +3,8 @@ package music
 import (
 	"fmt"
 	"math"
+	"strings"
+	"time"
 
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/dootBot/src/utils"
@@ -23,6 +25,10 @@ func CreateMusicOverviewMessage(channelID string, i interface{}) {
 		return
 	}
 
+	applyMusicOverviewMessage(vi, i)
+}
+
+func applyMusicOverviewMessage(vi *VoiceInstance, i interface{}) {
 	switch msg := i.(type) {
 	case *discordgo.MessageSend:
 		msg.Embeds = createEmbeds(vi)
@@ -81,7 +87,10 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		})
 
 		previousOrRestart := "Previous"
-		if vi.IsStartOfQueue() {
+
+		if vi.HasPreviousSong() {
+			previousOrRestart = "Previous"
+		} else {
 			previousOrRestart = "Restart"
 		}
 
@@ -91,8 +100,19 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 			Style:    2,
 		})
 
+		skipLabel := "Skip"
+		if vi.HasNextSong() {
+			skipLabel = "Next"
+		}
+
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    "Exit",
+			Label:    skipLabel,
+			CustomID: "skipSong",
+			Style:    1,
+		})
+
+		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
+			Label:    "Stop",
 			CustomID: "stopSong",
 			Style:    4,
 		})
@@ -105,14 +125,6 @@ func messageComponents(vi *VoiceInstance, c *[]discordgo.MessageComponent) {
 		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
 			Label:    loopLabel,
 			CustomID: "loopSong",
-			Style:    1,
-		})
-	}
-
-	if vi.GetQueueLengthRelative() > 1 {
-		buttonRow.Components = append(buttonRow.Components, discordgo.Button{
-			Label:    "Next",
-			CustomID: "nextSong",
 			Style:    1,
 		})
 	}
@@ -164,20 +176,41 @@ func messageThumbnail(vi *VoiceInstance) *discordgo.MessageEmbedThumbnail {
 
 func messageFooter(vi *VoiceInstance) *discordgo.MessageEmbedFooter {
 	length := vi.GetQueueLengthRelative() - 1
-	text := ""
+	lines := []string{}
 
 	if length > 0 {
-		text = fmt.Sprintf("%d songs in the queue", length)
+		queueText := fmt.Sprintf("%d songs in the queue", length)
 		if length == 1 {
-			text = "1 song in the queue"
+			queueText = "1 song in the queue"
 		}
-		text += "\n"
+		lines = append(lines, queueText)
 	}
 
 	song, err := vi.GetFirstInQueue()
 	if err == nil {
-		text += fmt.Sprintf("Current song duration: %s", song.GetDuration())
+		elapsed, elapsedErr := vi.currentSongElapsed()
+		if elapsedErr == nil {
+			lines = append(lines, fmt.Sprintf("%s / %s", formatDuration(elapsed), formatDuration(song.Duration)))
+		} else {
+			lines = append(lines, formatDuration(song.Duration))
+		}
 	}
 
-	return &discordgo.MessageEmbedFooter{Text: text}
+	return &discordgo.MessageEmbedFooter{Text: strings.Join(lines, "\n")}
+}
+
+func formatDuration(duration time.Duration) string {
+	if duration < 0 {
+		duration = 0
+	}
+
+	totalSeconds := int(duration.Seconds())
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds % 3600) / 60
+	seconds := int(duration.Seconds()) % 60
+
+	if hours > 0 {
+		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, seconds)
+	}
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }

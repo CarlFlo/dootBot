@@ -220,6 +220,13 @@ func (m *MusicManager) playCurrentSong(ctx stdcontext.Context, vi *VoiceInstance
 		return fmt.Errorf("unable to start track: %w", err)
 	}
 
+	// Reset the locally cached player state immediately so overview refreshes
+	// don't briefly render the previous track's elapsed time.
+	player.Track = &song.Track
+	player.Paused = false
+	player.State.Position = 0
+	player.State.Time = lavalink.Now()
+
 	return nil
 }
 
@@ -404,6 +411,9 @@ func (m *MusicManager) editOverviewMessage(msgEdit *discordgo.MessageEdit) error
 		return nil
 	}
 	_, err := m.session.ChannelMessageEditComplex(msgEdit)
+	if isDiscordUnknownMessageError(err) {
+		return nil
+	}
 	return err
 }
 
@@ -498,4 +508,13 @@ func newDisgolinkLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
+}
+
+func isDiscordUnknownMessageError(err error) bool {
+	var restErr *discordgo.RESTError
+	if !errors.As(err, &restErr) || restErr == nil || restErr.Message == nil {
+		return false
+	}
+
+	return restErr.Message.Code == 10008
 }

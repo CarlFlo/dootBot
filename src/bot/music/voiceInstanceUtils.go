@@ -108,6 +108,28 @@ func (vi *VoiceInstance) IsStartOfQueue() bool {
 	return vi.queueIndex == 0
 }
 
+func (vi *VoiceInstance) HasPreviousSong() bool {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+
+	if len(vi.queue) == 0 {
+		return false
+	}
+
+	if vi.queueIndex > 0 {
+		return true
+	}
+
+	return vi.queueIndex >= len(vi.queue)
+}
+
+func (vi *VoiceInstance) HasNextSong() bool {
+	vi.mu.RLock()
+	defer vi.mu.RUnlock()
+
+	return vi.queueIndex+1 < len(vi.queue)
+}
+
 func (vi *VoiceInstance) IsLooping() bool {
 	vi.mu.RLock()
 	defer vi.mu.RUnlock()

@@ -2,7 +2,6 @@ package bot
 
 import (
 	"github.com/CarlFlo/dootBot/src/bot/music"
-	"github.com/CarlFlo/malm"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -11,6 +10,6 @@ func voiceStateUpdateHandler(s *discordgo.Session, vs *discordgo.VoiceStateUpdat
 		return
 	}
 
-	malm.Info("[%s : %s] VoiceStateUpdate event for '%s'", vs.GuildID, vs.ChannelID, vs.UserID)
+	//malm.Info("[%s : %s] VoiceStateUpdate event for '%s'", vs.GuildID, vs.ChannelID, vs.UserID)
 	music.ForwardVoiceStateUpdate(vs)
 }

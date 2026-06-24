@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/disgoorg/disgolink/v4/lavalink"
@@ -17,6 +18,8 @@ type VoiceInstance struct {
 	voiceChannelID   string
 	messageID        string
 	messageChannelID string
+	refreshTicker    *time.Ticker
+	refreshStop      chan struct{}
 	PlaybackState
 }
 
@@ -133,13 +136,30 @@ func (vi *VoiceInstance) Skip() bool {
 
 func (vi *VoiceInstance) Prev() bool {
 	vi.mu.RLock()
+	queueIndex := vi.queueIndex
+	queueLen := len(vi.queue)
 	running := vi.workerRunning
 	vi.mu.RUnlock()
-	if !running {
+
+	if queueLen == 0 {
 		return false
 	}
 
-	vi.DecrementQueueIndex()
+	if !running && !(queueIndex >= queueLen && queueLen > 0) {
+		return false
+	}
+
+	vi.mu.Lock()
+	if queueIndex >= queueLen {
+		vi.queueIndex = queueLen - 1
+	} else if queueIndex > 0 {
+		vi.queueIndex--
+	} else {
+		vi.mu.Unlock()
+		return false
+	}
+	vi.mu.Unlock()
+
 	return manager.playCurrentSong(context.Background(), vi) == nil
 }
 
@@ -155,6 +175,7 @@ func (vi *VoiceInstance) Stop() bool {
 		return false
 	}
 
+	vi.stopOverviewRefreshLoop()
 	vi.mu.Lock()
 	vi.workerRunning = false
 	vi.paused = false
@@ -181,15 +202,19 @@ func (vi *VoiceInstance) refreshOverviewMessage() error {
 		Components: &components,
 		Embeds:     &embeds,
 	}
-	CreateMusicOverviewMessage(channelID, msgEdit)
+	applyMusicOverviewMessage(vi, msgEdit)
 	return manager.editOverviewMessage(msgEdit)
 }
 
 func (vi *VoiceInstance) deleteOverviewMessage() {
-	vi.mu.RLock()
+	vi.stopOverviewRefreshLoop()
+
+	vi.mu.Lock()
 	channelID := vi.messageChannelID
 	messageID := vi.messageID
-	vi.mu.RUnlock()
+	vi.messageChannelID = ""
+	vi.messageID = ""
+	vi.mu.Unlock()
 
 	if channelID == "" || messageID == "" {
 		return
@@ -204,17 +229,24 @@ func (vi *VoiceInstance) handleTrackStarted() {
 	vi.loading = false
 	vi.paused = false
 	vi.mu.Unlock()
+	vi.startOverviewRefreshLoop()
 }
 
 func (vi *VoiceInstance) handleTrackEnded(reason lavalink.TrackEndReason) (bool, error) {
 	vi.mu.Lock()
-	defer vi.mu.Unlock()
+	stopRefresh := false
 
 	if vi.looping && reason.MayStartNext() {
+		vi.mu.Unlock()
 		return true, nil
 	}
 
 	if !reason.MayStartNext() {
+		stopRefresh = true
+		vi.mu.Unlock()
+		if stopRefresh {
+			go vi.stopOverviewRefreshLoop()
+		}
 		return false, nil
 	}
 
@@ -226,9 +258,15 @@ func (vi *VoiceInstance) handleTrackEnded(reason lavalink.TrackEndReason) (bool,
 		vi.workerRunning = false
 		vi.loading = false
 		vi.paused = false
+		stopRefresh = true
+		vi.mu.Unlock()
+		if stopRefresh {
+			go vi.stopOverviewRefreshLoop()
+		}
 		return false, nil
 	}
 
+	vi.mu.Unlock()
 	return true, nil
 }
 
@@ -241,6 +279,89 @@ func (vi *VoiceInstance) currentSong() (*Song, error) {
 		return nil, errors.New("song is missing an encoded lavalink track")
 	}
 	return song, nil
+}
+
+func (vi *VoiceInstance) currentSongElapsed() (time.Duration, error) {
+	player, err := manager.playerForGuild(vi.guildID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Lavalink reports player position in milliseconds.
+	elapsed := time.Duration(player.Position().Milliseconds()) * time.Millisecond
+	if elapsed < 0 {
+		elapsed = 0
+	}
+
+	song, err := vi.GetFirstInQueue()
+	if err != nil {
+		return 0, err
+	}
+	if elapsed > song.Duration {
+		elapsed = song.Duration
+	}
+
+	return elapsed, nil
+}
+
+func (vi *VoiceInstance) currentSongProgress() (time.Duration, time.Duration, error) {
+	elapsed, err := vi.currentSongElapsed()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	song, err := vi.GetFirstInQueue()
+	if err != nil {
+		return elapsed, 0, err
+	}
+
+	total := song.Duration
+	remaining := total - elapsed
+	if remaining < 0 {
+		remaining = 0
+	}
+	return elapsed, remaining, nil
+}
+
+func (vi *VoiceInstance) startOverviewRefreshLoop() {
+	vi.mu.Lock()
+	if vi.refreshTicker != nil {
+		vi.mu.Unlock()
+		return
+	}
+
+	ticker := time.NewTicker(10 * time.Second) // How often the music player updates its time elapsed for the current song
+	stop := make(chan struct{})
+	vi.refreshTicker = ticker
+	vi.refreshStop = stop
+	vi.mu.Unlock()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				_ = vi.refreshOverviewMessage()
+			case <-stop:
+				return
+			}
+		}
+	}()
+}
+
+func (vi *VoiceInstance) stopOverviewRefreshLoop() {
+	vi.mu.Lock()
+	ticker := vi.refreshTicker
+	stop := vi.refreshStop
+	vi.refreshTicker = nil
+	vi.refreshStop = nil
+	vi.mu.Unlock()
+
+	if ticker != nil {
+		ticker.Stop()
+	}
+	if stop != nil {
+		close(stop)
+	}
 }
 
 func (vi *VoiceInstance) markLoading(loading bool) {

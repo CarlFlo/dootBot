@@ -1,15 +1,15 @@
 package main
 
 import (
+	"context"
 	"math/rand"
-	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot"
-	"github.com/CarlFlo/dootBot/src/bot/context"
+	botcontext "github.com/CarlFlo/dootBot/src/bot/context"
 	"github.com/CarlFlo/dootBot/src/bot/music"
 	"github.com/CarlFlo/dootBot/src/config"
 	"github.com/CarlFlo/dootBot/src/database"
@@ -37,18 +37,17 @@ func init() {
 func main() {
 
 	session := bot.StartBot()
-	context.SESSION = session
+	botcontext.SESSION = session
 
-	// Waits for a CTRL-C
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
+	// Wait for a console interrupt such as Ctrl+C.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	<-ctx.Done()
 	malm.Info("Shutting down!")
 
 	// Run cleanup code here
 	music.Close()
 
-	close(sc)
 	session.Close() // Stops the discord bot
 }
 
