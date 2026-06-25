@@ -31,10 +31,16 @@ func PlayMusicInteraction(guildID string, author *discordgo.User, permissionCtx 
 		return
 	}
 
+	wasPaused := vi.IsPaused()
 	if !vi.PauseToggle() {
 		*response = "There is no active song to pause or resume"
 		return
 	}
+	action := auditActionPause
+	if wasPaused {
+		action = auditActionResume
+	}
+	logMusicAudit(guildID, author.ID, action, "", currentSongForAudit(vi))
 
 	if err := vi.refreshOverviewMessage(); err != nil {
 		*response = "Unable to refresh the music message"
@@ -62,8 +68,11 @@ func StopMusicInteraction(guildID string, author *discordgo.User, permissionCtx 
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
+	removed := queuedSongsAfterCurrent(vi)
 	*response = "-1"
 	leaveVoice(vi)
+	logMusicAudit(guildID, author.ID, auditActionStop, stopDescription(removed), currentSong)
 }
 
 func ClearMusicQueueInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
@@ -87,7 +96,9 @@ func ClearMusicQueueInteraction(guildID string, author *discordgo.User, permissi
 		return
 	}
 
+	removed := queuedSongsAfterCurrent(vi)
 	vi.ClearQueueAfter()
+	logMusicAudit(guildID, author.ID, auditActionClear, clearQueueDescription(removed), currentSongForAudit(vi))
 	if err := vi.refreshOverviewMessage(); err != nil {
 		*response = "Unable to refresh the music message"
 	}
@@ -114,7 +125,13 @@ func SongLoopInteraction(guildID string, author *discordgo.User, permissionCtx p
 		return
 	}
 
+	nextLooping := !vi.IsLooping()
 	vi.ToggleLooping()
+	action := auditActionLoopOff
+	if nextLooping {
+		action = auditActionLoopOn
+	}
+	logMusicAudit(guildID, author.ID, action, "", currentSongForAudit(vi))
 	if err := vi.refreshOverviewMessage(); err != nil {
 		*response = "Unable to refresh the music message"
 	}
@@ -141,10 +158,13 @@ func PreviousSongInteraction(guildID string, author *discordgo.User, permissionC
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
+	action := previousActionLabel(vi)
 	if !vi.Prev() {
 		*response = "There is no song to restart"
 		return
 	}
+	logMusicAudit(guildID, author.ID, action, "", currentSong)
 }
 
 func NextSongInteraction(guildID string, author *discordgo.User, permissionCtx permissions.Context, response *string) {
@@ -168,8 +188,10 @@ func NextSongInteraction(guildID string, author *discordgo.User, permissionCtx p
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
 	if !vi.Skip() {
 		*response = "There is no song to skip"
 		return
 	}
+	logMusicAudit(guildID, author.ID, auditActionSkip, "", currentSong)
 }

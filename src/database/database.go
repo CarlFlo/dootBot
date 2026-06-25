@@ -42,6 +42,7 @@ func connectToDB() error {
 		&GuildPermissionRole{},
 		&GuildPermissionSettings{},
 		&GuildMusicChannel{},
+		&MusicAuditLog{},
 		&User{},
 		&Work{},
 		&Daily{},

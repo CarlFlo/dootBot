@@ -78,6 +78,11 @@ func mapValidCommands() {
 		requiredPermission: enumAdmin,
 		helpSyntax:         "[permissions|channels]",
 		commandType:        typeGeneral}
+	validCommands["audit"] = command{
+		function:           commands.Audit,
+		requiredPermission: enumAdmin,
+		helpSyntax:         "[page number]",
+		commandType:        typeGeneral}
 
 	// Perm User - General commands
 	validCommands["help"] = command{

@@ -80,10 +80,16 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 			utils.SendMessageFailureTemporary(m, "You need Controller permission to resume playback")
 			return
 		}
+		wasPaused := vi.IsPaused()
 		if !vi.PauseToggle() {
 			utils.SendMessageFailureTemporary(m, "There is no active song to resume")
 			return
 		}
+		action := auditActionPause
+		if wasPaused {
+			action = auditActionResume
+		}
+		logMusicAudit(m.GuildID, m.Author.ID, action, "", currentSongForAudit(vi))
 		if err := vi.refreshOverviewMessage(); err != nil {
 			malm.Error("unable to refresh music overview: %s", err)
 		}
@@ -98,18 +104,23 @@ func PlayMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	wasWorkerRunning := vi.IsWorkerRunning()
 	vi.AddToQueue(song)
+	if wasWorkerRunning {
+		logMusicAudit(m.GuildID, m.Author.ID, auditActionAdd, "", song)
+	}
 	if err := updateOverviewMessageForQueue(m.ChannelID, vi); err != nil {
 		malm.Error("unable to update music overview: %s", err)
 	}
 
 	_, _ = utils.SendMessageNeutralTemporary(m, fmt.Sprintf("%s added the song ``%s`` to the queue (%s)", m.Author.Username, song.Title, song.Duration))
 
-	if !vi.IsWorkerRunning() {
+	if !wasWorkerRunning {
 		if err := manager.playCurrentSongWithSession(s, vi); err != nil {
 			utils.SendMessageFailureTemporary(m, fmt.Sprintf("Unable to start playback.\nReason: %s", err))
 			return
 		}
+		logMusicAudit(m.GuildID, m.Author.ID, auditActionPlay, "", song)
 		if err := vi.refreshOverviewMessage(); err != nil {
 			malm.Error("unable to refresh music overview: %s", err)
 		}
@@ -127,7 +138,10 @@ func StopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
+	removed := queuedSongsAfterCurrent(vi)
 	leaveVoice(vi)
+	logMusicAudit(m.GuildID, m.Author.ID, auditActionStop, stopDescription(removed), currentSong)
 }
 
 func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
@@ -141,7 +155,9 @@ func SkipMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
 	if vi.Skip() {
+		logMusicAudit(m.GuildID, m.Author.ID, auditActionSkip, "", currentSong)
 		_, _ = utils.SendMessageSuccessTemporary(m, "Skipped the song")
 		return
 	}
@@ -160,7 +176,9 @@ func ClearQueueMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 		return
 	}
 
+	removed := queuedSongsAfterCurrent(vi)
 	vi.ClearQueueAfter()
+	logMusicAudit(m.GuildID, m.Author.ID, auditActionClear, clearQueueDescription(removed), currentSongForAudit(vi))
 	if err := vi.refreshOverviewMessage(); err != nil {
 		malm.Error("unable to refresh music overview: %s", err)
 	}
@@ -177,10 +195,16 @@ func PauseMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs
 		return
 	}
 
+	wasPaused := vi.IsPaused()
 	if !vi.PauseToggle() {
 		utils.SendMessageFailureTemporary(m, "There is no song to pause")
 		return
 	}
+	action := auditActionPause
+	if wasPaused {
+		action = auditActionResume
+	}
+	logMusicAudit(m.GuildID, m.Author.ID, action, "", currentSongForAudit(vi))
 
 	if err := vi.refreshOverviewMessage(); err != nil {
 		malm.Error("unable to refresh music overview: %s", err)
@@ -198,7 +222,13 @@ func LoopMusic(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		return
 	}
 
+	nextLooping := !vi.IsLooping()
 	vi.ToggleLooping()
+	action := auditActionLoopOff
+	if nextLooping {
+		action = auditActionLoopOn
+	}
+	logMusicAudit(m.GuildID, m.Author.ID, action, "", currentSongForAudit(vi))
 	if err := vi.refreshOverviewMessage(); err != nil {
 		malm.Error("unable to refresh music overview: %s", err)
 	}
@@ -215,10 +245,13 @@ func MusicPrevious(s *discordgo.Session, m *discordgo.MessageCreate, input *stru
 		return
 	}
 
+	currentSong := currentSongForAudit(vi)
+	action := previousActionLabel(vi)
 	if !vi.Prev() {
 		utils.SendMessageNeutralTemporary(m, "There is no song to restart")
 		return
 	}
+	logMusicAudit(m.GuildID, m.Author.ID, action, "", currentSong)
 
 	utils.SendMessageNeutralTemporary(m, "Restarted the current song")
 }
