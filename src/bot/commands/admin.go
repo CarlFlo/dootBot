@@ -282,9 +282,7 @@ func sendMusicPermissionsHelp(m *discordgo.MessageCreate) {
 	lines := []string{
 		"**Music Permissions**",
 		"`music permissions view`",
-		"`music permissions linkrole requester <@role>`",
-		"`music permissions linkrole controller <@role>`",
-		"`music permissions linkrole admin <@role>`",
+		"`music permissions linkrole [requester|controller|admin] <@role>`",
 		"`music permissions unlinkrole <@role>`",
 		"`music permissions openrequests`",
 		"`music permissions openrequests [on|off]`",
