@@ -282,10 +282,10 @@ func sendMusicPermissionsHelp(m *discordgo.MessageCreate) {
 	lines := []string{
 		"**Music Permissions**",
 		"`music permissions view`",
-		"`music permissions linkrole requester <role ID or role mention>`",
-		"`music permissions linkrole controller <role ID or role mention>`",
-		"`music permissions linkrole admin <role ID or role mention>`",
-		"`music permissions unlinkrole <role ID or role mention>`",
+		"`music permissions linkrole requester <@role>`",
+		"`music permissions linkrole controller <@role>`",
+		"`music permissions linkrole admin <@role>`",
+		"`music permissions unlinkrole <@role>`",
 		"`music permissions openrequests`",
 		"`music permissions openrequests [on|off]`",
 	}
@@ -296,9 +296,8 @@ func sendMusicChannelsHelp(m *discordgo.MessageCreate) {
 	lines := []string{
 		"**Music Channels**",
 		"`music channels view`",
-		"`music channels bind #music`",
-		"`music channels bind #bot-commands`",
-		"`music channels unbind #music`",
+		"`music channels bind <#channel>`",
+		"`music channels unbind <#channel>`",
 		"`music channels clear`",
 	}
 	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
