@@ -53,55 +53,30 @@ func mapValidCommands() {
 		requiredPermission: enumAdmin,
 		commandType:        typeGeneral}
 
-	validCommands["debug"] = command{
-		function:           commands.Debug,
+	/*
+		validCommands["debug"] = command{
+			function:           commands.Debug,
+			requiredPermission: enumAdmin,
+			commandType:        typeGeneral}
+	*/
+	/*
+		validCommands["presence"] = command{
+			function:           commands.Presence,
+			requiredPermission: enumAdmin,
+			helpSyntax:         "[v verbose, d dump]",
+			commandType:        typeGeneral}
+	*/
+	/*
+		validCommands["gleave"] = command{
+			function:           commands.LeaveServer,
+			requiredPermission: enumAdmin,
+			helpSyntax:         "[server/guild ID]",
+			commandType:        typeGeneral}
+	*/
+	validCommands["music"] = command{
+		function:           commands.MusicAdmin,
 		requiredPermission: enumAdmin,
-		commandType:        typeGeneral}
-
-	validCommands["presence"] = command{
-		function:           commands.Presence,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[v verbose, d dump]",
-		commandType:        typeGeneral}
-
-	validCommands["gleave"] = command{
-		function:           commands.LeaveServer,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[server/guild ID]",
-		commandType:        typeGeneral}
-
-	validCommands["promote"] = command{
-		function:           commands.AdminAdd,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[requester/controller/admin] [user ID or mention]",
-		commandType:        typeGeneral}
-
-	validCommands["demote"] = command{
-		function:           commands.AdminRemove,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[user ID or mention]",
-		commandType:        typeGeneral}
-
-	validCommands["admins"] = command{
-		function:           commands.AdminList,
-		requiredPermission: enumAdmin,
-		commandType:        typeGeneral}
-
-	validCommands["permissions"] = command{
-		function:           commands.AdminList,
-		requiredPermission: enumAdmin,
-		commandType:        typeGeneral}
-
-	validCommands["linkrole"] = command{
-		function:           commands.AdminLinkRole,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[requester/controller/admin] [role ID or mention]",
-		commandType:        typeGeneral}
-
-	validCommands["unlinkrole"] = command{
-		function:           commands.AdminUnlinkRole,
-		requiredPermission: enumAdmin,
-		helpSyntax:         "[role ID or mention]",
+		helpSyntax:         "[permissions|channels]",
 		commandType:        typeGeneral}
 
 	// Perm User - General commands
@@ -190,17 +165,18 @@ func mapValidCommands() {
 		requiredPermission: enumUser,
 		commandType:        typeEconomy}
 
-	// Perm User - Misc commands
-	validCommands["ping"] = command{
-		function:           commands.Ping,
-		requiredPermission: enumUser,
-		commandType:        typeMisc}
+	/*
+		// Perm User - Misc commands
+		validCommands["ping"] = command{
+			function:           commands.Ping,
+			requiredPermission: enumUser,
+			commandType:        typeMisc}
 
-	validCommands["botinvite"] = command{
-		function:           commands.BotInvite,
-		requiredPermission: enumUser,
-		commandType:        typeMisc}
-
+		validCommands["botinvite"] = command{
+			function:           commands.BotInvite,
+			requiredPermission: enumUser,
+			commandType:        typeMisc}
+	*/
 	// Validates the keys so no-one is uppercase
 	validateKeys()
 	generateHelp()

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/CarlFlo/dootBot/src/bot/structs"
 	"github.com/CarlFlo/dootBot/src/database"
@@ -16,93 +14,60 @@ import (
 
 var discordIDPattern = regexp.MustCompile(`\d+`)
 
-const permissionIdentityCacheTTL = 7 * 24 * time.Hour
-
-var permissionIdentityCache = struct {
-	mu          sync.RWMutex
-	namesByID   map[string]string
-	refreshedAt time.Time
-}{
-	namesByID: map[string]string{},
-}
-
-func AdminAdd(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+func MusicAdmin(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if m.GuildID == "" {
 		utils.SendMessageFailure(m, "This command can only be used in a server")
 		return
 	}
-	if !input.NumberOfArgsAreAtleast(2) {
-		utils.SendMessageFailure(m, "Usage: promote [requester/controller/admin] [user ID or mention]")
-		return
-	}
 
-	level, err := permissions.ParseLevel(input.GetArgsLowercase()[0])
-	if err != nil {
-		utils.SendMessageFailure(m, err.Error())
-		return
-	}
-
-	discordID := parseDiscordID(input.GetArgs()[1])
-	if discordID == "" {
-		utils.SendMessageFailure(m, "Could not parse the Discord user ID")
-		return
-	}
-
-	if err := database.SetGuildUserPermission(m.GuildID, discordID, uint8(level)); err != nil {
-		utils.SendMessageFailure(m, fmt.Sprintf("Failed to set permission: %s", err))
-		return
-	}
-
-	cachePermissionIdentity(s, discordID)
-	utils.SendMessageSuccess(m, fmt.Sprintf("Granted %s to %s in this server", level.String(), formatPermissionIdentity(s, discordID)))
-}
-
-func AdminRemove(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if m.GuildID == "" {
-		utils.SendMessageFailure(m, "This command can only be used in a server")
-		return
-	}
 	if !input.NumberOfArgsAreAtleast(1) {
-		utils.SendMessageFailure(m, "Usage: demote [user ID or mention]")
+		sendMusicHelp(m)
 		return
 	}
 
-	discordID := parseDiscordID(input.GetArgs()[0])
-	if discordID == "" {
-		utils.SendMessageFailure(m, "Could not parse the Discord user ID")
-		return
+	switch input.GetArgsLowercase()[0] {
+	case "permissions":
+		handleMusicPermissions(s, m, input)
+	case "channels":
+		handleMusicChannels(s, m, input)
+	default:
+		sendMusicHelp(m)
 	}
-
-	if err := database.RemoveGuildUserPermission(m.GuildID, discordID); err != nil {
-		if database.IsGuildPermissionNotFound(err) {
-			utils.SendMessageNeutral(m, fmt.Sprintf("%s has no explicit permission override in this server", formatPermissionIdentity(s, discordID)))
-			return
-		}
-		utils.SendMessageFailure(m, fmt.Sprintf("Failed to remove permission: %s", err))
-		return
-	}
-
-	removeCachedPermissionIdentity(discordID)
-	utils.SendMessageSuccess(m, fmt.Sprintf("Removed explicit permissions for %s in this server", formatPermissionIdentity(s, discordID)))
 }
 
-func AdminLinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if m.GuildID == "" {
-		utils.SendMessageFailure(m, "This command can only be used in a server")
-		return
-	}
+func handleMusicPermissions(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
 	if !input.NumberOfArgsAreAtleast(2) {
-		utils.SendMessageFailure(m, "Usage: linkrole [requester/controller/admin] [role ID or mention]")
+		sendMusicPermissionsHelp(m)
 		return
 	}
 
-	level, err := permissions.ParseLevel(input.GetArgsLowercase()[0])
+	switch input.GetArgsLowercase()[1] {
+	case "view":
+		musicPermissionsView(s, m)
+	case "linkrole":
+		musicPermissionsLinkRole(s, m, input)
+	case "unlinkrole":
+		musicPermissionsUnlinkRole(s, m, input)
+	case "openrequests":
+		musicPermissionsOpenRequests(m, input)
+	default:
+		sendMusicPermissionsHelp(m)
+	}
+}
+
+func musicPermissionsLinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !input.NumberOfArgsAreAtleast(4) {
+		utils.SendMessageFailure(m, "Usage: music permissions linkrole [requester|controller|admin] <@role>")
+		return
+	}
+
+	level, err := permissions.ParseLevel(input.GetArgsLowercase()[2])
 	if err != nil {
 		utils.SendMessageFailure(m, err.Error())
 		return
 	}
 
-	roleID := parseDiscordID(input.GetArgs()[1])
+	roleID := parseDiscordID(input.GetArgs()[3])
 	if roleID == "" {
 		utils.SendMessageFailure(m, "Could not parse the Discord role ID")
 		return
@@ -113,20 +78,16 @@ func AdminLinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *stru
 		return
 	}
 
-	utils.SendMessageSuccess(m, fmt.Sprintf("Linked role %s to %s in this server", formatRoleIdentity(s, m.GuildID, roleID), level.String()))
+	utils.SendMessageSuccess(m, fmt.Sprintf("Linked role %s to %s", formatRoleIdentity(s, m.GuildID, roleID), level.String()))
 }
 
-func AdminUnlinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if m.GuildID == "" {
-		utils.SendMessageFailure(m, "This command can only be used in a server")
-		return
-	}
-	if !input.NumberOfArgsAreAtleast(1) {
-		utils.SendMessageFailure(m, "Usage: unlinkrole [role ID or mention]")
+func musicPermissionsUnlinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !input.NumberOfArgsAreAtleast(3) {
+		utils.SendMessageFailure(m, "Usage: music permissions unlinkrole <@role>")
 		return
 	}
 
-	roleID := parseDiscordID(input.GetArgs()[0])
+	roleID := parseDiscordID(input.GetArgs()[2])
 	if roleID == "" {
 		utils.SendMessageFailure(m, "Could not parse the Discord role ID")
 		return
@@ -134,57 +95,63 @@ func AdminUnlinkRole(s *discordgo.Session, m *discordgo.MessageCreate, input *st
 
 	if err := database.RemoveGuildRolePermission(m.GuildID, roleID); err != nil {
 		if database.IsGuildPermissionNotFound(err) {
-			utils.SendMessageNeutral(m, fmt.Sprintf("%s is not linked to a DootBot permission in this server", formatRoleIdentity(s, m.GuildID, roleID)))
+			utils.SendMessageNeutral(m, fmt.Sprintf("%s is not linked", formatRoleIdentity(s, m.GuildID, roleID)))
 			return
 		}
 		utils.SendMessageFailure(m, fmt.Sprintf("Failed to unlink role: %s", err))
 		return
 	}
 
-	utils.SendMessageSuccess(m, fmt.Sprintf("Unlinked role %s from DootBot permissions in this server", formatRoleIdentity(s, m.GuildID, roleID)))
+	utils.SendMessageSuccess(m, fmt.Sprintf("Unlinked role %s", formatRoleIdentity(s, m.GuildID, roleID)))
 }
 
-func AdminList(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
-	if m.GuildID == "" {
-		utils.SendMessageFailure(m, "This command can only be used in a server")
-		return
-	}
-
-	assignments, err := database.ListGuildUserPermissions(m.GuildID)
+func musicPermissionsOpenRequests(m *discordgo.MessageCreate, input *structs.CmdInput) {
+	settings, err := database.GetGuildPermissionSettings(m.GuildID)
 	if err != nil {
-		utils.SendMessageFailure(m, fmt.Sprintf("Failed to load user permissions: %s", err))
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to load permission settings: %s", err))
 		return
 	}
 
+	if !input.NumberOfArgsAreAtleast(3) {
+		lines := []string{
+			"**Music Permissions: Open Requests**",
+			fmt.Sprintf("Status: **%s**", toggleStateLabel(settings.OpenRequestsEnabled)),
+			"`music permissions openrequests [on|off]`",
+		}
+		utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
+		return
+	}
+
+	enabled, ok := parseToggleState(input.GetArgsLowercase()[2])
+	if !ok {
+		utils.SendMessageFailure(m, "Usage: music permissions openrequests [on|off]")
+		return
+	}
+
+	if err := database.SetGuildOpenRequestsEnabled(m.GuildID, enabled); err != nil {
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to update open requests: %s", err))
+		return
+	}
+
+	utils.SendMessageSuccess(m, fmt.Sprintf("Open requests are now **%s**", toggleStateLabel(enabled)))
+}
+
+func musicPermissionsView(s *discordgo.Session, m *discordgo.MessageCreate) {
 	roleLinks, err := database.ListGuildRolePermissions(m.GuildID)
 	if err != nil {
 		utils.SendMessageFailure(m, fmt.Sprintf("Failed to load role permissions: %s", err))
 		return
 	}
 
-	userIDs := make([]string, 0, len(assignments))
-	for _, assignment := range assignments {
-		userIDs = append(userIDs, assignment.DiscordID)
+	settings, err := database.GetGuildPermissionSettings(m.GuildID)
+	if err != nil {
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to load permission settings: %s", err))
+		return
 	}
-	ensurePermissionIdentityCache(s, userIDs)
 
-	guild, _ := s.Guild(m.GuildID)
 	lines := []string{
-		"**DootBot permissions for this server**",
-	}
-
-	if guild != nil {
-		lines = append(lines, fmt.Sprintf("Owner: %s", formatPermissionIdentity(s, guild.OwnerID)))
-	}
-	lines = append(lines, "Members with Discord Administrator or Manage Server are also treated as Admin")
-
-	if len(assignments) == 0 {
-		lines = append(lines, "User grants: none")
-	} else {
-		lines = append(lines, "User grants:")
-		for _, assignment := range assignments {
-			lines = append(lines, fmt.Sprintf("- %s: %s", formatPermissionIdentity(s, assignment.DiscordID), permissions.Level(assignment.Level).String()))
-		}
+		"**Music Permissions**",
+		fmt.Sprintf("Open requests: **%s**", toggleStateLabel(settings.OpenRequestsEnabled)),
 	}
 
 	if len(roleLinks) == 0 {
@@ -196,6 +163,144 @@ func AdminList(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.
 		}
 	}
 
+	lines = append(lines, "`music permissions linkrole [requester|controller|admin] <@role>`")
+	lines = append(lines, "`music permissions openrequests`")
+	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
+}
+
+func handleMusicChannels(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !input.NumberOfArgsAreAtleast(2) {
+		sendMusicChannelsHelp(m)
+		return
+	}
+
+	switch input.GetArgsLowercase()[1] {
+	case "view":
+		musicChannelsView(s, m)
+	case "bind":
+		musicChannelsBind(s, m, input)
+	case "unbind":
+		musicChannelsUnbind(s, m, input)
+	case "clear":
+		musicChannelsClear(m)
+	default:
+		sendMusicChannelsHelp(m)
+	}
+}
+
+func musicChannelsView(s *discordgo.Session, m *discordgo.MessageCreate) {
+	channels, err := database.ListGuildMusicChannels(m.GuildID)
+	if err != nil {
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to load music channels: %s", err))
+		return
+	}
+
+	lines := []string{
+		"**Music Channels**",
+	}
+
+	if len(channels) == 0 {
+		lines = append(lines, "Bound channels: none")
+		lines = append(lines, "Bot commands are allowed in **all channels**")
+	} else {
+		lines = append(lines, "Bound channels:")
+		for _, channel := range channels {
+			lines = append(lines, fmt.Sprintf("- %s", formatChannelIdentity(s, channel.ChannelID)))
+		}
+	}
+
+	lines = append(lines, "`music channels bind <#channel>`")
+	lines = append(lines, "`music channels clear`")
+	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
+}
+
+func musicChannelsBind(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !input.NumberOfArgsAreAtleast(3) {
+		utils.SendMessageFailure(m, "Usage: music channels bind <#channel>")
+		return
+	}
+
+	channelID := parseDiscordID(input.GetArgs()[2])
+	if channelID == "" {
+		utils.SendMessageFailure(m, "Could not parse the Discord channel ID")
+		return
+	}
+
+	if err := database.BindGuildMusicChannel(m.GuildID, channelID); err != nil {
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to bind channel: %s", err))
+		return
+	}
+
+	utils.SendMessageSuccess(m, fmt.Sprintf("Bound %s for bot commands", formatChannelIdentity(s, channelID)))
+}
+
+func musicChannelsUnbind(s *discordgo.Session, m *discordgo.MessageCreate, input *structs.CmdInput) {
+	if !input.NumberOfArgsAreAtleast(3) {
+		utils.SendMessageFailure(m, "Usage: music channels unbind <#channel>")
+		return
+	}
+
+	channelID := parseDiscordID(input.GetArgs()[2])
+	if channelID == "" {
+		utils.SendMessageFailure(m, "Could not parse the Discord channel ID")
+		return
+	}
+
+	if err := database.UnbindGuildMusicChannel(m.GuildID, channelID); err != nil {
+		if database.IsGuildPermissionNotFound(err) {
+			utils.SendMessageNeutral(m, fmt.Sprintf("%s is not bound", formatChannelIdentity(s, channelID)))
+			return
+		}
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to unbind channel: %s", err))
+		return
+	}
+
+	utils.SendMessageSuccess(m, fmt.Sprintf("Unbound %s", formatChannelIdentity(s, channelID)))
+}
+
+func musicChannelsClear(m *discordgo.MessageCreate) {
+	if err := database.ClearGuildMusicChannels(m.GuildID); err != nil {
+		utils.SendMessageFailure(m, fmt.Sprintf("Failed to clear music channels: %s", err))
+		return
+	}
+
+	utils.SendMessageSuccess(m, "Cleared all music channel bindings")
+}
+
+func sendMusicHelp(m *discordgo.MessageCreate) {
+	lines := []string{
+		"**Music**",
+		"`music permissions`",
+		"`music permissions view`",
+		"`music channels`",
+		"`music channels view`",
+	}
+	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
+}
+
+func sendMusicPermissionsHelp(m *discordgo.MessageCreate) {
+	lines := []string{
+		"**Music Permissions**",
+		"`music permissions view`",
+		"`music permissions linkrole requester <role ID or role mention>`",
+		"`music permissions linkrole controller <role ID or role mention>`",
+		"`music permissions linkrole admin <role ID or role mention>`",
+		"`music permissions unlinkrole <role ID or role mention>`",
+		"`music permissions openrequests`",
+		"`music permissions openrequests [on|off]`",
+	}
+	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
+}
+
+func sendMusicChannelsHelp(m *discordgo.MessageCreate) {
+	lines := []string{
+		"**Music Channels**",
+		"`music channels view`",
+		"`music channels bind #music`",
+		"`music channels bind #bot-commands`",
+		"`music channels unbind #music`",
+		"`music channels clear`",
+	}
 	utils.SendMessageNeutral(m, strings.Join(lines, "\n"))
 }
 
@@ -203,103 +308,7 @@ func parseDiscordID(input string) string {
 	return discordIDPattern.FindString(input)
 }
 
-func formatPermissionIdentity(s *discordgo.Session, discordID string) string {
-	ensurePermissionIdentityCache(s, []string{discordID})
-
-	permissionIdentityCache.mu.RLock()
-	cachedName := permissionIdentityCache.namesByID[discordID]
-	permissionIdentityCache.mu.RUnlock()
-	if cachedName != "" {
-		return cachedName
-	}
-
-	name := resolveDiscordUsername(s, discordID)
-	cacheResolvedPermissionIdentity(discordID, name)
-	return name
-}
-
-func ensurePermissionIdentityCache(s *discordgo.Session, discordIDs []string) {
-	if len(discordIDs) == 0 {
-		return
-	}
-
-	permissionIdentityCache.mu.RLock()
-	cacheEmpty := len(permissionIdentityCache.namesByID) == 0
-	cacheExpired := !permissionIdentityCache.refreshedAt.IsZero() && time.Since(permissionIdentityCache.refreshedAt) >= permissionIdentityCacheTTL
-	permissionIdentityCache.mu.RUnlock()
-
-	if cacheEmpty || cacheExpired {
-		refreshPermissionIdentityCache(s, discordIDs)
-		return
-	}
-
-	missingIDs := make([]string, 0)
-	permissionIdentityCache.mu.RLock()
-	for _, discordID := range discordIDs {
-		if _, ok := permissionIdentityCache.namesByID[discordID]; !ok {
-			missingIDs = append(missingIDs, discordID)
-		}
-	}
-	permissionIdentityCache.mu.RUnlock()
-
-	if len(missingIDs) > 0 {
-		refreshMissingPermissionIdentities(s, missingIDs)
-	}
-}
-
-func refreshPermissionIdentityCache(s *discordgo.Session, discordIDs []string) {
-	namesByID := make(map[string]string, len(discordIDs))
-	for _, discordID := range discordIDs {
-		namesByID[discordID] = resolveDiscordUsername(s, discordID)
-	}
-
-	permissionIdentityCache.mu.Lock()
-	permissionIdentityCache.namesByID = namesByID
-	permissionIdentityCache.refreshedAt = time.Now()
-	permissionIdentityCache.mu.Unlock()
-}
-
-func refreshMissingPermissionIdentities(s *discordgo.Session, discordIDs []string) {
-	permissionIdentityCache.mu.Lock()
-	defer permissionIdentityCache.mu.Unlock()
-
-	for _, discordID := range discordIDs {
-		if _, ok := permissionIdentityCache.namesByID[discordID]; ok {
-			continue
-		}
-		permissionIdentityCache.namesByID[discordID] = resolveDiscordUsername(s, discordID)
-	}
-}
-
-func cachePermissionIdentity(s *discordgo.Session, discordID string) {
-	cacheResolvedPermissionIdentity(discordID, resolveDiscordUsername(s, discordID))
-}
-
-func cacheResolvedPermissionIdentity(discordID, name string) {
-	permissionIdentityCache.mu.Lock()
-	permissionIdentityCache.namesByID[discordID] = name
-	if permissionIdentityCache.refreshedAt.IsZero() {
-		permissionIdentityCache.refreshedAt = time.Now()
-	}
-	permissionIdentityCache.mu.Unlock()
-}
-
-func removeCachedPermissionIdentity(discordID string) {
-	permissionIdentityCache.mu.Lock()
-	delete(permissionIdentityCache.namesByID, discordID)
-	permissionIdentityCache.mu.Unlock()
-}
-
-func resolveDiscordUsername(s *discordgo.Session, discordID string) string {
-	user, err := s.User(discordID)
-	if err != nil || user == nil {
-		return fmt.Sprintf("`%s`", discordID)
-	}
-
-	return formatDiscordUsername(user)
-}
-
-func resolveRoleName(s *discordgo.Session, guildID, roleID string) string {
+func formatRoleIdentity(s *discordgo.Session, guildID, roleID string) string {
 	guild, err := s.State.Guild(guildID)
 	if err != nil || guild == nil {
 		guild, err = s.Guild(guildID)
@@ -317,14 +326,32 @@ func resolveRoleName(s *discordgo.Session, guildID, roleID string) string {
 	return fmt.Sprintf("<@&%s>", roleID)
 }
 
-func formatRoleIdentity(s *discordgo.Session, guildID, roleID string) string {
-	return resolveRoleName(s, guildID, roleID)
-}
-
-func formatDiscordUsername(user *discordgo.User) string {
-	if user.Discriminator != "" && user.Discriminator != "0" {
-		return fmt.Sprintf("%s#%s", user.Username, user.Discriminator)
+func formatChannelIdentity(s *discordgo.Session, channelID string) string {
+	if channel, err := s.State.Channel(channelID); err == nil && channel != nil {
+		return fmt.Sprintf("#%s", channel.Name)
 	}
 
-	return user.Username
+	if channel, err := s.Channel(channelID); err == nil && channel != nil {
+		return fmt.Sprintf("#%s", channel.Name)
+	}
+
+	return fmt.Sprintf("<#%s>", channelID)
+}
+
+func parseToggleState(input string) (bool, bool) {
+	switch strings.ToLower(strings.TrimSpace(input)) {
+	case "on", "enable", "enabled", "true", "yes":
+		return true, true
+	case "off", "disable", "disabled", "false", "no":
+		return false, true
+	default:
+		return false, false
+	}
+}
+
+func toggleStateLabel(enabled bool) string {
+	if enabled {
+		return "Enabled"
+	}
+	return "Disabled"
 }

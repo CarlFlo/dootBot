@@ -19,6 +19,8 @@ import (
 
 const CurrentVersion = "2026-06-24"
 
+// https://discordapp.com/oauth2/authorize?&client_id=239142763315200001&scope=bot&permissions=139690691648
+
 func init() {
 
 	malm.SetLogVerboseBitmask(39) // Turns of verbose for debug and info log messages

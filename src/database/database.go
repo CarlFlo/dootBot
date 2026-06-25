@@ -39,8 +39,9 @@ func connectToDB() error {
 	}
 
 	var modelList = []interface{}{
-		&GuildPermissionAssignment{},
 		&GuildPermissionRole{},
+		&GuildPermissionSettings{},
+		&GuildMusicChannel{},
 		&User{},
 		&Work{},
 		&Daily{},
@@ -65,6 +66,28 @@ func connectToDB() error {
 		}
 	}
 
+	if err := migrateLegacyPermissionTables(); err != nil {
+		return err
+	}
+
 	// Remeber to add new tables to the 'modelList' and not just here!
 	return DB.AutoMigrate(modelList...)
+}
+
+func migrateLegacyPermissionTables() error {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Migrator().HasTable(&GuildPermissionAssignment{}) {
+			if err := tx.Migrator().DropTable(&GuildPermissionAssignment{}); err != nil {
+				return err
+			}
+		}
+
+		if tx.Migrator().HasTable(&Admin{}) {
+			if err := tx.Migrator().DropTable(&Admin{}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }

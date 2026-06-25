@@ -23,8 +23,8 @@ type Context struct {
 	UserID          string
 	IsGuildOwner    bool
 	HasDiscordAdmin bool
-	ExplicitLevel   Level
 	LinkedRoleLevel Level
+	OpenRequests    bool
 	ResolvedLevel   Level
 }
 
@@ -111,11 +111,14 @@ func resolve(s *discordgo.Session, guildID, channelID, userID string, roleIDs []
 		}
 	}
 
-	userLevel, roleLevel, err := database.ResolveGuildPermissionLevel(guildID, userID, memberRoleIDs)
+	roleLevel, openRequestsEnabled, err := database.ResolveGuildPermissionLevel(guildID, memberRoleIDs)
 	if err == nil {
-		ctx.ExplicitLevel = Level(userLevel)
 		ctx.LinkedRoleLevel = Level(roleLevel)
-		ctx.ResolvedLevel = maxLevel(ctx.ExplicitLevel, ctx.LinkedRoleLevel)
+		ctx.OpenRequests = openRequestsEnabled
+		ctx.ResolvedLevel = ctx.LinkedRoleLevel
+		if openRequestsEnabled {
+			ctx.ResolvedLevel = maxLevel(ctx.ResolvedLevel, LevelRequester)
+		}
 	}
 
 	if guild, err := guildByID(s, guildID); err == nil && guild != nil && guild.OwnerID == userID {

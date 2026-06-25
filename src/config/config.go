@@ -15,7 +15,6 @@ var CONFIG *configStruct
 type configStruct struct {
 	Token               string            `json:"token"`
 	BotPrefix           string            `json:"botPrefix"`
-	BoundChannels       []string          `json:"boundChannels"`
 	AllowDirectMessages bool              `json:"allowDirectMessages"`
 	BotInfo             botInfo           `json:"botInfo"`
 	Music               music             `json:"music"`
@@ -161,7 +160,6 @@ func createConfig() error {
 	configStruct := configStruct{
 		Token:               "",
 		BotPrefix:           ",",
-		BoundChannels:       []string{},
 		AllowDirectMessages: true,
 		BotInfo: botInfo{
 			AppID:      "",

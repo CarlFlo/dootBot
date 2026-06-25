@@ -27,11 +27,6 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Message.Content, config.CONFIG.BotPrefix) {
 		// Message is a command
 
-		// Checks that the origin of the message is valid
-		if !validateMessageOrigin(m.GuildID, m.ChannelID) {
-			return
-		}
-
 		// Trim length if required. Ignores if 0
 		if config.CONFIG.MessageProcessing.MaxIncommingMsgLength != 0 && len(m.Message.Content) > config.CONFIG.MessageProcessing.MaxIncommingMsgLength {
 			m.Message.Content = m.Message.Content[:config.CONFIG.MessageProcessing.MaxIncommingMsgLength]
@@ -41,6 +36,11 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		permissionCtx := permissions.ResolveMessage(s, m)
 		data := &structs.CmdInput{}
 		data.ParseInput(m.Message.Content, permissionCtx)
+
+		// Checks that the origin of the message is valid for this command
+		if !validateMessageOrigin(m.GuildID, m.ChannelID, data.GetCommand()) {
+			return
+		}
 
 		// validCommands is a map containing all commands
 		if command, ok := validCommands[data.GetCommand()]; ok {
@@ -61,24 +61,15 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 }
 
-// Will only allowed messages from bound channels, if any are specified.
-// If no bound channels are specified then all channels are allowed
-// Does not handle direct messages
-func fromBoundChannel(channelID string) bool {
-
-	// If list is empty then allow everything
-	if len(config.CONFIG.BoundChannels) == 0 {
+// If no guild music channels are bound then all channels are allowed.
+func fromBoundChannel(guildID, channelID string) bool {
+	allowed, err := database.IsGuildMusicChannelAllowed(guildID, channelID)
+	if err != nil {
+		malm.Error("Error checking guild music channels: %s", err)
 		return true
 	}
 
-	// Iterate over all bound channels
-	for _, allowedID := range config.CONFIG.BoundChannels {
-		if channelID == allowedID {
-			return true
-		}
-	}
-
-	return false
+	return allowed
 }
 
 // Checks if the message is a direct (private) message
@@ -89,7 +80,7 @@ func isDirectMessage(guildID string) bool {
 // Checks where the message comes from and checks it against rules to
 // allow or discard messages. Example: If it is a direct message while
 // direct messaging in turned off. Or from an unbound channel, if any exists.
-func validateMessageOrigin(guildID, channelID string) bool {
+func validateMessageOrigin(guildID, channelID, command string) bool {
 
 	// Check if it is a private message
 	if isDirectMessage(guildID) {
@@ -99,9 +90,7 @@ func validateMessageOrigin(guildID, channelID string) bool {
 			return false
 		}
 	} else {
-		// Check if message is from a bound channel or if bound channels are used
-		if !fromBoundChannel(channelID) {
-			// Not from a bound channel
+		if command != "" && !fromBoundChannel(guildID, channelID) {
 			return false
 		}
 	}
